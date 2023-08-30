@@ -1,4 +1,7 @@
-package com.avensys.jobservice.service;
+package com.avensys.rts.jobservice.service;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import com.avensys.jobservice.dto.JobRequest;
-import com.avensys.jobservice.entity.JobEntity;
-import com.avensys.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.dto.JobRequest;
+import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.repository.JobRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -27,12 +30,14 @@ public class JobService {
 	private JobEntity mapRequestToEntity(JobRequest jobRequest, JobEntity jobEntity) {
 		if(jobEntity == null)
 			jobEntity = new JobEntity();
+		
+		jobEntity.setRemarks(jobRequest.getJobRemarks());
 		if(!ObjectUtils.isEmpty(jobRequest.getJobOpeningInformation())) {
 			jobEntity.setJobDescription(jobRequest.getJobOpeningInformation().getJobDescription());
 			jobEntity.setTitle(jobRequest.getJobOpeningInformation().getJobTitle());
 			jobEntity.setJobType(jobRequest.getJobOpeningInformation().getJobType());
-			jobEntity.setOpenDate(jobRequest.getJobOpeningInformation().getDateOpen());
-			jobEntity.setCloseDate(jobRequest.getJobOpeningInformation().getTargetClosingDate());
+			jobEntity.setOpenDate(convertStringToLocalDateTime(jobRequest.getJobOpeningInformation().getDateOpen()));
+			jobEntity.setCloseDate(convertStringToLocalDateTime(jobRequest.getJobOpeningInformation().getTargetClosingDate()));
 			jobEntity.setClientJobId(jobRequest.getJobOpeningInformation().getClientJobID());
 			jobEntity.setJobType(jobRequest.getJobOpeningInformation().getJobType());
 			jobEntity.setDurationId(Integer.valueOf(jobRequest.getJobOpeningInformation().getDuration()));
@@ -52,7 +57,7 @@ public class JobService {
 			jobEntity.setJobRatings(jobRequest.getJobOpeningInformation().getJobRatingSales());
 			jobEntity.setSecurityClearance(Integer.valueOf(jobRequest.getJobOpeningInformation().getSecurityClearance()));
 		}
-		if(ObjectUtils.isEmpty(jobRequest.getAccountInformation())) {
+		if(!ObjectUtils.isEmpty(jobRequest.getAccountInformation())) {
 			jobEntity.setAccountId(jobRequest.getAccountInformation().getAccountId());
 		}
 		
@@ -114,6 +119,13 @@ public class JobService {
 
 	public void deleteJob(Integer id) {
 		 jobRepository.deleteById(id);
+		 LOG.info("Job deleted : Service");
 	}
-	LOG.info("Job deleted : Service");
+	
+	private LocalDateTime convertStringToLocalDateTime(String dateStr) {
+		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss");
+
+		return LocalDateTime.parse(dateStr, formatter);
+	}
+	
 }

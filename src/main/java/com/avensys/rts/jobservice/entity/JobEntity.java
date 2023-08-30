@@ -1,4 +1,4 @@
-package com.avensys.jobservice.entity;
+package com.avensys.rts.jobservice.entity;
 
 import java.sql.Blob;
 import java.time.LocalDateTime;

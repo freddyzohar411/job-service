@@ -1,4 +1,4 @@
-package com.avensys.jobservice.dto;
+package com.avensys.rts.jobservice.dto;
 
 import org.hibernate.validator.constraints.Length;
 
@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class JobCommercials {
 
-	@NotEmpty(message = "salaryBudgetLocal cannot be empty")
+	@NotEmpty(message = "salaryBudgetLocal cannot be null")
 	private String salaryBudgetLocal;
 	
 	private String localCurrency;

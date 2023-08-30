@@ -1,4 +1,4 @@
-package com.avensys.jobservice.dto;
+package com.avensys.rts.jobservice.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

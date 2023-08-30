@@ -1,9 +1,9 @@
-package com.avensys.jobservice.util;
+package com.avensys.rts.jobservice.util;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.avensys.jobservice.dto.HttpResponse;
+import com.avensys.rts.jobservice.dto.HttpResponse;
 
 public class ResponseUtil {
     public static ResponseEntity<Object> generateSuccessResponse(Object dataObject, HttpStatus httpStatus, String message) {

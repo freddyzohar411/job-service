@@ -1,4 +1,4 @@
-package com.avensys.jobservice.controller;
+package com.avensys.rts.jobservice.controller;
 
 import java.util.Map;
 
@@ -9,9 +9,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,10 +20,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.avensys.jobservice.dto.JobRequest;
-import com.avensys.jobservice.entity.JobEntity;
-import com.avensys.jobservice.service.JobService;
-import com.avensys.jobservice.util.ResponseUtil;
+import com.avensys.rts.jobservice.dto.JobRequest;
+import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.service.JobService;
+import com.avensys.rts.jobservice.util.ResponseUtil;
 
 /**
  * @author Kotaiah nalleboina
@@ -42,8 +39,8 @@ public class JobController {
 	private JobService jobService;
 	@Autowired
 	private MessageSource messageSource;
-	@Autowired
-	private AuthenticationManager authenticationManager;
+//	@Autowired
+//	private AuthenticationManager authenticationManager;
 
 	/**
 	 * This method is used to create a job
@@ -55,14 +52,14 @@ public class JobController {
 	@PostMapping
 	public ResponseEntity<?> createJob(@RequestHeader Map<String, String> headers, @RequestBody JobRequest jobRequest) {
 		LOG.info("createJob request received");
-		Authentication authenticate = authenticationManager
-				.authenticate(new BearerTokenAuthenticationToken(headers.get("Authorization")));
-		if (authenticate.isAuthenticated()) {
+//		Authentication authenticate = authenticationManager
+//				.authenticate(new BearerTokenAuthenticationToken(headers.get("Authorization")));
+		//if (authenticate.isAuthenticated()) {
 			JobEntity jobEntity = jobService.createJob(jobRequest);
 			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.CREATED,
 					messageSource.getMessage("job.created", null, LocaleContextHolder.getLocale()));
-		}
-		return new ResponseEntity<>("Not Authorized", HttpStatus.UNAUTHORIZED);
+		//}
+		//return new ResponseEntity<>("Not Authorized", HttpStatus.UNAUTHORIZED);
 	}
 	
 	
@@ -112,7 +109,7 @@ public class JobController {
 		JobEntity jobEntity = jobService.getJob(id);
 		if(!ObjectUtils.isEmpty(jobEntity))
 			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
-				messageSource.getMessage("job.deleted", null, LocaleContextHolder.getLocale()));
+				messageSource.getMessage("job.fetched", null, LocaleContextHolder.getLocale()));
 		else
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST,
 					messageSource.getMessage("Job not found", null, LocaleContextHolder.getLocale()));

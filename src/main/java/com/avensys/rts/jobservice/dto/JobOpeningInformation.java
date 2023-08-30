@@ -1,6 +1,4 @@
-package com.avensys.jobservice.dto;
-
-import java.time.LocalDateTime;
+package com.avensys.rts.jobservice.dto;
 
 import org.hibernate.validator.constraints.Length;
 
@@ -11,13 +9,13 @@ import lombok.Data;
 public class JobOpeningInformation {
 
 	@NotEmpty (message = "jobTitle cannot be empty.")
-	 @Length (max =50)
+	@Length (max =50)
 	private String jobTitle;
 	
 	@NotEmpty(message = "dateOpen cannot be null.")
-	private LocalDateTime dateOpen;
+	private String dateOpen;
 	
-	private LocalDateTime targetClosingDate;
+	private String targetClosingDate;
 	
 	private String clientJobID;
 	

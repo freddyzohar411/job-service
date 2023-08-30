@@ -1,4 +1,4 @@
-package com.avensys.jobservice.exception;
+package com.avensys.rts.jobservice.exception;
 
 
 import lombok.AllArgsConstructor;

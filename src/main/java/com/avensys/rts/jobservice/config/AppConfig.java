@@ -1,4 +1,4 @@
-package com.avensys.jobservice.config;
+package com.avensys.rts.jobservice.config;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
