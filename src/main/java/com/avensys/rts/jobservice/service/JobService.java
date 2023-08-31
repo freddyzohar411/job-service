@@ -65,8 +65,11 @@ public class JobService {
 			jobEntity.setSalaryBudget(Integer.valueOf(jobRequest.getJobCommercials().getSalaryBudgetLocal()));
 			jobEntity.setCurrency(jobRequest.getJobCommercials().getLocalCurrency());
 			jobEntity.setBudgetType(jobRequest.getJobCommercials().getBudgetType());
-			jobEntity.setSalaryBudget(Integer.valueOf(jobRequest.getJobCommercials().getSalaryBudgetSGD()));
-			jobEntity.setExpMarginSgd(Integer.valueOf(jobRequest.getJobCommercials().getExpectedMarginSGD()));
+			jobEntity.setSalaryBudget(jobRequest.getJobCommercials().getSalaryBudgetSGD());
+			jobEntity.setExpMarginSgd(jobRequest.getJobCommercials().getExpectedMarginSGD());
+			jobEntity.setExpMarginMax(jobRequest.getJobCommercials().getExpectedMarginMax());
+			jobEntity.setExpMarginMin(jobRequest.getJobCommercials().getExpectedMarginMin());
+			jobEntity.setExpMarginCurrency(jobRequest.getJobCommercials().getExpectedMarginCurrency());
 			if(!ObjectUtils.isEmpty(jobRequest.getJobCommercials().getScreening())) {
 				jobEntity.setScreenRequired(true);
 				jobEntity.setTechScreenTemplate(Integer.valueOf(jobRequest.getJobCommercials().getScreening().getSelectTechnicalScreeningTemplate()));

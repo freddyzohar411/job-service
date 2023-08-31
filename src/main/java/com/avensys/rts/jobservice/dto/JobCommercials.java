@@ -17,11 +17,15 @@ public class JobCommercials {
 	@Length (max =20)
 	private String budgetType;
 	
-	private String salaryBudgetSGD;
+	private int salaryBudgetSGD;
 	
-	private String expectedMargin;
+	private String expectedMarginCurrency;
 	
-	private String expectedMarginSGD;
+	private int expectedMarginMin;
+	
+	private int expectedMarginMax;
+	
+	private int expectedMarginSGD;
 	
 	private Screening screening;
 	

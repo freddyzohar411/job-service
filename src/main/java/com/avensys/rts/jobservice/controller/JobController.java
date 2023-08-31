@@ -39,8 +39,6 @@ public class JobController {
 	private JobService jobService;
 	@Autowired
 	private MessageSource messageSource;
-//	@Autowired
-//	private AuthenticationManager authenticationManager;
 
 	/**
 	 * This method is used to create a job
@@ -52,14 +50,11 @@ public class JobController {
 	@PostMapping
 	public ResponseEntity<?> createJob(@RequestHeader Map<String, String> headers, @RequestBody JobRequest jobRequest) {
 		LOG.info("createJob request received");
-//		Authentication authenticate = authenticationManager
-//				.authenticate(new BearerTokenAuthenticationToken(headers.get("Authorization")));
-		//if (authenticate.isAuthenticated()) {
+
 			JobEntity jobEntity = jobService.createJob(jobRequest);
 			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.CREATED,
 					messageSource.getMessage("job.created", null, LocaleContextHolder.getLocale()));
-		//}
-		//return new ResponseEntity<>("Not Authorized", HttpStatus.UNAUTHORIZED);
+		
 	}
 	
 	
