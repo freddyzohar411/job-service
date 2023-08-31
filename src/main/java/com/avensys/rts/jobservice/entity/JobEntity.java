@@ -98,7 +98,7 @@ public class JobEntity {
 	private String jobRatings;
 	
 	@Column (name = "turn_around_time_day")
-	private String turnAroundTimeDay;
+	private int turnAroundTimeDay;
 	
 	@Column (name = "turn_around_time_unit")
 	private String turnAroundTimeUnit;

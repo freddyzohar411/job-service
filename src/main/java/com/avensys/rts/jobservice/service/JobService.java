@@ -53,7 +53,8 @@ public class JobService {
 			jobEntity.setWorkLocation(jobRequest.getJobOpeningInformation().getWorkLocation());
 			jobEntity.setPriotity(Integer.valueOf(jobRequest.getJobOpeningInformation().getPriority()));
 			jobEntity.setQualitifcation(jobRequest.getJobOpeningInformation().getQualification());
-			jobEntity.setTurnAroundTimeDay(jobRequest.getJobOpeningInformation().getTurnaroundTime());
+			jobEntity.setTurnAroundTimeUnit(jobRequest.getJobOpeningInformation().getTurnaroundTimeUnit());
+			jobEntity.setTurnAroundTimeDay(jobRequest.getJobOpeningInformation().getTurnaroundTimeDay());
 			jobEntity.setJobRatings(jobRequest.getJobOpeningInformation().getJobRatingSales());
 			jobEntity.setSecurityClearance(Integer.valueOf(jobRequest.getJobOpeningInformation().getSecurityClearance()));
 		}

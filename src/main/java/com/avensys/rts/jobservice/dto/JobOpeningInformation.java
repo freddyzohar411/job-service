@@ -61,8 +61,11 @@ public class JobOpeningInformation {
     
     private String qualification;
     
-    @NotEmpty (message = "turnaroundTime cannot be null.")
-    private String turnaroundTime;
+    @NotEmpty (message = "turnaroundTime cannot be empty.")
+    private String turnaroundTimeUnit;
+    
+    @NotEmpty (message = "turnaroundTimeDay cannot be null.")
+    private int turnaroundTimeDay;
     
     private String jobRatingSales;
     
