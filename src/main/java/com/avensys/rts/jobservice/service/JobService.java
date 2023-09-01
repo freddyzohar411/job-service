@@ -126,7 +126,6 @@ public class JobService {
                 () -> new EntityNotFoundException("Job with id " + id + " not found")
         );
 		jobEntity.setDeleted(true);
-		LOG.info("Job updated : Service");
 		jobRepository.save(jobEntity);
 		 LOG.info("Job deleted : Service");
 	}
