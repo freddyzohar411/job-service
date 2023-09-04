@@ -1,4 +1,4 @@
-package com.avensys.rts.jobservice.dto;
+package com.avensys.rts.jobservice.payloadrequest;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,8 +16,9 @@ public class JobRequest {
     private JobOpeningInformation jobOpeningInformation;
     private JobCommercials jobCommercials;
     private String jobRemarks;
+    
     @NotNull(message = "File cannot be null")
 //    @ValidPdfFile(message = "File must be a PDF file")
 //    @FileSize(maxSize = 1, message = "File size must be less than 1MB")
-    private MultipartFile uploadAgreement;
+    private MultipartFile uploadJobDocuments;
 }

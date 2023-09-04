@@ -1,4 +1,4 @@
-package com.avensys.rts.jobservice.dto;
+package com.avensys.rts.jobservice.payloadrequest;
 
 import lombok.Data;
 
