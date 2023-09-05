@@ -20,8 +20,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.avensys.rts.jobservice.dto.JobRequest;
+import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.payloadrequest.JobRequest;
 import com.avensys.rts.jobservice.service.JobService;
 import com.avensys.rts.jobservice.util.ResponseUtil;
 
@@ -53,7 +54,7 @@ public class JobController {
 
 			JobEntity jobEntity = jobService.createJob(jobRequest);
 			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.CREATED,
-					messageSource.getMessage("job.created", null, LocaleContextHolder.getLocale()));
+					messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
 		
 	}
 	
@@ -71,7 +72,7 @@ public class JobController {
 			@PathVariable Integer id, @RequestBody JobRequest jobRequest) {
 		JobEntity jobEntity = jobService.updateJob(id, jobRequest);
 		return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
-				messageSource.getMessage("job.updated", null, LocaleContextHolder.getLocale()));
+				messageSource.getMessage(MessageConstants.MESSAGE_UPDATED, null, LocaleContextHolder.getLocale()));
 	}
 	
 	
@@ -81,13 +82,12 @@ public class JobController {
 	 * @param id
 	 * @return
 	 */
-
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> deleteJob(@RequestHeader Map<String, String> headers, @PathVariable Integer id) {
 	
 		jobService.deleteJob(id);
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
-				messageSource.getMessage("job.deleted", null, LocaleContextHolder.getLocale()));
+				messageSource.getMessage(MessageConstants.MESSAGE_DELETED, null, LocaleContextHolder.getLocale()));
 	}
 	
 	
@@ -98,16 +98,11 @@ public class JobController {
 	 * @param id
 	 * @return
 	 */
-
 	@GetMapping("/get/{id}")
 	public ResponseEntity<?> getJob(@RequestHeader Map<String, String> headers, @PathVariable Integer id) {
 		JobEntity jobEntity = jobService.getJob(id);
-		if(!ObjectUtils.isEmpty(jobEntity))
-			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
-				messageSource.getMessage("job.fetched", null, LocaleContextHolder.getLocale()));
-		else
-			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST,
-					messageSource.getMessage("Job not found", null, LocaleContextHolder.getLocale()));
+		return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 }
