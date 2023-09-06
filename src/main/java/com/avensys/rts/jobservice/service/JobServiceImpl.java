@@ -51,7 +51,7 @@ public class JobServiceImpl implements JobService {
 	 */
 	@Override
 	public JobEntity getJob(Integer id) {
-		JobEntity jobEntity = jobRepository.findByIdAndDeleted(id, false).orElseThrow(
+		JobEntity jobEntity = jobRepository.findByIdAndIsDeleted(id, false).orElseThrow(
                 () -> new EntityNotFoundException("Job with %s not found".formatted(id))
         );
 		LOG.info("Job retrieved : Service");
@@ -66,7 +66,7 @@ public class JobServiceImpl implements JobService {
 	 */
 	@Override
 	public JobEntity updateJob(Integer id, JobRequest jobRequest) {
-		JobEntity jobEntity = jobRepository.findByIdAndDeleted(id, false).orElseThrow(
+		JobEntity jobEntity = jobRepository.findByIdAndIsDeleted(id, false).orElseThrow(
                 () -> new EntityNotFoundException("Job with %s not found".formatted(id))
         );
 		jobEntity = mapRequestToEntity(jobRequest, jobEntity);
@@ -139,6 +139,7 @@ public class JobServiceImpl implements JobService {
 			jobEntity.setCurrency(jobRequest.getJobCommercials().getLocalCurrency());
 			jobEntity.setBudgetType(jobRequest.getJobCommercials().getBudgetType());
 			jobEntity.setSalaryBudget(jobRequest.getJobCommercials().getSalaryBudgetSGD());
+			jobEntity.setSalaryBudgetRange(jobRequest.getJobCommercials().getSalaryBudgetLocal());
 			jobEntity.setExpMarginSgd(jobRequest.getJobCommercials().getExpectedMarginSGD());
 			jobEntity.setExpMarginMax(jobRequest.getJobCommercials().getExpectedMarginMax());
 			jobEntity.setExpMarginMin(jobRequest.getJobCommercials().getExpectedMarginMin());
