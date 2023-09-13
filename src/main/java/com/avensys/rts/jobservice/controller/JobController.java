@@ -1,5 +1,6 @@
 package com.avensys.rts.jobservice.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -9,7 +10,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.avensys.rts.jobservice.constant.MessageConstants;
@@ -105,6 +106,18 @@ public class JobController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 	
-	//@GetMapping("/search")
+	@GetMapping
+	public ResponseEntity<?> getAllJobs (
+            @RequestParam(defaultValue = "0") Integer pageNo,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(defaultValue = "id") String sortBy){
+		LOG.info("getAllJobs request received");
+		List<JobEntity> jobEntityList = jobService.getAllJobs(pageNo, pageSize, sortBy);
+		return ResponseUtil.generateSuccessResponse(jobEntityList, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+	
+	
+
 
 }

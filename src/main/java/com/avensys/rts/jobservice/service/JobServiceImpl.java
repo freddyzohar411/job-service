@@ -4,18 +4,23 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import javax.sql.rowset.serial.SerialException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.payloadrequest.JobRequest;
 import com.avensys.rts.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.repository.JobRepositoryPaging;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -30,6 +35,9 @@ public class JobServiceImpl implements JobService {
 	private static final Logger LOG = LoggerFactory.getLogger(JobServiceImpl.class);
 	@Autowired
 	private JobRepository jobRepository;
+	
+	@Autowired
+	private JobRepositoryPaging jobRepositoryPaging;
 	
 	 /**
      * This method is used to save job
@@ -86,6 +94,15 @@ public class JobServiceImpl implements JobService {
 		jobEntity.setDeleted(true);
 		jobRepository.save(jobEntity);
 		 LOG.info("Job deleted : Service");
+	}
+	
+	@Override
+	public List<JobEntity> getAllJobs(Integer pageNo, Integer pageSize, String sortBy) {
+		LOG.info("getAllJobs request processing");
+		Pageable paging = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+		List<JobEntity> jobEntityList = jobRepositoryPaging.findAllAndIsDeleted(false, paging);
+		LOG.info("jobEntityList retrieved : Service");
+		return jobEntityList;
 	}
 	
 	private LocalDateTime convertStringToLocalDateTime(String dateStr) {
