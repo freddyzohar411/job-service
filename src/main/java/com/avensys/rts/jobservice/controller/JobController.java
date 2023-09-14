@@ -8,10 +8,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -26,6 +29,8 @@ import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.payloadrequest.JobRequest;
 import com.avensys.rts.jobservice.service.JobService;
 import com.avensys.rts.jobservice.util.ResponseUtil;
+
+import jakarta.validation.Valid;
 
 /**
  * @author Kotaiah nalleboina
@@ -50,7 +55,7 @@ public class JobController {
 	 * @return
 	 */
 	@PostMapping
-	public ResponseEntity<?> createJob(@RequestHeader Map<String, String> headers, @RequestBody JobRequest jobRequest) {
+	public ResponseEntity<?> createJob(@RequestHeader Map<String, String> headers, @Valid @ModelAttribute JobRequest jobRequest) {
 		LOG.info("createJob request received");
 
 			JobEntity jobEntity = jobService.createJob(jobRequest);
@@ -110,13 +115,16 @@ public class JobController {
 	public ResponseEntity<?> getAllJobs (
             @RequestParam(defaultValue = "0") Integer pageNo,
             @RequestParam(defaultValue = "10") Integer pageSize,
-            @RequestParam(defaultValue = "id") String sortBy){
+            @RequestParam(defaultValue = "modifiedTime") String sortBy){
 		LOG.info("getAllJobs request received");
 		List<JobEntity> jobEntityList = jobService.getAllJobs(pageNo, pageSize, sortBy);
 		return ResponseUtil.generateSuccessResponse(jobEntityList, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-	
+	@GetMapping("/search")
+	public Page<JobEntity> searchJob(@RequestParam("search") String search, Pageable pageable) {
+		return jobService.search(search, pageable);
+	}
 	
 
 

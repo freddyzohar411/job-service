@@ -5,12 +5,14 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import com.avensys.rts.jobservice.entity.JobEntity;
 
-public interface JobRepository extends JpaRepository<JobEntity, Integer> {
+public interface JobRepository extends JpaRepository<JobEntity, Long>, JpaSpecificationExecutor<JobEntity> {
 	Optional<JobEntity> findByIdAndIsDeleted(int id, boolean isDeleted);
-
+	@Query("select a from job a where a.isDeleted = ?1")
+	List<JobEntity> findAllAndIsDeleted(boolean isDeleted, Pageable pageable);
 
 }

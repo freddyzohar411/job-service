@@ -5,25 +5,32 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.sql.rowset.serial.SerialException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.avensys.rts.jobservice.apiclient.DocumentAPIClient;
 import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.payloadrequest.DocumentRequestDTO;
 import com.avensys.rts.jobservice.payloadrequest.JobRequest;
+import com.avensys.rts.jobservice.payloadresponse.HttpResponse;
 import com.avensys.rts.jobservice.repository.JobRepository;
-import com.avensys.rts.jobservice.repository.JobRepositoryPaging;
+import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+
 
 /**
  * @author Kotaiah nalleboina
@@ -33,11 +40,11 @@ import jakarta.transaction.Transactional;
 public class JobServiceImpl implements JobService {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(JobServiceImpl.class);
+	private static final String JOB_TYPE = "job";
 	@Autowired
 	private JobRepository jobRepository;
-	
 	@Autowired
-	private JobRepositoryPaging jobRepositoryPaging;
+	private DocumentAPIClient documentAPIClient;
 	
 	 /**
      * This method is used to save job
@@ -48,8 +55,17 @@ public class JobServiceImpl implements JobService {
 	@Override
 	@Transactional
 	public JobEntity createJob(JobRequest jobRequest) {
-		JobEntity jobEntity = mapRequestToEntity(jobRequest, null);
-		return jobRepository.save(jobEntity);
+		JobEntity jobEntity = jobRepository.save(mapRequestToEntity(jobRequest, null));
+		if(jobRequest.getUploadJobDocuments() != null) {
+			 DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
+            // Save document and tag to account entity
+            documentRequestDTO.setEntityId(jobEntity.getId());
+            documentRequestDTO.setEntityType(JOB_TYPE);
+
+            documentRequestDTO.setFile(jobRequest.getUploadJobDocuments());
+            HttpResponse documentResponse = documentAPIClient.createDocument(documentRequestDTO);
+		}
+		return jobEntity;
 	}
 	
 	/**
@@ -88,7 +104,7 @@ public class JobServiceImpl implements JobService {
 	 */
 	@Override
 	public void deleteJob(Integer id) {
-		JobEntity jobEntity = jobRepository.findById(id).orElseThrow(
+		JobEntity jobEntity = jobRepository.findById(id.longValue()).orElseThrow(
                 () -> new EntityNotFoundException("Job with %s not found".formatted(id))
         );
 		jobEntity.setDeleted(true);
@@ -100,7 +116,7 @@ public class JobServiceImpl implements JobService {
 	public List<JobEntity> getAllJobs(Integer pageNo, Integer pageSize, String sortBy) {
 		LOG.info("getAllJobs request processing");
 		Pageable paging = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
-		List<JobEntity> jobEntityList = jobRepositoryPaging.findAllAndIsDeleted(false, paging);
+		List<JobEntity> jobEntityList = jobRepository.findAllAndIsDeleted(false, paging);
 		LOG.info("jobEntityList retrieved : Service");
 		return jobEntityList;
 	}
@@ -149,6 +165,7 @@ public class JobServiceImpl implements JobService {
 		}
 		if(!ObjectUtils.isEmpty(jobRequest.getAccountInformation())) {
 			jobEntity.setAccountId(jobRequest.getAccountInformation().getAccountId());
+			jobEntity.setContactId(jobRequest.getAccountInformation().getContactId());
 		}
 		
 		if(!ObjectUtils.isEmpty(jobRequest.getJobCommercials())) {
@@ -182,5 +199,18 @@ public class JobServiceImpl implements JobService {
 		
 		
 		return jobEntity;
+	}
+
+	@Override
+	public Page<JobEntity> search(String searchTerms, Pageable pageable) {
+		JobSpecificationBuilder builder = new JobSpecificationBuilder();
+		Pattern pattern = Pattern.compile("(\\w+?)(:|<|>)(\\w+?),");
+		Matcher matcher = pattern.matcher(searchTerms + ",");
+
+		while (matcher.find()) {
+			builder.with(matcher.group(1), matcher.group(2), matcher.group(3));
+		}
+
+		return jobRepository.findAll(builder.build(), pageable);
 	}
 }
