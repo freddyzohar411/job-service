@@ -8,5 +8,7 @@ public class AccountInformation {
 
 	@NotNull(message = " accountId sould not be null")
 	private Integer accountId;
+	@NotNull(message = " contactId sould not be null")
+	private Integer contactId;
 	
 }

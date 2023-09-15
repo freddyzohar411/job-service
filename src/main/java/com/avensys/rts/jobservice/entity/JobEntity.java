@@ -10,7 +10,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +20,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
+@Entity(name = "job")
 @Table(name = "job")
 public class JobEntity {
 
@@ -153,5 +152,17 @@ public class JobEntity {
 
 	@Column(name = "job_overview")
 	private Blob jobOverview;
+	
+	@Column(name = "created_by")
+	private Integer createdBy;
+	
+	@Column(name = "modified_by")
+	private Integer modifiedBy;
+	
+	@Column(name = "created_time")
+	private LocalDateTime createdTime;
+	
+	@Column(name = "modified_time")
+	private LocalDateTime modifiedTime;
 
 }
