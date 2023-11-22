@@ -1,4 +1,4 @@
-package com.avensys.rts.jobservice.payloadrequest;
+package com.avensys.rts.jobservice.payload;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,13 +12,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JobRequest {
 
-    private AccountInformation accountInformation;
-    private JobOpeningInformation jobOpeningInformation;
-    private JobCommercials jobCommercials;
-    private String jobRemarks;
-    
-    @NotNull(message = "File cannot be null")
+	private Long id;
+	private String title;
+	private String entityType;
+	private Integer entityId;
+
+	// Form Submission
+	private String formData;
+	private Integer formId;
+	private Long createdBy;
+	private Long updatedBy;
+
+	@NotNull(message = "File cannot be null")
 //    @ValidPdfFile(message = "File must be a PDF file")
 //    @FileSize(maxSize = 1, message = "File size must be less than 1MB")
-    private MultipartFile uploadJobDocuments;
+	private MultipartFile uploadJobDocuments;
 }

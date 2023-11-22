@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,31 +14,23 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "job")
-@Table(name = "job")
-public class JobEntity extends BaseEntity {
+@NoArgsConstructor
+@Entity
+@Table(name = "permission", uniqueConstraints = { @UniqueConstraint(columnNames = { "permission_name" }) })
+public class PermissionEntity extends BaseEntity {
 
-	private static final long serialVersionUID = 4217358489248736598L;
+	private static final long serialVersionUID = 281577856522059273L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
 	private Long id;
 
-	@Column(name = "title", length = 5)
-	private String title;
+	@Column(name = "permission_name")
+	private String permissionName;
 
-	@Column(name = "entity_id")
-	private Long entityId;
-
-	@Column(name = "entity_type", length = 30)
-	private String entityType;
-
-	@Column(name = "form_id")
-	private Long formId;
-
-	@Column(name = "form_submission_id")
-	private Long formSubmissionId;
+	@Column(name = "permission_description")
+	private String permissionDescription;
 
 }

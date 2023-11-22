@@ -1,4 +1,4 @@
-package com.avensys.rts.jobservice.payloadresponse;
+package com.avensys.rts.jobservice.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

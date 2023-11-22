@@ -1,7 +1,6 @@
 package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,24 +25,30 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobEntity;
-import com.avensys.rts.jobservice.payloadrequest.JobRequest;
+import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.service.JobService;
+import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.ResponseUtil;
 
 import jakarta.validation.Valid;
 
 /**
- * @author Kotaiah nalleboina
- *  This class used to get/save/update/delete job operations
- *        
+ * @author Rahul Sahu This class used to get/save/update/delete job operations
+ * 
  */
 @RestController
 @RequestMapping("/api/job")
 public class JobController {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(JobController.class);
+
 	@Autowired
 	private JobService jobService;
+
+	@Autowired
+	private JwtUtil jwtUtil;
+
 	@Autowired
 	private MessageSource messageSource;
 
@@ -55,18 +60,25 @@ public class JobController {
 	 * @return
 	 */
 	@PostMapping
-	public ResponseEntity<?> createJob(@RequestHeader Map<String, String> headers, @Valid @ModelAttribute JobRequest jobRequest) {
+	public ResponseEntity<?> createJob(@Valid @ModelAttribute JobRequest jobRequest,
+			@RequestHeader(name = "Authorization") String token) {
 		LOG.info("createJob request received");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			jobRequest.setCreatedBy(userId);
+			jobRequest.setUpdatedBy(userId);
 
-			JobEntity jobEntity = jobService.createJob(jobRequest);
-			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.CREATED,
+			jobService.save(jobRequest);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
 					messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
-		
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
 	}
-	
-	
+
 	/**
 	 * This method is used to update a job
+	 * 
 	 * @param headers
 	 * @param id
 	 * @param jobRequest
@@ -74,58 +86,71 @@ public class JobController {
 	 */
 
 	@PutMapping("/{id}")
-	public ResponseEntity<?> updateJob(@RequestHeader Map<String, String> headers, 
-			@PathVariable Integer id, @RequestBody JobRequest jobRequest) {
-		JobEntity jobEntity = jobService.updateJob(id, jobRequest);
-		return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.MESSAGE_UPDATED, null, LocaleContextHolder.getLocale()));
+	public ResponseEntity<?> updateJob(@RequestBody JobRequest jobRequest,
+			@RequestHeader(name = "Authorization") String token) {
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			jobRequest.setUpdatedBy(userId);
+			jobService.update(jobRequest);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_UPDATED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
 	}
-	
-	
+
 	/**
 	 * This method is used to Delete a job
+	 * 
 	 * @param headers
 	 * @param id
 	 * @return
 	 */
 	@DeleteMapping("/{id}")
-	public ResponseEntity<?> deleteJob(@RequestHeader Map<String, String> headers, @PathVariable Integer id) {
-	
-		jobService.deleteJob(id);
-		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.MESSAGE_DELETED, null, LocaleContextHolder.getLocale()));
+	public ResponseEntity<?> deleteJob(@PathVariable Long id) {
+		try {
+			jobService.delete(id);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_DELETED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
 	}
-	
-	
-	
+
 	/**
-	 *  This method is used to retrieve a job Information
+	 * This method is used to retrieve a job Information
+	 * 
 	 * @param headers
 	 * @param id
 	 * @return
 	 */
-	@GetMapping("/get/{id}")
-	public ResponseEntity<?> getJob(@RequestHeader Map<String, String> headers, @PathVariable Integer id) {
-		JobEntity jobEntity = jobService.getJob(id);
-		return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	@GetMapping("/{id}")
+	public ResponseEntity<?> find(@PathVariable Long id) {
+		try {
+			JobEntity jobEntity = jobService.getById(id);
+			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK, null);
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
 	}
-	
+
 	@GetMapping
-	public ResponseEntity<?> getAllJobs (
-            @RequestParam(defaultValue = "0") Integer pageNo,
-            @RequestParam(defaultValue = "10") Integer pageSize,
-            @RequestParam(defaultValue = "modifiedTime") String sortBy){
+	public ResponseEntity<?> getAllJobs(@RequestParam(defaultValue = "0") Integer pageNo,
+			@RequestParam(defaultValue = "10") Integer pageSize,
+			@RequestParam(defaultValue = "modifiedTime") String sortBy) {
 		LOG.info("getAllJobs request received");
-		List<JobEntity> jobEntityList = jobService.getAllJobs(pageNo, pageSize, sortBy);
-		return ResponseUtil.generateSuccessResponse(jobEntityList, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		try {
+			List<JobEntity> jobEntityList = jobService.getAllJobs(pageNo, pageSize, sortBy);
+			return ResponseUtil.generateSuccessResponse(jobEntityList, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
 	}
+
 	@GetMapping("/search")
-	public Page<JobEntity> searchJob(@RequestParam("search") String search, Pageable pageable) {
+	public Page<JobEntity> searchJob(@RequestParam("search") String search, Pageable pageable) throws ServiceException {
 		return jobService.search(search, pageable);
 	}
-	
-
 
 }
