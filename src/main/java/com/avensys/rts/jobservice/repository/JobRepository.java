@@ -18,9 +18,7 @@ public interface JobRepository extends JpaRepository<JobEntity, Long>, JpaSpecif
 
 	public Optional<JobEntity> findByIdAndIsDeleted(Long id, boolean isDeleted);
 
-	public List<JobEntity> findByEntityTypeAndEntityId(String entityType, Integer entityId);
-
 	@Query("select a from job a where a.isDeleted = ?1")
-	List<JobEntity> findAllAndIsDeleted(boolean isDeleted, Pageable pageable);
+	public List<JobEntity> findAllAndIsDeleted(boolean isDeleted, Pageable pageable);
 
 }

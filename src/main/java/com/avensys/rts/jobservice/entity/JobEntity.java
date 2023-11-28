@@ -25,19 +25,10 @@ public class JobEntity extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "title", length = 5)
+	@Column(name = "title")
 	private String title;
 
-	@Column(name = "entity_id")
-	private Long entityId;
-
-	@Column(name = "entity_type", length = 30)
-	private String entityType;
-
-	@Column(name = "form_id")
-	private Long formId;
-
-	@Column(name = "form_submission_id")
-	private Long formSubmissionId;
+	@Column(name = "form_submission_data")
+	private String formSubmissionData;
 
 }
