@@ -13,11 +13,10 @@ public class JobRequest {
 
 	private Long id;
 	private String title;
-	// Form Submission
+	private Long formId;
 	private String formData;
 	private Long createdBy;
 	private Long updatedBy;
-
 //	@NotNull(message = "File cannot be null")
 //    @ValidPdfFile(message = "File must be a PDF file")
 //    @FileSize(maxSize = 1, message = "File size must be less than 1MB")

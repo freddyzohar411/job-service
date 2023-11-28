@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.service.JobService;
 import com.avensys.rts.jobservice.util.JwtUtil;
@@ -36,6 +38,7 @@ import jakarta.validation.Valid;
  * @author Rahul Sahu This class used to get/save/update/delete job operations
  * 
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/api/job")
 public class JobController {
@@ -130,6 +133,45 @@ public class JobController {
 			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK, null);
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	/**
+	 * Get all accounts field for all forms related to accounts
+	 * 
+	 * @return
+	 */
+	@GetMapping("/fields")
+	public ResponseEntity<Object> getAllAccountsFields(@RequestHeader(name = "Authorization") String token) {
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			return ResponseUtil.generateSuccessResponse(jobService.getAllJobFields(userId), HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	@PostMapping("/listing")
+	public ResponseEntity<Object> getAccountListing(@RequestBody JobListingRequestDTO jobListingRequestDTO,
+			@RequestHeader(name = "Authorization") String token) {
+		Long userId = jwtUtil.getUserId(token);
+		Integer page = jobListingRequestDTO.getPage();
+		Integer pageSize = jobListingRequestDTO.getPageSize();
+		String sortBy = jobListingRequestDTO.getSortBy();
+		String sortDirection = jobListingRequestDTO.getSortDirection();
+		String searchTerm = jobListingRequestDTO.getSearchTerm();
+		List<String> searchFields = jobListingRequestDTO.getSearchFields();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			return ResponseUtil.generateSuccessResponse(
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId), HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} else {
+			return ResponseUtil.generateSuccessResponse(
+					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
+							searchFields, userId),
+					HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
 	}
 

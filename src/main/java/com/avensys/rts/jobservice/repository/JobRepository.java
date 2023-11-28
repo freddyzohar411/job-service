@@ -10,7 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.avensys.rts.jobservice.entity.JobEntity;
 
-public interface JobRepository extends JpaRepository<JobEntity, Long>, JpaSpecificationExecutor<JobEntity> {
+public interface JobRepository
+		extends JpaRepository<JobEntity, Long>, JpaSpecificationExecutor<JobEntity>, CustomJobRepository {
 
 	public Boolean existsByTitle(String title);
 
@@ -20,5 +21,8 @@ public interface JobRepository extends JpaRepository<JobEntity, Long>, JpaSpecif
 
 	@Query("select a from job a where a.isDeleted = ?1")
 	public List<JobEntity> findAllAndIsDeleted(boolean isDeleted, Pageable pageable);
+
+	@Query(value = "SELECT a FROM job a WHERE a.createdBy = ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
+	List<JobEntity> findAllByUserAndDeleted(Long createdBy, boolean isDeleted, boolean isActive);
 
 }

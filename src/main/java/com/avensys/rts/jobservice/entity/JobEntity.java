@@ -1,5 +1,10 @@
 package com.avensys.rts.jobservice.entity;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,7 +33,14 @@ public class JobEntity extends BaseEntity {
 	@Column(name = "title")
 	private String title;
 
-	@Column(name = "form_submission_data")
-	private String formSubmissionData;
+	@Column(name = "form_id")
+	private Long formId;
+
+	@Column(name = "form_submission_id")
+	private Long formSubmissionId;
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "job_submission_data", columnDefinition = "jsonb")
+	private JsonNode jobSubmissionData;
 
 }

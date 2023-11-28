@@ -1,6 +1,10 @@
 package com.avensys.rts.jobservice.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,13 +21,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.avensys.rts.jobservice.apiclient.DocumentAPIClient;
+import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.payload.DocumentRequestDTO;
+import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
+import com.avensys.rts.jobservice.response.JobListingResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
+import com.avensys.rts.jobservice.util.MappingUtil;
+import com.avensys.rts.jobservice.util.StringUtil;
 
 import jakarta.transaction.Transactional;
 
@@ -46,6 +56,9 @@ public class JobService {
 	@Autowired
 	private DocumentAPIClient documentAPIClient;
 
+	@Autowired
+	private FormSubmissionAPIClient formSubmissionAPIClient;
+
 	/**
 	 * This method is used to convert JobRequest to JobEntity
 	 * 
@@ -61,7 +74,7 @@ public class JobService {
 		entity.setTitle(jobRequest.getTitle());
 		entity.setCreatedBy(jobRequest.getCreatedBy());
 		entity.setUpdatedBy(jobRequest.getUpdatedBy());
-		entity.setFormSubmissionData(jobRequest.getFormData());
+		entity.setFormId(jobRequest.getFormId());
 		entity.setIsActive(true);
 		entity.setIsDeleted(false);
 		return entity;
@@ -98,6 +111,21 @@ public class JobService {
 						messageSource.getMessage("error.jobtitletaken", null, LocaleContextHolder.getLocale()));
 			}
 		}
+
+		FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+		formSubmissionsRequestDTO.setUserId(jobRequest.getCreatedBy());
+		formSubmissionsRequestDTO.setFormId(jobRequest.getFormId());
+		formSubmissionsRequestDTO.setSubmissionData(MappingUtil.convertJSONStringToJsonNode(jobRequest.getFormData()));
+		formSubmissionsRequestDTO.setEntityId(jobEntity.getId());
+		formSubmissionsRequestDTO.setEntityType(JOB_TYPE);
+
+		HttpResponse formSubmissionResponse = formSubmissionAPIClient.addFormSubmission(formSubmissionsRequestDTO);
+		FormSubmissionsResponseDTO formSubmissionData = MappingUtil
+				.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
+
+		jobEntity.setJobSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+		jobEntity.setFormSubmissionId(formSubmissionData.getId());
+
 		return jobEntity;
 	}
 
@@ -119,7 +147,7 @@ public class JobService {
 		}
 		JobEntity jobEntity = getById(jobRequest.getId());
 		jobEntity.setTitle(jobRequest.getTitle());
-		jobEntity.setFormSubmissionData(jobRequest.getFormData());
+		// jobEntity.setFormSubmissionData(jobRequest.getFormData());
 		jobEntity.setUpdatedBy(jobRequest.getUpdatedBy());
 		LOG.info("Job updated : Service");
 		jobRepository.save(jobEntity);
@@ -185,4 +213,115 @@ public class JobService {
 			throw new ServiceException(e.getLocalizedMessage());
 		}
 	}
+
+	public JobListingResponseDTO getJobListingPage(Integer page, Integer size, String sortBy, String sortDirection,
+			Long userId) {
+		// Get sort direction
+		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+		if (sortDirection != null && !sortDirection.isEmpty()) {
+			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+		}
+		if (sortBy == null || sortBy.isEmpty() || sortBy.equals("")) {
+			sortBy = "updated_at";
+			direction = Sort.Direction.DESC;
+		}
+		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		Page<JobEntity> accountEntitiesPage = null;
+		// Try with numeric first else try with string (jsonb)
+		try {
+			accountEntitiesPage = jobRepository.findAllByOrderByNumeric(userId, false, false, true, pageRequest);
+		} catch (Exception e) {
+			accountEntitiesPage = jobRepository.findAllByOrderByString(userId, false, false, true, pageRequest);
+		}
+
+		JobListingResponseDTO jobListingResponseDTO = new JobListingResponseDTO();
+		jobListingResponseDTO.setTotalElements(accountEntitiesPage.getTotalElements());
+		jobListingResponseDTO.setTotalPages(accountEntitiesPage.getTotalPages());
+		jobListingResponseDTO.setPage(accountEntitiesPage.getNumber());
+		jobListingResponseDTO.setPageSize(accountEntitiesPage.getSize());
+		jobListingResponseDTO.setJobs(accountEntitiesPage.getContent());
+
+		return jobListingResponseDTO;
+	}
+
+	public JobListingResponseDTO getJobListingPageWithSearch(Integer page, Integer size, String sortBy,
+			String sortDirection, String searchTerm, List<String> searchFields, Long userId) {
+		// Get sort direction
+		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
+		if (sortDirection != null) {
+			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+		}
+		if (sortBy == null) {
+			sortBy = "updated_at";
+			direction = Sort.Direction.DESC;
+		}
+		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		Page<JobEntity> accountEntitiesPage = null;
+		// Try with numeric first else try with string (jsonb)
+		try {
+			accountEntitiesPage = jobRepository.findAllByOrderByAndSearchNumeric(userId, false, false, true,
+					pageRequest, searchFields, searchTerm);
+		} catch (Exception e) {
+			accountEntitiesPage = jobRepository.findAllByOrderByAndSearchString(userId, false, false, true, pageRequest,
+					searchFields, searchTerm);
+		}
+
+		JobListingResponseDTO jobListingResponseDTO = new JobListingResponseDTO();
+		jobListingResponseDTO.setTotalElements(accountEntitiesPage.getTotalElements());
+		jobListingResponseDTO.setTotalPages(accountEntitiesPage.getTotalPages());
+		jobListingResponseDTO.setPage(accountEntitiesPage.getNumber());
+		jobListingResponseDTO.setPageSize(accountEntitiesPage.getSize());
+		jobListingResponseDTO.setJobs(accountEntitiesPage.getContent());
+
+		return jobListingResponseDTO;
+	}
+
+	public List<Map<String, String>> getAllJobFields(Long userId) throws ServiceException {
+		List<JobEntity> jobEntities = jobRepository.findAllByUserAndDeleted(userId, false, true);
+		if (jobEntities.isEmpty()) {
+			throw new ServiceException(
+					messageSource.getMessage("error.norecordfound", null, LocaleContextHolder.getLocale()));
+		}
+
+		// Declare a new hashmap to store the label and value
+		Map<String, String> keyMap = new HashMap<>();
+
+		// Lets store normal column first
+		keyMap.put("Title", "title");
+		keyMap.put("Created At", "createdAt");
+		keyMap.put("Updated At", "updatedAt");
+		keyMap.put("Created By", "createdByName");
+		keyMap.put("Updated By", "updatedByName");
+		// Loop through the account submission data jsonNode
+		for (JobEntity jobEntity : jobEntities) {
+			if (jobEntity.getJobSubmissionData() != null) {
+				Iterator<String> accountFieldNames = jobEntity.getJobSubmissionData().fieldNames();
+				while (accountFieldNames.hasNext()) {
+					String fieldName = accountFieldNames.next();
+					keyMap.put(StringUtil.convertCamelCaseToTitleCase2(fieldName), "jobSubmissionData." + fieldName);
+				}
+			}
+
+		}
+
+		List<Map<String, String>> fieldOptions = new ArrayList<>();
+		// Loop Through map
+		for (Map.Entry<String, String> entry : keyMap.entrySet()) {
+			// Create a list of map with label and value
+			Map<String, String> map = new HashMap<>();
+			map.put("label", entry.getKey());
+			map.put("value", entry.getValue());
+			if (entry.getValue().contains(".")) {
+				String[] split = entry.getValue().split("\\.");
+				map.put("sortValue", StringUtil.camelCaseToSnakeCase(split[0]) + "." + split[1]);
+			} else {
+				map.put("sortValue", StringUtil.camelCaseToSnakeCase(entry.getValue()));
+			}
+			fieldOptions.add(map);
+		}
+		return fieldOptions;
+	}
+
 }
