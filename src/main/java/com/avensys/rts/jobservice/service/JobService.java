@@ -67,8 +67,8 @@ public class JobService {
 		if (jobRequest.getId() != null) {
 			entity.setId(jobRequest.getId());
 		}
-		entity.setTitle(jobRequest.getTitle());
 		entity.setCreatedBy(jobRequest.getCreatedBy());
+		entity.setTitle(jobRequest.getTitle());
 		entity.setUpdatedBy(jobRequest.getUpdatedBy());
 		entity.setFormId(jobRequest.getFormId());
 		entity.setIsActive(true);
@@ -124,7 +124,7 @@ public class JobService {
 	 * @return
 	 */
 	public void update(JobRequest jobRequest) throws ServiceException {
-
+		LOG.info("Job updated : Service");
 		Optional<JobEntity> dbJob = jobRepository.findByTitle(jobRequest.getTitle());
 
 		// add check for title exists in a DB
@@ -134,10 +134,21 @@ public class JobService {
 		}
 		JobEntity jobEntity = getById(jobRequest.getId());
 		jobEntity.setTitle(jobRequest.getTitle());
-		// jobEntity.setFormSubmissionData(jobRequest.getFormData());
 		jobEntity.setUpdatedBy(jobRequest.getUpdatedBy());
-		LOG.info("Job updated : Service");
+		jobEntity.setIsActive(true);
+		jobEntity.setIsDeleted(false);
+		jobEntity.setJobSubmissionData(MappingUtil.convertJSONStringToJsonNode(jobRequest.getFormData()));
 		jobRepository.save(jobEntity);
+
+		FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+		formSubmissionsRequestDTO.setUserId(jobRequest.getUpdatedBy());
+		formSubmissionsRequestDTO.setFormId(jobRequest.getFormId());
+		formSubmissionsRequestDTO.setSubmissionData(MappingUtil.convertJSONStringToJsonNode(jobRequest.getFormData()));
+		formSubmissionsRequestDTO.setEntityId(jobEntity.getId());
+		formSubmissionsRequestDTO.setEntityType(JOB_TYPE);
+
+		formSubmissionAPIClient.updateFormSubmission(jobEntity.getFormSubmissionId().intValue(),
+				formSubmissionsRequestDTO);
 	}
 
 	/**
