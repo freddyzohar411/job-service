@@ -411,4 +411,10 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		return nativeQuery.getResultList();
 	}
 
+	@Override
+	public void updateDocumentEntityId(Long tempId, Long originalId, Long userId, String entityType) {
+		entityManager.createNativeQuery("update document set entity_id = " + originalId + " where entity_id = " + tempId
+				+ " and created_by = " + userId + " and entity_type = '" + entityType + "'").executeUpdate();
+	}
+
 }

@@ -24,4 +24,7 @@ public interface CustomJobRepository {
 			Pageable pageable, List<String> searchFields, String searchTerm);
 
 	List<JobEntity> getAllAccountsNameWithSearch(String query, Long userId, Boolean isDeleted, Boolean isDraft);
+
+	void updateDocumentEntityId(Long tempId, Long originalId, Long userId, String entityType);
+
 }

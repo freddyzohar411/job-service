@@ -20,11 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.avensys.rts.jobservice.apiclient.DocumentAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
-import com.avensys.rts.jobservice.payload.DocumentRequestDTO;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.repository.JobRepository;
@@ -46,15 +44,13 @@ public class JobService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JobService.class);
 	private static final String JOB_TYPE = "job";
+	private static final String JOB_DOCUMENT = "job_document";
 
 	@Autowired
 	private MessageSource messageSource;
 
 	@Autowired
 	private JobRepository jobRepository;
-
-	@Autowired
-	private DocumentAPIClient documentAPIClient;
 
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
@@ -98,20 +94,6 @@ public class JobService {
 
 		jobEntity = jobRepository.save(jobEntity);
 
-		if (jobRequest.getUploadJobDocuments() != null) {
-			DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
-			// Save document and tag to account entity
-			documentRequestDTO.setEntityId(jobEntity.getId());
-			documentRequestDTO.setEntityType(JOB_TYPE);
-
-			documentRequestDTO.setFile(jobRequest.getUploadJobDocuments());
-			HttpResponse documentResponse = documentAPIClient.createDocument(documentRequestDTO);
-			if (documentResponse.getCode() != 200) {
-				throw new ServiceException(
-						messageSource.getMessage("error.jobtitletaken", null, LocaleContextHolder.getLocale()));
-			}
-		}
-
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
 		formSubmissionsRequestDTO.setUserId(jobRequest.getCreatedBy());
 		formSubmissionsRequestDTO.setFormId(jobRequest.getFormId());
@@ -125,6 +107,11 @@ public class JobService {
 
 		jobEntity.setJobSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
 		jobEntity.setFormSubmissionId(formSubmissionData.getId());
+
+		jobRepository.updateDocumentEntityId(jobRequest.getTempDocId(), jobEntity.getId(), jobRequest.getCreatedBy(),
+				JOB_DOCUMENT);
+
+		jobRepository.save(jobEntity);
 
 		return jobEntity;
 	}
