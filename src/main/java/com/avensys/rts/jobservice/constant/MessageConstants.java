@@ -7,4 +7,6 @@ public class MessageConstants {
 	public static final String JOB_TYPE = "job";
 	public static final String MESSAGE_DELETED = "job.deleted";
 
+	public static final String USER_PERMISSIONDENIED_RESOURCE = "user.permissionDeniedResource";
+
 }
