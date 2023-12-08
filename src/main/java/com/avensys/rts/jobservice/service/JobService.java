@@ -1,14 +1,10 @@
 package com.avensys.rts.jobservice.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.avensys.rts.jobservice.model.FieldInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -276,50 +272,78 @@ public class JobService {
 		return jobListingResponseDTO;
 	}
 
-	public List<Map<String, String>> getAllJobFields(Long userId) throws ServiceException {
+//	public List<Map<String, String>> getAllJobFields(Long userId) throws ServiceException {
+//		List<JobEntity> jobEntities = jobRepository.findAllByUserAndDeleted(userId, false, true);
+//		if (jobEntities.isEmpty()) {
+//			throw new ServiceException(
+//					messageSource.getMessage("error.norecordfound", null, LocaleContextHolder.getLocale()));
+//		}
+//
+//		// Declare a new hashmap to store the label and value
+//		Map<String, String> keyMap = new HashMap<>();
+//
+//		// Lets store normal column first
+//		keyMap.put("Title", "title");
+//		keyMap.put("Created At", "createdAt");
+//		keyMap.put("Updated At", "updatedAt");
+//		keyMap.put("Created By", "createdByName");
+//		keyMap.put("Updated By", "updatedByName");
+//		// Loop through the account submission data jsonNode
+//		for (JobEntity jobEntity : jobEntities) {
+//			if (jobEntity.getJobSubmissionData() != null) {
+//				Iterator<String> accountFieldNames = jobEntity.getJobSubmissionData().fieldNames();
+//				while (accountFieldNames.hasNext()) {
+//					String fieldName = accountFieldNames.next();
+//					keyMap.put(StringUtil.convertCamelCaseToTitleCase2(fieldName), "jobSubmissionData." + fieldName);
+//				}
+//			}
+//
+//		}
+//
+//		List<Map<String, String>> fieldOptions = new ArrayList<>();
+//		// Loop Through map
+//		for (Map.Entry<String, String> entry : keyMap.entrySet()) {
+//			// Create a list of map with label and value
+//			Map<String, String> map = new HashMap<>();
+//			map.put("label", entry.getKey());
+//			map.put("value", entry.getValue());
+//			if (entry.getValue().contains(".")) {
+//				String[] split = entry.getValue().split("\\.");
+//				map.put("sortValue", StringUtil.camelCaseToSnakeCase(split[0]) + "." + split[1]);
+//			} else {
+//				map.put("sortValue", StringUtil.camelCaseToSnakeCase(entry.getValue()));
+//			}
+//			fieldOptions.add(map);
+//		}
+//		return fieldOptions;
+//	}
+
+
+	public Set<FieldInformation> getAllJobFields(Long userId) throws ServiceException{
 		List<JobEntity> jobEntities = jobRepository.findAllByUserAndDeleted(userId, false, true);
 		if (jobEntities.isEmpty()) {
 			throw new ServiceException(
 					messageSource.getMessage("error.norecordfound", null, LocaleContextHolder.getLocale()));
 		}
 
-		// Declare a new hashmap to store the label and value
-		Map<String, String> keyMap = new HashMap<>();
+		// Declare a new haspmap to store the label and value
+		Set<FieldInformation> fieldColumn = new HashSet<>();
+		fieldColumn.add(new FieldInformation("Title", "title", true, "title"));
+		fieldColumn.add(new FieldInformation("Created At", "createdAt", true, "created_at"));
+		fieldColumn.add(new FieldInformation("Updated At", "updatedAt", true, "updated_at"));
+//		fieldColumn.add(new FieldInformation("Created By", "createdByName", false, null));
 
-		// Lets store normal column first
-		keyMap.put("Title", "title");
-		keyMap.put("Created At", "createdAt");
-		keyMap.put("Updated At", "updatedAt");
-		keyMap.put("Created By", "createdByName");
-		keyMap.put("Updated By", "updatedByName");
 		// Loop through the account submission data jsonNode
 		for (JobEntity jobEntity : jobEntities) {
 			if (jobEntity.getJobSubmissionData() != null) {
-				Iterator<String> accountFieldNames = jobEntity.getJobSubmissionData().fieldNames();
-				while (accountFieldNames.hasNext()) {
-					String fieldName = accountFieldNames.next();
-					keyMap.put(StringUtil.convertCamelCaseToTitleCase2(fieldName), "jobSubmissionData." + fieldName);
+				Iterator<String> jobFieldNames = jobEntity.getJobSubmissionData().fieldNames();
+				while (jobFieldNames.hasNext()) {
+					String fieldName = jobFieldNames.next();
+					fieldColumn.add(new FieldInformation(StringUtil.convertCamelCaseToTitleCase2(fieldName), "jobSubmissionData." + fieldName, true, "job_submission_data." + fieldName));
 				}
 			}
-
 		}
-
-		List<Map<String, String>> fieldOptions = new ArrayList<>();
-		// Loop Through map
-		for (Map.Entry<String, String> entry : keyMap.entrySet()) {
-			// Create a list of map with label and value
-			Map<String, String> map = new HashMap<>();
-			map.put("label", entry.getKey());
-			map.put("value", entry.getValue());
-			if (entry.getValue().contains(".")) {
-				String[] split = entry.getValue().split("\\.");
-				map.put("sortValue", StringUtil.camelCaseToSnakeCase(split[0]) + "." + split[1]);
-			} else {
-				map.put("sortValue", StringUtil.camelCaseToSnakeCase(entry.getValue()));
-			}
-			fieldOptions.add(map);
-		}
-		return fieldOptions;
+		return fieldColumn;
 	}
 
 }
