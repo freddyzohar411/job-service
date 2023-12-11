@@ -4,7 +4,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.avensys.rts.jobservice.apiclient.UserAPIClient;
 import com.avensys.rts.jobservice.model.FieldInformation;
+import com.avensys.rts.jobservice.response.*;
+import com.avensys.rts.jobservice.util.UserUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +25,6 @@ import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.repository.JobRepository;
-import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
-import com.avensys.rts.jobservice.response.HttpResponse;
-import com.avensys.rts.jobservice.response.JobListingResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
 import com.avensys.rts.jobservice.util.MappingUtil;
 import com.avensys.rts.jobservice.util.StringUtil;
@@ -50,6 +50,12 @@ public class JobService {
 
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
+
+	@Autowired
+	private UserAPIClient userAPIClient;
+
+	@Autowired
+	private UserUtil userUtil;
 
 	/**
 	 * This method is used to convert JobRequest to JobEntity
@@ -221,22 +227,15 @@ public class JobService {
 		}
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-		Page<JobEntity> accountEntitiesPage = null;
+		Page<JobEntity> jobEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			accountEntitiesPage = jobRepository.findAllByOrderByNumeric(userId, false, false, true, pageRequest);
+			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userUtil.getUsersIdUnderManager(), false,true, pageRequest);
 		} catch (Exception e) {
-			accountEntitiesPage = jobRepository.findAllByOrderByString(userId, false, false, true, pageRequest);
+			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(), false, true, pageRequest);
 		}
 
-		JobListingResponseDTO jobListingResponseDTO = new JobListingResponseDTO();
-		jobListingResponseDTO.setTotalElements(accountEntitiesPage.getTotalElements());
-		jobListingResponseDTO.setTotalPages(accountEntitiesPage.getTotalPages());
-		jobListingResponseDTO.setPage(accountEntitiesPage.getNumber());
-		jobListingResponseDTO.setPageSize(accountEntitiesPage.getSize());
-		jobListingResponseDTO.setJobs(accountEntitiesPage.getContent());
-
-		return jobListingResponseDTO;
+		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
 	}
 
 	public JobListingResponseDTO getJobListingPageWithSearch(Integer page, Integer size, String sortBy,
@@ -252,24 +251,17 @@ public class JobService {
 		}
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-		Page<JobEntity> accountEntitiesPage = null;
+		Page<JobEntity> jobEntityPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			accountEntitiesPage = jobRepository.findAllByOrderByAndSearchNumeric(userId, false, false, true,
+			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userUtil.getUsersIdUnderManager(), false, true,
 					pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			accountEntitiesPage = jobRepository.findAllByOrderByAndSearchString(userId, false, false, true, pageRequest,
+			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userUtil.getUsersIdUnderManager(), false, true, pageRequest,
 					searchFields, searchTerm);
 		}
 
-		JobListingResponseDTO jobListingResponseDTO = new JobListingResponseDTO();
-		jobListingResponseDTO.setTotalElements(accountEntitiesPage.getTotalElements());
-		jobListingResponseDTO.setTotalPages(accountEntitiesPage.getTotalPages());
-		jobListingResponseDTO.setPage(accountEntitiesPage.getNumber());
-		jobListingResponseDTO.setPageSize(accountEntitiesPage.getSize());
-		jobListingResponseDTO.setJobs(accountEntitiesPage.getContent());
-
-		return jobListingResponseDTO;
+		return pageJobListingToJobListingResponseDTO(jobEntityPage);
 	}
 
 //	public List<Map<String, String>> getAllJobFields(Long userId) throws ServiceException {
@@ -322,8 +314,7 @@ public class JobService {
 	public Set<FieldInformation> getAllJobFields(Long userId) throws ServiceException{
 		List<JobEntity> jobEntities = jobRepository.findAllByUserAndDeleted(userId, false, true);
 		if (jobEntities.isEmpty()) {
-			throw new ServiceException(
-					messageSource.getMessage("error.norecordfound", null, LocaleContextHolder.getLocale()));
+			return null;
 		}
 
 		// Declare a new haspmap to store the label and value
@@ -331,7 +322,7 @@ public class JobService {
 		fieldColumn.add(new FieldInformation("Title", "title", true, "title"));
 		fieldColumn.add(new FieldInformation("Created At", "createdAt", true, "created_at"));
 		fieldColumn.add(new FieldInformation("Updated At", "updatedAt", true, "updated_at"));
-//		fieldColumn.add(new FieldInformation("Created By", "createdByName", false, null));
+		fieldColumn.add(new FieldInformation("Created By", "createdByName", false, null));
 
 		// Loop through the account submission data jsonNode
 		for (JobEntity jobEntity : jobEntities) {
@@ -344,6 +335,35 @@ public class JobService {
 			}
 		}
 		return fieldColumn;
+	}
+
+	private JobListingResponseDTO pageJobListingToJobListingResponseDTO(
+			Page<JobEntity> jobEntityPage) {
+		JobListingResponseDTO jobListingNewResponseDTO = new JobListingResponseDTO();
+		jobListingNewResponseDTO.setTotalPages(jobEntityPage.getTotalPages());
+		jobListingNewResponseDTO.setTotalElements(jobEntityPage.getTotalElements());
+		jobListingNewResponseDTO.setPage(jobEntityPage.getNumber());
+		jobListingNewResponseDTO.setPageSize(jobEntityPage.getSize());
+		List<JobListingDataDTO> jobListingDataDTOs = new ArrayList<>();
+		jobListingDataDTOs = jobEntityPage.getContent().stream().map(jobEntity -> {
+			JobListingDataDTO jobListingDataDTO = new JobListingDataDTO(jobEntity);
+
+			// Get created by User data from user service
+			// Cast to Integer
+			HttpResponse userResponse = userAPIClient.getUserById(jobEntity.getCreatedBy().intValue());
+			UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
+			jobListingDataDTO.setCreatedByName(userData.getFirstName() + " " + userData.getLastName());
+
+			// Get updated by User data from user service
+			HttpResponse updatedByUserResponse = userAPIClient.getUserById(jobEntity.getUpdatedBy().intValue());
+			UserResponseDTO updatedByUserData = MappingUtil.mapClientBodyToClass(updatedByUserResponse.getData(),
+					UserResponseDTO.class);
+			jobListingDataDTO
+					.setUpdatedByName(updatedByUserData.getFirstName() + " " + updatedByUserData.getLastName());
+			return jobListingDataDTO;
+		}).toList();
+		jobListingNewResponseDTO.setJobs(jobListingDataDTOs);
+		return jobListingNewResponseDTO;
 	}
 
 }
