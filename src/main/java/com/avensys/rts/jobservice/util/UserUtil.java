@@ -1,6 +1,7 @@
 package com.avensys.rts.jobservice.util;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,12 @@ public class UserUtil {
 
 	public List<Long> getUsersIdUnderManager() {
 		HttpResponse response = userAPIClient.getUsersUnderManager();
-			return (List<Long>) response.getData();
+
+		List<Integer> integerList = (List<Integer>) response.getData();
+
+		return integerList.stream()
+				.map(Long::valueOf)
+				.collect(Collectors.toList());
 	}
 
 	public String getUserGroupIdsAsString() {
