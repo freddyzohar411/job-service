@@ -312,7 +312,8 @@ public class JobService {
 
 
 	public Set<FieldInformation> getAllJobFields(Long userId) throws ServiceException{
-		List<JobEntity> jobEntities = jobRepository.findAllByUserAndDeleted(userId, false, true);
+
+		List<JobEntity> jobEntities = jobRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
 		if (jobEntities.isEmpty()) {
 			return null;
 		}

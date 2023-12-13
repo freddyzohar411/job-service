@@ -25,4 +25,8 @@ public interface JobRepository
 	@Query(value = "SELECT a FROM job a WHERE a.createdBy = ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
 	List<JobEntity> findAllByUserAndDeleted(Long createdBy, boolean isDeleted, boolean isActive);
 
+	@Query(value = "SELECT a FROM job a WHERE a.createdBy IN (?1) AND a.isDeleted = ?2 AND a.isActive = ?3")
+	List<JobEntity> findAllByUserIdsAndDeleted(List<Long> createdByList, boolean isDeleted, boolean isActive);
+
+
 }
