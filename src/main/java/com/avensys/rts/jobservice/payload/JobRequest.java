@@ -14,6 +14,7 @@ public class JobRequest {
 	private Long formId;
 	private Long tempDocId;
 	private String formData;
+	private Boolean isDraft;
 	private Long createdBy;
 	private Long updatedBy;
 }

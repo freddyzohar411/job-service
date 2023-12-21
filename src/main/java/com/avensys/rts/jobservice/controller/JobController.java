@@ -23,8 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.avensys.rts.jobservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.enums.Permission;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
@@ -192,6 +194,24 @@ public class JobController {
 	@GetMapping("/search")
 	public Page<JobEntity> searchJob(@RequestParam("search") String search, Pageable pageable) throws ServiceException {
 		return jobService.search(search, pageable);
+	}
+
+	/**
+	 * Get an account draft if exists
+	 * 
+	 * @return
+	 */
+	@RequiresAllPermissions({ Permission.JOB_WRITE })
+	@GetMapping("/draft")
+	public ResponseEntity<Object> getAccountIfDraft(@RequestHeader(name = "Authorization") String token) {
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			JobEntity jobEntity = jobService.getJobDraft(userId);
+			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
 	}
 
 }
