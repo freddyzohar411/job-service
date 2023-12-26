@@ -20,5 +20,4 @@ public enum Permission {
     public String toString() {
         return this.permission;
     }
-
 }

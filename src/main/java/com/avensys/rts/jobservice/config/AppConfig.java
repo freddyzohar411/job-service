@@ -1,5 +1,7 @@
 package com.avensys.rts.jobservice.config;
 
+import java.util.Locale;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +32,7 @@ public class AppConfig implements WebMvcConfigurer {
 	public MessageSource messageSource() {
 		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
 		messageSource.setBasenames("messages");
+		messageSource.setDefaultLocale(Locale.ENGLISH);
 		messageSource.setDefaultEncoding("UTF-8");
 		return messageSource;
 	}

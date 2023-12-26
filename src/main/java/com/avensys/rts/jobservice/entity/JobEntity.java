@@ -39,6 +39,9 @@ public class JobEntity extends BaseEntity {
 	@Column(name = "form_submission_id")
 	private Long formSubmissionId;
 
+	@Column(name = "is_draft")
+	private Boolean isDraft = false;
+
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "job_submission_data", columnDefinition = "jsonb")
 	private JsonNode jobSubmissionData;

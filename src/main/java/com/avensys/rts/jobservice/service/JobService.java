@@ -73,6 +73,7 @@ public class JobService {
 		entity.setTitle(jobRequest.getTitle());
 		entity.setUpdatedBy(jobRequest.getUpdatedBy());
 		entity.setFormId(jobRequest.getFormId());
+		entity.setIsDraft(jobRequest.getIsDraft());
 		entity.setIsActive(true);
 		entity.setIsDeleted(false);
 		return entity;
@@ -140,6 +141,7 @@ public class JobService {
 		jobEntity.setIsActive(true);
 		jobEntity.setIsDeleted(false);
 		jobEntity.setJobSubmissionData(MappingUtil.convertJSONStringToJsonNode(jobRequest.getFormData()));
+		jobEntity.setIsDraft(jobRequest.getIsDraft());
 		jobRepository.save(jobEntity);
 
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
@@ -365,6 +367,19 @@ public class JobService {
 		}).toList();
 		jobListingNewResponseDTO.setJobs(jobListingDataDTOs);
 		return jobListingNewResponseDTO;
+	}
+
+	public JobEntity getJobDraft(Long userId) throws ServiceException {
+		Optional<JobEntity> jobEntity = jobRepository.findByUserAndDraftAndDeleted(userId, true, false, true);
+		try {
+			if (jobEntity.isPresent() && !jobEntity.get().getIsDeleted()) {
+				return jobEntity.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			throw new ServiceException(e.getLocalizedMessage());
+		}
 	}
 
 }
