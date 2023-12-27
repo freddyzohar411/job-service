@@ -29,7 +29,9 @@ import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.enums.Permission;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
+import com.avensys.rts.jobservice.payload.JobRecruiterFODRequest;
 import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.service.JobRecruiterFODService;
 import com.avensys.rts.jobservice.service.JobService;
 import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.ResponseUtil;
@@ -49,6 +51,9 @@ public class JobController {
 
 	@Autowired
 	private JobService jobService;
+
+	@Autowired
+	private JobRecruiterFODService jobRecruiterFODService;
 
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -211,6 +216,30 @@ public class JobController {
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	/**
+	 * Save a job fod
+	 * 
+	 * @return
+	 */
+	@RequiresAllPermissions({ Permission.JOB_WRITE })
+	@PostMapping("/jobfod")
+	public ResponseEntity<?> jobFOD(@Valid @RequestBody JobRecruiterFODRequest jobRecruiterFODRequest,
+			@RequestHeader(name = "Authorization") String token) {
+		LOG.info("jobFOD request received");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			jobRecruiterFODRequest.setSellerId(userId);
+			jobRecruiterFODRequest.setCreatedBy(userId);
+			jobRecruiterFODRequest.setUpdatedBy(userId);
+
+			jobRecruiterFODService.save(jobRecruiterFODRequest);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
+					messageSource.getMessage("jobfod.created", null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
 
