@@ -232,9 +232,11 @@ public class JobService {
 		Page<JobEntity> jobEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userUtil.getUsersIdUnderManager(), false,true, pageRequest);
+			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userUtil.getUsersIdUnderManager(), false,
+					true, pageRequest);
 		} catch (Exception e) {
-			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(), false, true, pageRequest);
+			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(), false,
+					true, pageRequest);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
@@ -256,19 +258,20 @@ public class JobService {
 		Page<JobEntity> jobEntityPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userUtil.getUsersIdUnderManager(), false, true,
-					pageRequest, searchFields, searchTerm);
+			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userUtil.getUsersIdUnderManager(),
+					false, true, pageRequest, searchFields, searchTerm);
 		} catch (Exception e) {
-			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userUtil.getUsersIdUnderManager(), false, true, pageRequest,
-					searchFields, searchTerm);
+			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userUtil.getUsersIdUnderManager(),
+					false, true, pageRequest, searchFields, searchTerm);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntityPage);
 	}
-	
-	public Set<FieldInformation> getAllJobFields(Long userId) throws ServiceException{
 
-		List<JobEntity> jobEntities = jobRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
+	public Set<FieldInformation> getAllJobFields(Long userId) throws ServiceException {
+
+		List<JobEntity> jobEntities = jobRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false,
+				true);
 		if (jobEntities.isEmpty()) {
 			return null;
 		}
@@ -286,15 +289,15 @@ public class JobService {
 				Iterator<String> jobFieldNames = jobEntity.getJobSubmissionData().fieldNames();
 				while (jobFieldNames.hasNext()) {
 					String fieldName = jobFieldNames.next();
-					fieldColumn.add(new FieldInformation(StringUtil.convertCamelCaseToTitleCase2(fieldName), "jobSubmissionData." + fieldName, true, "job_submission_data." + fieldName));
+					fieldColumn.add(new FieldInformation(StringUtil.convertCamelCaseToTitleCase2(fieldName),
+							"jobSubmissionData." + fieldName, true, "job_submission_data." + fieldName));
 				}
 			}
 		}
 		return fieldColumn;
 	}
 
-	private JobListingResponseDTO pageJobListingToJobListingResponseDTO(
-			Page<JobEntity> jobEntityPage) {
+	private JobListingResponseDTO pageJobListingToJobListingResponseDTO(Page<JobEntity> jobEntityPage) {
 		JobListingResponseDTO jobListingNewResponseDTO = new JobListingResponseDTO();
 		jobListingNewResponseDTO.setTotalPages(jobEntityPage.getTotalPages());
 		jobListingNewResponseDTO.setTotalElements(jobEntityPage.getTotalElements());
