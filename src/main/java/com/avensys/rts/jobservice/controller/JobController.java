@@ -114,7 +114,7 @@ public class JobController {
 	 * @param id
 	 * @return
 	 */
-	@RequiresAllPermissions({ Permission.JOB_DELETE})
+	@RequiresAllPermissions({ Permission.JOB_DELETE })
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> deleteJob(@PathVariable Long id) {
 		try {
@@ -160,7 +160,7 @@ public class JobController {
 		}
 	}
 
-	@RequiresAllPermissions({ Permission.JOB_READ})
+	@RequiresAllPermissions({ Permission.JOB_READ })
 	@PostMapping("/listing")
 	public ResponseEntity<Object> getAccountListing(@RequestBody JobListingRequestDTO jobListingRequestDTO,
 			@RequestHeader(name = "Authorization") String token) {
