@@ -265,54 +265,7 @@ public class JobService {
 
 		return pageJobListingToJobListingResponseDTO(jobEntityPage);
 	}
-
-//	public List<Map<String, String>> getAllJobFields(Long userId) throws ServiceException {
-//		List<JobEntity> jobEntities = jobRepository.findAllByUserAndDeleted(userId, false, true);
-//		if (jobEntities.isEmpty()) {
-//			throw new ServiceException(
-//					messageSource.getMessage("error.norecordfound", null, LocaleContextHolder.getLocale()));
-//		}
-//
-//		// Declare a new hashmap to store the label and value
-//		Map<String, String> keyMap = new HashMap<>();
-//
-//		// Lets store normal column first
-//		keyMap.put("Title", "title");
-//		keyMap.put("Created At", "createdAt");
-//		keyMap.put("Updated At", "updatedAt");
-//		keyMap.put("Created By", "createdByName");
-//		keyMap.put("Updated By", "updatedByName");
-//		// Loop through the account submission data jsonNode
-//		for (JobEntity jobEntity : jobEntities) {
-//			if (jobEntity.getJobSubmissionData() != null) {
-//				Iterator<String> accountFieldNames = jobEntity.getJobSubmissionData().fieldNames();
-//				while (accountFieldNames.hasNext()) {
-//					String fieldName = accountFieldNames.next();
-//					keyMap.put(StringUtil.convertCamelCaseToTitleCase2(fieldName), "jobSubmissionData." + fieldName);
-//				}
-//			}
-//
-//		}
-//
-//		List<Map<String, String>> fieldOptions = new ArrayList<>();
-//		// Loop Through map
-//		for (Map.Entry<String, String> entry : keyMap.entrySet()) {
-//			// Create a list of map with label and value
-//			Map<String, String> map = new HashMap<>();
-//			map.put("label", entry.getKey());
-//			map.put("value", entry.getValue());
-//			if (entry.getValue().contains(".")) {
-//				String[] split = entry.getValue().split("\\.");
-//				map.put("sortValue", StringUtil.camelCaseToSnakeCase(split[0]) + "." + split[1]);
-//			} else {
-//				map.put("sortValue", StringUtil.camelCaseToSnakeCase(entry.getValue()));
-//			}
-//			fieldOptions.add(map);
-//		}
-//		return fieldOptions;
-//	}
-
-
+	
 	public Set<FieldInformation> getAllJobFields(Long userId) throws ServiceException{
 
 		List<JobEntity> jobEntities = jobRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false, true);
