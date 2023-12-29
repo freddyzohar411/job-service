@@ -16,5 +16,5 @@ public class JobListingResponseDTO {
 	private Long totalElements;
 	private Integer page;
 	private Integer pageSize;
-	private List<JobEntity> jobs;
+	private List<JobListingDataDTO> jobs;
 }

@@ -5,14 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.avensys.rts.jobservice.enums.Permission;
+import com.avensys.rts.jobservice.enums.Role;
 
-/**
- * Author: Rahul Sahu This annotation is used to check if the user has all the
- * permissions specified in the annotation
- */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RequiresAllPermissions {
-    Permission[] value() default {};
+public @interface RequiresAnyRole {
+    Role[] value() default {Role.USER};
 }

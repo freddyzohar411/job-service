@@ -8,11 +8,14 @@ import java.lang.annotation.Target;
 import com.avensys.rts.jobservice.enums.Permission;
 
 /**
- * Author: Rahul Sahu This annotation is used to check if the user has all the
+ * Author: Koh He Xiang
+ * This annotation is used to check if the user has any of the
  * permissions specified in the annotation
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RequiresAllPermissions {
+public @interface RequiresAnyPermission {
     Permission[] value() default {};
+
 }
+

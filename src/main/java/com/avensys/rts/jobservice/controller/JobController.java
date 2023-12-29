@@ -2,6 +2,8 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.annotation.RequiresAllPermissions;
+import com.avensys.rts.jobservice.enums.Permission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +70,7 @@ public class JobController {
 	 * @param jobRequest
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.JOB_WRITE })
 	@PostMapping
 	public ResponseEntity<?> createJob(@Valid @RequestBody JobRequest jobRequest,
 			@RequestHeader(name = "Authorization") String token) {
@@ -95,6 +98,7 @@ public class JobController {
 	 */
 
 	@PutMapping("/{id}")
+	@RequiresAllPermissions({ Permission.JOB_EDIT })
 	public ResponseEntity<?> updateJob(@RequestBody JobRequest jobRequest,
 			@RequestHeader(name = "Authorization") String token) {
 		try {
@@ -115,6 +119,7 @@ public class JobController {
 	 * @param id
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.JOB_DELETE })
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> deleteJob(@PathVariable Long id) {
 		try {
@@ -148,6 +153,7 @@ public class JobController {
 	 * 
 	 * @return
 	 */
+	@RequiresAllPermissions({ Permission.JOB_WRITE })
 	@GetMapping("/fields")
 	public ResponseEntity<Object> getAllAccountsFields(@RequestHeader(name = "Authorization") String token) {
 		try {
@@ -159,6 +165,7 @@ public class JobController {
 		}
 	}
 
+	@RequiresAllPermissions({ Permission.JOB_READ })
 	@PostMapping("/listing")
 	public ResponseEntity<Object> getAccountListing(@RequestBody JobListingRequestDTO jobListingRequestDTO,
 			@RequestHeader(name = "Authorization") String token) {
