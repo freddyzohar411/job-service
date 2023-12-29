@@ -10,25 +10,18 @@ import com.avensys.rts.jobservice.response.HttpResponse;
 @FeignClient(name = "user-service", url = "http://localhost:8090/api/user", configuration = JwtTokenInterceptor.class)
 public interface UserAPIClient {
 	@GetMapping("/{id}")
-    HttpResponse getUserById(@PathVariable("id") Integer id);
-	
-	//@GetMapping("")
-    //HttpResponse getUserByEmail(@RequestParam(required = false) String email);
-	
-	 @GetMapping("/email/{email}")
-	 HttpResponse getUserByEmail(@PathVariable("email") String email);
-	 
-	 @GetMapping("/{id}")
-	 HttpResponse find(@PathVariable("id") Long id);
+	HttpResponse getUserById(@PathVariable("id") Integer id);
 
-	
-//	@GetMapping("/{id}")
-//	public ResponseEntity<?> find(@PathVariable("id") Long id);
-	 
-	 @GetMapping("/profile")
-	 HttpResponse getUserDetail();
+	@GetMapping("/email/{email}")
+	HttpResponse getUserByEmail(@PathVariable("email") String email);
+
+	@GetMapping("/{id}")
+	HttpResponse find(@PathVariable("id") Long id);
+
+	@GetMapping("/profile")
+	HttpResponse getUserDetail();
 
 	@GetMapping("/users-under-manager")
 	HttpResponse getUsersUnderManager();
-	
+
 }

@@ -39,7 +39,6 @@ public class SecurityPermissionAspect {
 
 	@Before("@annotation(requiresPermission)")
 	public void checkAllPermission(RequiresAllPermissions requiresPermission) {
-		System.out.println("RequiresAllPermissions Aspect");
 		List<String> requiredPermissions = Arrays.stream(requiresPermission.value()).map(Permission::toString).toList();
 		if (!requiredPermissions.isEmpty()) {
 			// Logic to get permission from UserAPI Microservice
@@ -67,7 +66,6 @@ public class SecurityPermissionAspect {
 	 */
 	@Before("@annotation(requiresPermission)")
 	public void checkAnyPermission(RequiresAnyPermission requiresPermission) {
-		System.out.println("RequiresAnyPermissions Aspect");
 		List<String> requiredPermissions = Arrays.stream(requiresPermission.value()).map(Permission::toString).toList();
 
 		if (!requiredPermissions.isEmpty()) {
