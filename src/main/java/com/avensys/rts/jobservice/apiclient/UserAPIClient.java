@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.avensys.rts.jobservice.interceptor.JwtTokenInterceptor;
 import com.avensys.rts.jobservice.response.HttpResponse;
 
-@FeignClient(name = "user-service", url = "http://localhost:8090/api/user", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "user-service", url = "${api.user.url}", configuration = JwtTokenInterceptor.class)
 public interface UserAPIClient {
 	@GetMapping("/{id}")
 	HttpResponse getUserById(@PathVariable("id") Integer id);

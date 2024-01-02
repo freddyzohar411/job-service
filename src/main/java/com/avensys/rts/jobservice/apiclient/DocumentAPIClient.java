@@ -23,20 +23,20 @@ import com.avensys.rts.jobservice.response.HttpResponse;
  * This class is an interface to interact with document microservice
  */
 @Configuration
-@FeignClient(name = "document-service", url = "http://localhost:8500", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "document-service", url = "${api.document.url}", configuration = JwtTokenInterceptor.class)
 public interface DocumentAPIClient {
-    @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     HttpResponse createDocument(@ModelAttribute DocumentRequestDTO documentRequest);
 
-    @PutMapping(value = "/documents" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     HttpResponse updateDocument(@ModelAttribute DocumentRequestDTO documentRequest);
 
-    @DeleteMapping("/documents")
+    @DeleteMapping("")
     HttpResponse deleteDocumentByEntityIdAndType(@RequestBody DocumentDeleteRequestDTO documentDeleteRequestDTO);
 
-    @GetMapping("/documents")
+    @GetMapping("")
     HttpResponse getDocumentByEntityTypeAndId(@RequestParam String entityType, @RequestParam int entityId);
 
-    @DeleteMapping("/documents/entity/{entityType}/{entityId}")
+    @DeleteMapping("/entity/{entityType}/{entityId}")
     HttpResponse deleteDocumentsByEntityTypeAndEntityId(@PathVariable String entityType, @PathVariable Integer entityId);
 }
