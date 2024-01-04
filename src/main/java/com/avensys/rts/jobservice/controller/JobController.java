@@ -71,7 +71,7 @@ public class JobController {
 	 * @return
 	 */
 	@RequiresAllPermissions({ Permission.JOB_WRITE })
-	@PostMapping
+	@PostMapping("/add")
 	public ResponseEntity<?> createJob(@Valid @RequestBody JobRequest jobRequest,
 			@RequestHeader(name = "Authorization") String token) {
 		LOG.info("createJob request received");
