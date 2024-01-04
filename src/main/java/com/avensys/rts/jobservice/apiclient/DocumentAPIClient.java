@@ -25,7 +25,7 @@ import com.avensys.rts.jobservice.response.HttpResponse;
 @Configuration
 @FeignClient(name = "document-service", url = "${api.document.url}", configuration = JwtTokenInterceptor.class)
 public interface DocumentAPIClient {
-    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     HttpResponse createDocument(@ModelAttribute DocumentRequestDTO documentRequest);
 
     @PutMapping(value = "" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

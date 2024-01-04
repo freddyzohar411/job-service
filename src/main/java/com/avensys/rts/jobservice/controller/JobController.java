@@ -71,7 +71,7 @@ public class JobController {
 	 * @return
 	 */
 	@RequiresAllPermissions({ Permission.JOB_WRITE })
-	@PostMapping
+	@PostMapping("/add")
 	public ResponseEntity<?> createJob(@Valid @RequestBody JobRequest jobRequest,
 			@RequestHeader(name = "Authorization") String token) {
 		LOG.info("createJob request received");
@@ -248,6 +248,11 @@ public class JobController {
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
 		}
+	}
+	@GetMapping("/{jobId}/data")
+	public ResponseEntity<Object> getJobByIdData(@PathVariable Integer jobId) {
+		LOG.info("Job get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdData(jobId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 }
