@@ -338,4 +338,22 @@ public class JobService {
 		}
 	}
 
+	public JobListingDataDTO getJobByIdData(Integer jobId) {
+		return jobEntityToJobNewListingDataDTO(jobRepository.findByIdAndDeleted(jobId.longValue(), false, true).orElseThrow(
+				() -> new RuntimeException("Job not found")
+		));
+	}
+
+	private JobListingDataDTO jobEntityToJobNewListingDataDTO(JobEntity jobEntity) {
+		JobListingDataDTO jobListingDataDTO = new JobListingDataDTO(jobEntity);
+		// Get created by User data from user microservice
+		HttpResponse createUserResponse = userAPIClient.getUserById(jobEntity.getCreatedBy().intValue());
+		UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(), UserResponseDTO.class);
+		jobListingDataDTO.setCreatedByName(createUserData.getFirstName() + " " + createUserData.getLastName());
+		HttpResponse updateUserResponse = userAPIClient.getUserById(jobEntity.getUpdatedBy().intValue());
+		UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(), UserResponseDTO.class);
+		jobListingDataDTO.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
+		return jobListingDataDTO;
+	}
+
 }
