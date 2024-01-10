@@ -1,6 +1,7 @@
 package com.avensys.rts.jobservice.entity;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,10 +33,13 @@ public class JobRecruiterFODEntity extends BaseEntity {
 	private JobEntity job;
 
 	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "recruiter_id", referencedColumnName = "id")
+	@JoinColumn(name = "recruiter_id", referencedColumnName = "id", unique = false)
 	private UserEntity recruiter;
 
 	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "seller_id", referencedColumnName = "id")
+	@JoinColumn(name = "sales_id", referencedColumnName = "id", unique = false)
 	private UserEntity seller;
+
+	@Column(name = "status")
+	private String status;
 }

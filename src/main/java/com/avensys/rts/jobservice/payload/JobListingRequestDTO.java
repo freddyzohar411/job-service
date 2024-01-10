@@ -20,4 +20,5 @@ public class JobListingRequestDTO {
 	private String sortDirection;
 	private String searchTerm;
 	private List<String> searchFields;
+	private String jobType;
 }

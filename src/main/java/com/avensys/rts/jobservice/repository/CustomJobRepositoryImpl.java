@@ -431,7 +431,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 	// With user ids
 	@Override
 	public Page<JobEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable) {
+			Pageable pageable, String jobType, Long userId) {
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -452,8 +452,15 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
+
+		if (jobType != null && jobType.length() > 0) {
+			queryString = getQuery(queryString, jobType, userId, isActive);
+			isActive = getActive(jobType, isActive);
+		} else {
+			queryString = queryString.replace("{1}", "");
+		}
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
@@ -467,7 +474,14 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		List<JobEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM job WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds)";
+		String countQueryString = "SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds)";
+
+		if (jobType != null && jobType.length() > 0) {
+			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
+			isActive = getActive(jobType, isActive);
+		} else {
+			countQueryString = countQueryString.replace("{1}", "");
+		}
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -482,7 +496,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 	@Override
 	public Page<JobEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable) {
+			Pageable pageable, String jobType, Long userId) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
@@ -502,8 +516,15 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
+
+		if (jobType != null && jobType.length() > 0) {
+			queryString = getQuery(queryString, jobType, userId, isActive);
+			isActive = getActive(jobType, isActive);
+		} else {
+			queryString = queryString.replace("{1}", "");
+		}
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
@@ -517,7 +538,14 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		List<JobEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM job WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds)";
+		String countQueryString = "SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds)";
+
+		if (jobType != null && jobType.length() > 0) {
+			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
+			isActive = getActive(jobType, isActive);
+		} else {
+			countQueryString = countQueryString.replace("{1}", "");
+		}
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -532,7 +560,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 	@Override
 	public Page<JobEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
+			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, String jobType,
+			Long userId) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
@@ -572,8 +601,15 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
+
+		if (jobType != null && jobType.length() > 0) {
+			queryString = getQuery(queryString, jobType, userId, isActive);
+			isActive = getActive(jobType, isActive);
+		} else {
+			queryString = queryString.replace("{1}", "");
+		}
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
@@ -589,8 +625,15 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
 				searchConditions.toString());
+
+		if (jobType != null && jobType.length() > 0) {
+			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
+			isActive = getActive(jobType, isActive);
+		} else {
+			countQueryString = countQueryString.replace("{1}", "");
+		}
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -606,7 +649,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 	@Override
 	public Page<JobEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm) {
+			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, String jobType,
+			Long userId) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
@@ -646,8 +690,15 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
+
+		if (jobType != null && jobType.length() > 0) {
+			queryString = getQuery(queryString, jobType, userId, isActive);
+			isActive = getActive(jobType, isActive);
+		} else {
+			queryString = queryString.replace("{1}", "");
+		}
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
@@ -663,8 +714,15 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
 				searchConditions.toString());
+
+		if (jobType != null && jobType.length() > 0) {
+			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
+			isActive = getActive(jobType, isActive);
+		} else {
+			countQueryString = countQueryString.replace("{1}", "");
+		}
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
@@ -676,6 +734,68 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Create and return a Page object
 		return new PageImpl<>(resultList, pageable, countResult);
+	}
+
+	private Boolean getActive(String jobType, Boolean isActive) {
+		Boolean active = isActive;
+		switch (jobType) {
+		case "active_jobs": {
+			active = true;
+			break;
+		}
+		case "inactive_jobs": {
+			active = false;
+			break;
+		}
+		default:
+			active = isActive;
+			break;
+		}
+		return active;
+	}
+
+	private String getQuery(String queryString, String jobType, Long userId, Boolean isActive) {
+		if (jobType != null && jobType.length() > 0) {
+			switch (jobType) {
+			case "new_job": {
+				queryString = queryString.replace("{1}",
+						"id not in (select fod.job_id from job_recruiter_fod fod) AND ");
+				break;
+			}
+			case "active_jobs": {
+				isActive = true;
+				queryString = queryString.replace("{1}", "");
+				break;
+			}
+			case "inactive_jobs": {
+				isActive = false;
+				queryString = queryString.replace("{1}", "");
+				break;
+			}
+			case "closed_jobs": {
+				queryString = queryString.replace("{1}",
+						"id in (select fod.job_id from job_recruiter_fod fod where fod.status = 'CLOSED') AND ");
+				break;
+			}
+			case "fod": {
+				queryString = queryString.replace("{1}", "id in (select id from job_recruiter_fod where recruiter_id = "
+						+ userId + " or sales_id = " + userId + " and created_at >= current_date) AND ");
+				break;
+			}
+			case "assigned_jobs": {
+				queryString = queryString.replace("{1}",
+						"id in (select id from job_recruiter_fod where status != 'CLOSED' and (recruiter_id = " + userId
+								+ " or sales_id = " + userId + ")) AND ");
+				break;
+			}
+			default:
+				queryString = queryString.replace("{1}", "");
+				break;
+			}
+		} else {
+			queryString = queryString.replace("{1}", "");
+		}
+		return queryString;
 	}
 
 }

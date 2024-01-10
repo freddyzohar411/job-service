@@ -2,8 +2,6 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
-import com.avensys.rts.jobservice.annotation.RequiresAllPermissions;
-import com.avensys.rts.jobservice.enums.Permission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,14 +174,15 @@ public class JobController {
 		String sortDirection = jobListingRequestDTO.getSortDirection();
 		String searchTerm = jobListingRequestDTO.getSearchTerm();
 		List<String> searchFields = jobListingRequestDTO.getSearchFields();
+		String jobType = jobListingRequestDTO.getJobType();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId), HttpStatus.OK,
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType), HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId),
+							searchFields, userId, jobType),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
@@ -249,10 +248,12 @@ public class JobController {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
+
 	@GetMapping("/{jobId}/data")
 	public ResponseEntity<Object> getJobByIdData(@PathVariable Integer jobId) {
 		LOG.info("Job get by id data: Controller");
-		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdData(jobId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdData(jobId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 }

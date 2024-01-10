@@ -217,7 +217,7 @@ public class JobService {
 	}
 
 	public JobListingResponseDTO getJobListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Long userId) {
+			Long userId, String jobType) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -233,17 +233,17 @@ public class JobService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userUtil.getUsersIdUnderManager(), false,
-					true, pageRequest);
+					true, pageRequest, jobType, userId);
 		} catch (Exception e) {
 			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(), false,
-					true, pageRequest);
+					true, pageRequest, jobType, userId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
 	}
 
 	public JobListingResponseDTO getJobListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Long userId) {
+			String sortDirection, String searchTerm, List<String> searchFields, Long userId, String jobType) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -259,10 +259,10 @@ public class JobService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userUtil.getUsersIdUnderManager(),
-					false, true, pageRequest, searchFields, searchTerm);
+					false, true, pageRequest, searchFields, searchTerm, jobType, userId);
 		} catch (Exception e) {
 			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userUtil.getUsersIdUnderManager(),
-					false, true, pageRequest, searchFields, searchTerm);
+					false, true, pageRequest, searchFields, searchTerm, jobType, userId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntityPage);
@@ -339,19 +339,20 @@ public class JobService {
 	}
 
 	public JobListingDataDTO getJobByIdData(Integer jobId) {
-		return jobEntityToJobNewListingDataDTO(jobRepository.findByIdAndDeleted(jobId.longValue(), false, true).orElseThrow(
-				() -> new RuntimeException("Job not found")
-		));
+		return jobEntityToJobNewListingDataDTO(jobRepository.findByIdAndDeleted(jobId.longValue(), false, true)
+				.orElseThrow(() -> new RuntimeException("Job not found")));
 	}
 
 	private JobListingDataDTO jobEntityToJobNewListingDataDTO(JobEntity jobEntity) {
 		JobListingDataDTO jobListingDataDTO = new JobListingDataDTO(jobEntity);
 		// Get created by User data from user microservice
 		HttpResponse createUserResponse = userAPIClient.getUserById(jobEntity.getCreatedBy().intValue());
-		UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(), UserResponseDTO.class);
+		UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(),
+				UserResponseDTO.class);
 		jobListingDataDTO.setCreatedByName(createUserData.getFirstName() + " " + createUserData.getLastName());
 		HttpResponse updateUserResponse = userAPIClient.getUserById(jobEntity.getUpdatedBy().intValue());
-		UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(), UserResponseDTO.class);
+		UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(),
+				UserResponseDTO.class);
 		jobListingDataDTO.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
 		return jobListingDataDTO;
 	}
