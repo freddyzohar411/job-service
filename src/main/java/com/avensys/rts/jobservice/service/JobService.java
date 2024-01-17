@@ -6,8 +6,10 @@ import java.util.regex.Pattern;
 
 import com.avensys.rts.jobservice.apiclient.UserAPIClient;
 import com.avensys.rts.jobservice.model.FieldInformation;
+import com.avensys.rts.jobservice.model.JobExtraData;
 import com.avensys.rts.jobservice.response.*;
 import com.avensys.rts.jobservice.util.UserUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -283,7 +285,7 @@ public class JobService {
 		fieldColumn.add(new FieldInformation("Updated At", "updatedAt", true, "updated_at"));
 		fieldColumn.add(new FieldInformation("Created By", "createdByName", false, null));
 
-		// Loop through the account submission data jsonNode
+		// Loop through the job submission data jsonNode
 		for (JobEntity jobEntity : jobEntities) {
 			if (jobEntity.getJobSubmissionData() != null) {
 				Iterator<String> jobFieldNames = jobEntity.getJobSubmissionData().fieldNames();
@@ -295,6 +297,88 @@ public class JobService {
 			}
 		}
 		return fieldColumn;
+	}
+
+	/**
+	 * This method is used to get all jobs fields including all other related
+	 * microservice
+	 * 
+	 * @return
+	 */
+	public HashMap<String, List<HashMap<String, String>>> getAllJobsFieldsAll() {
+		HashMap<String, List<HashMap<String, String>>> allFields = new HashMap<>();
+
+		// Get job fields from job microservice
+		List<HashMap<String, String>> jobFields = getJobFields();
+		allFields.put("jobInfo", jobFields);
+
+		return allFields;
+	}
+
+	/**
+	 * This method is used to get all jobs data (Only from job microservice)
+	 * 
+	 * @param jobId
+	 * @return
+	 */
+	public JobListingDataDTO getJobByIdData(Integer jobId) {
+		return jobEntityToJobNewListingDataDTO(jobRepository.findByIdAndDeleted(jobId.longValue(), false, true)
+				.orElseThrow(() -> new RuntimeException("Job not found")));
+	}
+
+	/**
+	 * This method is used to get all jobs data including all other related
+	 * microservice
+	 * 
+	 * @return
+	 */
+	public HashMap<String, Object> getJobByIdDataAll(Long jobId) {
+		HashMap<String, Object> jobData = new HashMap<>();
+		// Get Job fields from job microservice
+		JsonNode jobInfo = getJobInfoByIDJsonNode(jobId);
+		jobData.put("jobInfo", jobInfo);
+
+		return jobData;
+	}
+
+	private JsonNode getJobInfoByIDJsonNode(Long jobId) {
+		// Get basic information from form submission
+		JobEntity jobEntity = jobRepository.findByIdAndDeleted(jobId, false, true)
+				.orElseThrow(() -> new RuntimeException("Job not found"));
+		// Get the form submission data from candidate microservice
+		JsonNode jobSubmissionData = jobEntity.getJobSubmissionData();
+		// Get additional data in JSon node format too
+		JsonNode jobExtraDataJsonNode = getJobExtraData(jobEntity).getSelectedFieldsJsonNode();
+		return MappingUtil.mergeJsonNodes(List.of(jobSubmissionData, jobExtraDataJsonNode));
+	}
+
+	private List<HashMap<String, String>> getJobFields() {
+		JobExtraData jobExtraData = new JobExtraData();
+
+		// Get job dynamic fields from form service
+		HttpResponse jobFormFieldResponse = formSubmissionAPIClient.getFormFieldNameList("job");
+		List<HashMap<String, String>> jobFields = MappingUtil.mapClientBodyToClass(jobFormFieldResponse.getData(),
+				List.class);
+
+		// Merge lists using addAll()
+		List<HashMap<String, String>> mergedList = new ArrayList<>(jobExtraData.getAllFieldsMap());
+		mergedList.addAll(jobFields);
+
+		return mergedList;
+	}
+
+	private JobExtraData getJobExtraData(JobEntity jobEntity) {
+		JobExtraData jobExtraData = new JobExtraData(jobEntity);
+		// Get created by User data from user microservice
+		HttpResponse createUserResponse = userAPIClient.getUserById(jobEntity.getCreatedBy().intValue());
+		UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(),
+				UserResponseDTO.class);
+		jobExtraData.setCreatedByName(createUserData.getFirstName() + " " + createUserData.getLastName());
+		HttpResponse updateUserResponse = userAPIClient.getUserById(jobEntity.getUpdatedBy().intValue());
+		UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(),
+				UserResponseDTO.class);
+		jobExtraData.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
+		return jobExtraData;
 	}
 
 	private JobListingResponseDTO pageJobListingToJobListingResponseDTO(Page<JobEntity> jobEntityPage) {
@@ -338,20 +422,16 @@ public class JobService {
 		}
 	}
 
-	public JobListingDataDTO getJobByIdData(Integer jobId) {
-		return jobEntityToJobNewListingDataDTO(jobRepository.findByIdAndDeleted(jobId.longValue(), false, true).orElseThrow(
-				() -> new RuntimeException("Job not found")
-		));
-	}
-
 	private JobListingDataDTO jobEntityToJobNewListingDataDTO(JobEntity jobEntity) {
 		JobListingDataDTO jobListingDataDTO = new JobListingDataDTO(jobEntity);
 		// Get created by User data from user microservice
 		HttpResponse createUserResponse = userAPIClient.getUserById(jobEntity.getCreatedBy().intValue());
-		UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(), UserResponseDTO.class);
+		UserResponseDTO createUserData = MappingUtil.mapClientBodyToClass(createUserResponse.getData(),
+				UserResponseDTO.class);
 		jobListingDataDTO.setCreatedByName(createUserData.getFirstName() + " " + createUserData.getLastName());
 		HttpResponse updateUserResponse = userAPIClient.getUserById(jobEntity.getUpdatedBy().intValue());
-		UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(), UserResponseDTO.class);
+		UserResponseDTO updateUserData = MappingUtil.mapClientBodyToClass(updateUserResponse.getData(),
+				UserResponseDTO.class);
 		jobListingDataDTO.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
 		return jobListingDataDTO;
 	}

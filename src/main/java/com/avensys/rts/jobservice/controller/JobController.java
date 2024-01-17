@@ -249,10 +249,43 @@ public class JobController {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
+
+	/**
+	 * Get job data
+	 * 
+	 * @param jobId
+	 * @return
+	 */
 	@GetMapping("/{jobId}/data")
 	public ResponseEntity<Object> getJobByIdData(@PathVariable Integer jobId) {
 		LOG.info("Job get by id data: Controller");
-		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdData(jobId), HttpStatus.OK, messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdData(jobId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
+	 * Get all job fields including all related microservices
+	 * 
+	 * @return
+	 */
+	@GetMapping("/fields/all")
+	public ResponseEntity<Object> getAllJobsFieldsAll() {
+		LOG.info("Job get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.getAllJobsFieldsAll(), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
+	 * Get job data including all related microservices
+	 * 
+	 * @param jobId
+	 * @return
+	 */
+	@GetMapping("/{jobId}/data/all")
+	public ResponseEntity<Object> getJobByIdDataAll(@PathVariable Long jobId) {
+		LOG.info("Job get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdDataAll(jobId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 }
