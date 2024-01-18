@@ -2,6 +2,8 @@ package com.avensys.rts.jobservice.response;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.entity.JobTimelineEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,10 +11,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class JobListingResponseDTO {
+public class JobTimelineResponseDTO {
 	private Integer totalPages;
 	private Long totalElements;
 	private Integer page;
 	private Integer pageSize;
-	private List<JobListingDataDTO> jobs;
+	private List<JobTimelineEntity> jobs;
 }

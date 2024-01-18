@@ -1,5 +1,7 @@
 package com.avensys.rts.jobservice.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.avensys.rts.jobservice.annotation.RequiresAllPermissions;
@@ -126,6 +129,20 @@ public class JobCandidateStageController {
 		try {
 			JobCandidateStageEntity entity = jobCandidateStageService.getById(id);
 			return ResponseUtil.generateSuccessResponse(entity, HttpStatus.OK, null);
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	@GetMapping
+	public ResponseEntity<?> getAll(@RequestParam(defaultValue = "0") Integer pageNo,
+			@RequestParam(defaultValue = "10") Integer pageSize,
+			@RequestParam(defaultValue = "modifiedTime") String sortBy) {
+		LOG.info("getAllJobs request received");
+		try {
+			List<JobCandidateStageEntity> jobEntityList = jobCandidateStageService.getAll(pageNo, pageSize, sortBy);
+			return ResponseUtil.generateSuccessResponse(jobEntityList, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
 		}

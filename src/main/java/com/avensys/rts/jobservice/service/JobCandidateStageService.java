@@ -1,23 +1,37 @@
 package com.avensys.rts.jobservice.service;
 
+import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.entity.CandidateEntity;
 import com.avensys.rts.jobservice.entity.JobCandidateStageEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.entity.JobStageEntity;
+import com.avensys.rts.jobservice.entity.JobTimelineEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobCandidateStageRequest;
 import com.avensys.rts.jobservice.repository.CandidateRepository;
 import com.avensys.rts.jobservice.repository.JobCandidateStageRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
 import com.avensys.rts.jobservice.repository.JobStageRepository;
+import com.avensys.rts.jobservice.repository.JobTimelineRepository;
+import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
+import com.avensys.rts.jobservice.response.HttpResponse;
+import com.avensys.rts.jobservice.util.MappingUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
 
@@ -39,6 +53,12 @@ public class JobCandidateStageService {
 
 	@Autowired
 	private JobCandidateStageRepository jobCandidateStageRepository;
+
+	@Autowired
+	private JobTimelineRepository jobTimelineRepository;
+
+	@Autowired
+	private FormSubmissionAPIClient formSubmissionAPIClient;
 
 	@Autowired
 	private MessageSource messageSource;
@@ -71,7 +91,7 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setJob(jobOptional.get());
 			jobCandidateStageEntity.setJobStage(jobStageOptional.get());
 			jobCandidateStageEntity.setCandidate(candidateOptional.get());
-			jobCandidateStageEntity.setStatus("COMPLETED");
+			jobCandidateStageEntity.setStatus(jobCandidateStageRequest.getStatus());
 			jobCandidateStageEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
 			jobCandidateStageEntity.setIsActive(true);
 			jobCandidateStageEntity.setIsDeleted(false);
@@ -80,7 +100,7 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setJob(jobOptional.get());
 			jobCandidateStageEntity.setJobStage(jobStageOptional.get());
 			jobCandidateStageEntity.setCandidate(candidateOptional.get());
-			jobCandidateStageEntity.setStatus("COMPLETED");
+			jobCandidateStageEntity.setStatus(jobCandidateStageRequest.getStatus());
 			jobCandidateStageEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
 			jobCandidateStageEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
 			jobCandidateStageEntity.setIsActive(true);
@@ -89,6 +109,67 @@ public class JobCandidateStageService {
 
 		jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 
+		if (jobCandidateStageRequest.getFormId() != null) {
+			FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+			formSubmissionsRequestDTO.setUserId(jobCandidateStageRequest.getCreatedBy());
+			formSubmissionsRequestDTO.setFormId(jobCandidateStageRequest.getFormId());
+			formSubmissionsRequestDTO
+					.setSubmissionData(MappingUtil.convertJSONStringToJsonNode(jobCandidateStageRequest.getFormData()));
+			formSubmissionsRequestDTO.setEntityId(jobCandidateStageEntity.getId());
+			formSubmissionsRequestDTO.setEntityType(jobCandidateStageRequest.getJobType());
+
+			if (jobCandidateStageOptional.isPresent()) {
+				formSubmissionAPIClient.updateFormSubmission(jobCandidateStageEntity.getFormSubmissionId().intValue(),
+						formSubmissionsRequestDTO);
+			} else {
+				HttpResponse formSubmissionResponse = formSubmissionAPIClient
+						.addFormSubmission(formSubmissionsRequestDTO);
+				FormSubmissionsResponseDTO formSubmissionData = MappingUtil
+						.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
+
+				jobCandidateStageEntity.setFormId(jobCandidateStageRequest.getFormId());
+				jobCandidateStageEntity.setSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+				jobCandidateStageEntity.setFormSubmissionId(formSubmissionData.getId());
+				jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
+			}
+		}
+
+		Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository
+				.findByJobAndCandidate(jobCandidateStageRequest.getJobId(), jobCandidateStageRequest.getCandidateId());
+
+		JobTimelineEntity jobTimelineEntity = null;
+
+		if (jobCandidateStageOptional.isPresent()) {
+			jobTimelineEntity = timelineoptional.get();
+			jobTimelineEntity.setJob(jobOptional.get());
+			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+		} else {
+			jobTimelineEntity = new JobTimelineEntity();
+			jobTimelineEntity.setJob(jobOptional.get());
+			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
+			jobTimelineEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+		}
+
+		List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository
+				.findByJobAndCandidate(jobCandidateStageRequest.getJobId(), jobCandidateStageRequest.getCandidateId());
+
+		if (jobCandidateStageEntities.size() > 0) {
+			HashMap<String, Timestamp> timeline = new HashMap<String, Timestamp>();
+			jobCandidateStageEntities.forEach(item -> {
+				Long id = item.getJobStage().getId();
+				if (id == 1) {
+					timeline.put("TAG", Timestamp.valueOf(item.getUpdatedAt()));
+				} else if (id == 2) {
+					timeline.put("ASSOCIATE", Timestamp.valueOf(item.getUpdatedAt()));
+				}
+			});
+
+			JsonNode timelineJson = new ObjectMapper().valueToTree(timeline);
+			jobTimelineEntity.setTimeline(timelineJson);
+			jobTimelineRepository.save(jobTimelineEntity);
+		}
 		return jobCandidateStageEntity;
 	}
 
@@ -116,6 +197,18 @@ public class JobCandidateStageService {
 	public List<JobCandidateStageEntity> getAll() {
 		List<JobCandidateStageEntity> jobStageList = jobCandidateStageRepository.findAllAndIsDeleted(false);
 		return jobStageList;
+	}
+
+	public List<JobCandidateStageEntity> getAll(Integer pageNo, Integer pageSize, String sortBy)
+			throws ServiceException {
+		try {
+			Pageable paging = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+			List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository
+					.findAllAndIsDeleted(false, paging);
+			return jobCandidateStageEntities;
+		} catch (Exception e) {
+			throw new ServiceException(e.getLocalizedMessage());
+		}
 	}
 
 }

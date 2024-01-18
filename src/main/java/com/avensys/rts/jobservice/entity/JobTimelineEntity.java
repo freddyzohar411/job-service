@@ -23,9 +23,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "job_candidate_stage")
-@Table(name = "job_candidate_stage")
-public class JobCandidateStageEntity extends BaseEntity {
+@Entity(name = "job_timeline")
+@Table(name = "job_timeline")
+public class JobTimelineEntity extends BaseEntity {
 
 	private static final long serialVersionUID = 4217358489248736598L;
 
@@ -38,23 +38,11 @@ public class JobCandidateStageEntity extends BaseEntity {
 	private JobEntity job;
 
 	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "job_stage_id", referencedColumnName = "id")
-	private JobStageEntity jobStage;
-
-	@Column(name = "status")
-	private String status;
-
-	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "candidate_id", referencedColumnName = "id")
 	private CandidateEntity candidate;
 
-	@Column(name = "form_id")
-	private Long formId;
-
-	@Column(name = "form_submission_id")
-	private Long formSubmissionId;
-
 	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "submission_data", columnDefinition = "jsonb")
-	private JsonNode submissionData;
+	@Column(name = "timeline", columnDefinition = "jsonb")
+	private JsonNode timeline;
+
 }

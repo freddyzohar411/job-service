@@ -165,7 +165,7 @@ public class JobController {
 
 	@RequiresAllPermissions({ Permission.JOB_READ })
 	@PostMapping("/listing")
-	public ResponseEntity<Object> getAccountListing(@RequestBody JobListingRequestDTO jobListingRequestDTO,
+	public ResponseEntity<Object> getJobListing(@RequestBody JobListingRequestDTO jobListingRequestDTO,
 			@RequestHeader(name = "Authorization") String token) {
 		Long userId = jwtUtil.getUserId(token);
 		Integer page = jobListingRequestDTO.getPage();
