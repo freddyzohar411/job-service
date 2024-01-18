@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,5 +45,11 @@ public class JobTimelineEntity extends BaseEntity {
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "timeline", columnDefinition = "jsonb")
 	private JsonNode timeline;
+
+	@Transient
+	private String createdByName;
+
+	@Transient
+	private String updatedByName;
 
 }

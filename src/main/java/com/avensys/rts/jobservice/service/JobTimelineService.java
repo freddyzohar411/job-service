@@ -11,10 +11,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.avensys.rts.jobservice.apiclient.UserAPIClient;
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.repository.JobTimelineRepository;
+import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobTimelineResponseDTO;
+import com.avensys.rts.jobservice.response.UserResponseDTO;
+import com.avensys.rts.jobservice.util.MappingUtil;
 import com.avensys.rts.jobservice.util.UserUtil;
 
 import jakarta.transaction.Transactional;
@@ -31,6 +35,9 @@ public class JobTimelineService {
 
 	@Autowired
 	private UserUtil userUtil;
+
+	@Autowired
+	private UserAPIClient userAPIClient;
 
 	@Autowired
 	private MessageSource messageSource;
@@ -94,7 +101,22 @@ public class JobTimelineService {
 		jobListingNewResponseDTO.setTotalElements(jobTimelineEntityPage.getTotalElements());
 		jobListingNewResponseDTO.setPage(jobTimelineEntityPage.getNumber());
 		jobListingNewResponseDTO.setPageSize(jobTimelineEntityPage.getSize());
-		jobListingNewResponseDTO.setJobs(jobTimelineEntityPage.getContent());
+		List<JobTimelineEntity> list = jobTimelineEntityPage.getContent().stream().map(jobEntity -> {
+
+			// Get created by User data from user service
+			// Cast to Integer
+			HttpResponse userResponse = userAPIClient.getUserById(jobEntity.getCreatedBy().intValue());
+			UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
+			jobEntity.setCreatedByName(userData.getFirstName() + " " + userData.getLastName());
+
+			// Get updated by User data from user service
+			HttpResponse updatedByUserResponse = userAPIClient.getUserById(jobEntity.getUpdatedBy().intValue());
+			UserResponseDTO updatedByUserData = MappingUtil.mapClientBodyToClass(updatedByUserResponse.getData(),
+					UserResponseDTO.class);
+			jobEntity.setUpdatedByName(updatedByUserData.getFirstName() + " " + updatedByUserData.getLastName());
+			return jobEntity;
+		}).toList();
+		jobListingNewResponseDTO.setJobs(list);
 		return jobListingNewResponseDTO;
 	}
 
