@@ -163,6 +163,8 @@ public class JobCandidateStageService {
 					timeline.put("TAG", Timestamp.valueOf(item.getUpdatedAt()));
 				} else if (id == 2) {
 					timeline.put("ASSOCIATE", Timestamp.valueOf(item.getUpdatedAt()));
+				} else if (id == 3) {
+					timeline.put("SUBMIT_TO_SALES", Timestamp.valueOf(item.getUpdatedAt()));
 				}
 			});
 
