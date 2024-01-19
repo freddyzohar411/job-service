@@ -139,7 +139,7 @@ public class JobCandidateStageService {
 
 		JobTimelineEntity jobTimelineEntity = null;
 
-		if (jobCandidateStageOptional.isPresent()) {
+		if (timelineoptional.isPresent()) {
 			jobTimelineEntity = timelineoptional.get();
 			jobTimelineEntity.setJob(jobOptional.get());
 			jobTimelineEntity.setCandidate(candidateOptional.get());
