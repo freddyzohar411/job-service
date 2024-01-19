@@ -1,5 +1,10 @@
 package com.avensys.rts.jobservice.entity;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,9 +24,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "job_recruiter_fod")
-public class JobRecruiterFODEntity extends BaseEntity {
+@Entity(name = "job_timeline")
+@Table(name = "job_timeline")
+public class JobTimelineEntity extends BaseEntity {
 
 	private static final long serialVersionUID = 4217358489248736598L;
 
@@ -33,13 +39,17 @@ public class JobRecruiterFODEntity extends BaseEntity {
 	private JobEntity job;
 
 	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "recruiter_id", referencedColumnName = "id", unique = false)
-	private UserEntity recruiter;
+	@JoinColumn(name = "candidate_id", referencedColumnName = "id")
+	private CandidateEntity candidate;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "sales_id", referencedColumnName = "id", unique = false)
-	private UserEntity seller;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "timeline", columnDefinition = "jsonb")
+	private JsonNode timeline;
 
-	@Column(name = "status")
-	private String status;
+	@Transient
+	private String createdByName;
+
+	@Transient
+	private String updatedByName;
+
 }

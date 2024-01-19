@@ -3,14 +3,11 @@ package com.avensys.rts.jobservice.repository;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
-import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.entity.JobRecruiterFODEntity;
 
-public interface JobRecruiterFODRepository
-		extends JpaRepository<JobRecruiterFODEntity, Long>, JpaSpecificationExecutor<JobEntity>, CustomJobRepository {
+public interface JobRecruiterFODRepository extends JpaRepository<JobRecruiterFODEntity, Long> {
 
 	@Query(value = "SELECT * FROM job_recruiter_fod WHERE job_id = ?1", nativeQuery = true)
 	public Optional<JobRecruiterFODEntity> findByJob(Long jobId);

@@ -1,5 +1,10 @@
 package com.avensys.rts.jobservice.entity;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,9 +23,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "job_recruiter_fod")
-public class JobRecruiterFODEntity extends BaseEntity {
+@Entity(name = "job_candidate_stage")
+@Table(name = "job_candidate_stage")
+public class JobCandidateStageEntity extends BaseEntity {
 
 	private static final long serialVersionUID = 4217358489248736598L;
 
@@ -33,13 +38,23 @@ public class JobRecruiterFODEntity extends BaseEntity {
 	private JobEntity job;
 
 	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "recruiter_id", referencedColumnName = "id", unique = false)
-	private UserEntity recruiter;
-
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "sales_id", referencedColumnName = "id", unique = false)
-	private UserEntity seller;
+	@JoinColumn(name = "job_stage_id", referencedColumnName = "id")
+	private JobStageEntity jobStage;
 
 	@Column(name = "status")
 	private String status;
+
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "candidate_id", referencedColumnName = "id")
+	private CandidateEntity candidate;
+
+	@Column(name = "form_id")
+	private Long formId;
+
+	@Column(name = "form_submission_id")
+	private Long formSubmissionId;
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "submission_data", columnDefinition = "jsonb")
+	private JsonNode submissionData;
 }

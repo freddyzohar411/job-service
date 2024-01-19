@@ -219,7 +219,7 @@ public class JobService {
 	}
 
 	public JobListingResponseDTO getJobListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Long userId) {
+			Long userId, String jobType) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -235,17 +235,17 @@ public class JobService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userUtil.getUsersIdUnderManager(), false,
-					true, pageRequest);
+					true, pageRequest, jobType, userId);
 		} catch (Exception e) {
 			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(), false,
-					true, pageRequest);
+					true, pageRequest, jobType, userId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
 	}
 
 	public JobListingResponseDTO getJobListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Long userId) {
+			String sortDirection, String searchTerm, List<String> searchFields, Long userId, String jobType) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -261,10 +261,10 @@ public class JobService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userUtil.getUsersIdUnderManager(),
-					false, true, pageRequest, searchFields, searchTerm);
+					false, true, pageRequest, searchFields, searchTerm, jobType, userId);
 		} catch (Exception e) {
 			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userUtil.getUsersIdUnderManager(),
-					false, true, pageRequest, searchFields, searchTerm);
+					false, true, pageRequest, searchFields, searchTerm, jobType, userId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntityPage);
@@ -302,7 +302,7 @@ public class JobService {
 	/**
 	 * This method is used to get all jobs fields including all other related
 	 * microservice
-	 * 
+	 *
 	 * @return
 	 */
 	public HashMap<String, List<HashMap<String, String>>> getAllJobsFieldsAll() {
@@ -317,7 +317,7 @@ public class JobService {
 
 	/**
 	 * This method is used to get all jobs data (Only from job microservice)
-	 * 
+	 *
 	 * @param jobId
 	 * @return
 	 */
@@ -329,7 +329,7 @@ public class JobService {
 	/**
 	 * This method is used to get all jobs data including all other related
 	 * microservice
-	 * 
+	 *
 	 * @return
 	 */
 	public HashMap<String, Object> getJobByIdDataAll(Long jobId) {

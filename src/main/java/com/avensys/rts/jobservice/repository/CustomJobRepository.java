@@ -28,17 +28,15 @@ public interface CustomJobRepository {
 	void updateDocumentEntityId(Long tempId, Long originalId, Long userId, String entityType);
 
 	// Check only user id
-	Page<JobEntity>findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean
-			isDeleted,Boolean isActive,Pageable pageable);
+	Page<JobEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
+			Pageable pageable, String jobType, Long userId);
 
-	Page<JobEntity>findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean
-			isDeleted,Boolean isActive,Pageable pageable);
+	Page<JobEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
+			Pageable pageable, String jobType, Long userId);
 
-	Page<JobEntity>findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds,
-			Boolean isDeleted,Boolean isActive, Pageable pageable,List<String>
-			searchFields, String searchTerm);
+	Page<JobEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
+			Pageable pageable, List<String> searchFields, String searchTerm, String jobType, Long userId);
 
-	Page<JobEntity>findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds,
-			Boolean isDeleted, Boolean isActive,Pageable pageable,List<String>
-			searchFields, String searchTerm);
+	Page<JobEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
+			Pageable pageable, List<String> searchFields, String searchTerm, String jobType, Long userId);
 }

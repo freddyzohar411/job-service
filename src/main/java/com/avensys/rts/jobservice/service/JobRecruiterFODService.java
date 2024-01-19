@@ -58,6 +58,7 @@ public class JobRecruiterFODService {
 			jobRecruiterFODEntity.setJob(jobOptional.get());
 			jobRecruiterFODEntity.setRecruiter(recruiterOptional.get());
 			jobRecruiterFODEntity.setSeller(sellerOptional.get());
+			jobRecruiterFODEntity.setStatus("FOD");
 			jobRecruiterFODEntity.setUpdatedBy(jobRecruiterFODRequest.getUpdatedBy());
 			jobRecruiterFODEntity.setIsActive(true);
 			jobRecruiterFODEntity.setIsDeleted(false);
@@ -66,6 +67,7 @@ public class JobRecruiterFODService {
 			jobRecruiterFODEntity.setJob(jobOptional.get());
 			jobRecruiterFODEntity.setRecruiter(recruiterOptional.get());
 			jobRecruiterFODEntity.setSeller(sellerOptional.get());
+			jobRecruiterFODEntity.setStatus("FOD");
 			jobRecruiterFODEntity.setCreatedBy(jobRecruiterFODRequest.getCreatedBy());
 			jobRecruiterFODEntity.setUpdatedBy(jobRecruiterFODRequest.getUpdatedBy());
 			jobRecruiterFODEntity.setIsActive(true);
