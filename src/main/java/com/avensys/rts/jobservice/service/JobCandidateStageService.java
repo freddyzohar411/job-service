@@ -29,6 +29,7 @@ import com.avensys.rts.jobservice.repository.JobStageRepository;
 import com.avensys.rts.jobservice.repository.JobTimelineRepository;
 import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
+import com.avensys.rts.jobservice.response.JobTimelineTagDTO;
 import com.avensys.rts.jobservice.util.MappingUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,15 +157,20 @@ public class JobCandidateStageService {
 				.findByJobAndCandidate(jobCandidateStageRequest.getJobId(), jobCandidateStageRequest.getCandidateId());
 
 		if (jobCandidateStageEntities.size() > 0) {
-			HashMap<String, Timestamp> timeline = new HashMap<String, Timestamp>();
+			HashMap<String, JobTimelineTagDTO> timeline = new HashMap<String, JobTimelineTagDTO>();
 			jobCandidateStageEntities.forEach(item -> {
 				Long id = item.getJobStage().getId();
+				JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
+				jobTimelineTagDTO.setDate(Timestamp.valueOf(item.getUpdatedAt()));
+				jobTimelineTagDTO.setStatus(item.getStatus());
 				if (id == 1) {
-					timeline.put("TAG", Timestamp.valueOf(item.getUpdatedAt()));
+					timeline.put("TAG", jobTimelineTagDTO);
 				} else if (id == 2) {
-					timeline.put("ASSOCIATE", Timestamp.valueOf(item.getUpdatedAt()));
+					timeline.put("ASSOCIATE", jobTimelineTagDTO);
 				} else if (id == 3) {
-					timeline.put("SUBMIT_TO_SALES", Timestamp.valueOf(item.getUpdatedAt()));
+					timeline.put("SUBMIT_TO_SALES", jobTimelineTagDTO);
+				} else if (id == 4) {
+					timeline.put("SUBMIT_TO_CLIENT", jobTimelineTagDTO);
 				}
 			});
 
