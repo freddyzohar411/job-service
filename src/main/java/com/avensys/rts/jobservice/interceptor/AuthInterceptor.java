@@ -1,6 +1,5 @@
 package com.avensys.rts.jobservice.interceptor;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,10 +10,10 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.avensys.rts.jobservice.exception.JWTException;
 import com.avensys.rts.jobservice.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -31,26 +30,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-			throws JWTException {
+			throws Exception {
 		log.info("Auth Pre-handling");
-
-		// Get the request URL
-		String requestUri = request.getRequestURI();
-		System.out.println("Request URI: " + requestUri);
-
-		// Check if the request URL is in the list of URLs that are allowed without
-		// token
-		List<String> allowedUrls = Arrays.asList("/api/user/signin", "/api/user/signup", "/api/user/logout",
-				"/api/user/validate");
-
-		if (allowedUrls.contains(requestUri)) {
-			log.info("Allowing request without token validation for URL: {}", requestUri);
-			return true; // Allow the request to continue without token validation
-		}
 
 		// Get token from header from axios
 		String authorizationHeader = request.getHeader("Authorization");
-
 		log.info("Authorization Header: {}", authorizationHeader);
 
 		// Check if token is present
@@ -61,8 +45,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 		// Get the token string
 		String token = authorizationHeader.substring(7);
 
-		// Validate JWT with the public key from keycloak
 		try {
+			// Validate JWT with the public key from keycloak
 			jwtUtil.validateToken(token);
 
 			// Extract all claims from the signed token
@@ -79,9 +63,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 				requestAttributes.setAttribute("roles", roles, RequestAttributes.SCOPE_REQUEST);
 				requestAttributes.setAttribute("token", token, RequestAttributes.SCOPE_REQUEST);
 			}
-
 		} catch (Exception e) {
-			throw new JWTException(e.getLocalizedMessage());
+			throw new ExpiredJwtException(null, null, e.getLocalizedMessage());
 		}
 		return true; // Continue the request processing chain
 	}
