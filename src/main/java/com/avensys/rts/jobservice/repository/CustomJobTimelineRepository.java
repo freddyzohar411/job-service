@@ -9,25 +9,6 @@ import com.avensys.rts.jobservice.entity.JobTimelineEntity;
 
 public interface CustomJobTimelineRepository {
 
-	Page<JobTimelineEntity> findAllByOrderBy(Long userId, Boolean isDeleted, Boolean isDraft, Boolean isActive,
-			Pageable pageable);
-
-	Page<JobTimelineEntity> findAllByOrderByString(Long userId, Boolean isDeleted, Boolean isDraft, Boolean isActive,
-			Pageable pageable);
-
-	Page<JobTimelineEntity> findAllByOrderByNumeric(Long userId, Boolean isDeleted, Boolean isDraft, Boolean isActive,
-			Pageable pageable);
-
-	Page<JobTimelineEntity> findAllByOrderByAndSearchString(Long userId, Boolean isDeleted, Boolean isDraft,
-			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm);
-
-	Page<JobTimelineEntity> findAllByOrderByAndSearchNumeric(Long userId, Boolean isDeleted, Boolean isDraft,
-			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm);
-
-	List<JobTimelineEntity> getAllAccountsNameWithSearch(String query, Long userId, Boolean isDeleted, Boolean isDraft);
-
-	void updateDocumentEntityId(Long tempId, Long originalId, Long userId, String entityType);
-
 	// Check only user id
 	Page<JobTimelineEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
 			Pageable pageable, Long userId);

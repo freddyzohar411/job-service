@@ -61,6 +61,7 @@ public class JobTimelineService {
 			jobEntitiesPage = jobTimelineRepository.findAllByOrderByNumericWithUserIds(
 					userUtil.getUsersIdUnderManager(), false, true, pageRequest, userId);
 		} catch (Exception e) {
+			e.printStackTrace();
 			jobEntitiesPage = jobTimelineRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(),
 					false, true, pageRequest, userId);
 		}
@@ -76,7 +77,7 @@ public class JobTimelineService {
 			direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
 		}
 		if (sortBy == null) {
-			sortBy = "updated_at";
+			sortBy = "job_timeline.updated_at";
 			direction = Sort.Direction.DESC;
 		}
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
