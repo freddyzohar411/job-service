@@ -171,6 +171,10 @@ public class JobCandidateStageService {
 					timeline.put("SUBMIT_TO_SALES", jobTimelineTagDTO);
 				} else if (id == 4) {
 					timeline.put("SUBMIT_TO_CLIENT", jobTimelineTagDTO);
+				} else if (id == 5) {
+					timeline.put("PROFILE_FEEDBACK_PENDING", jobTimelineTagDTO);
+				} else if (id == 6) {
+					timeline.put("SCHEDULE_INTERVIEW", jobTimelineTagDTO);
 				}
 			});
 
