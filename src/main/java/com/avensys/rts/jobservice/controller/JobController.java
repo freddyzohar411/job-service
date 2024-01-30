@@ -190,6 +190,31 @@ public class JobController {
 		}
 	}
 
+	@RequiresAllPermissions({ Permission.JOB_READ })
+	@PostMapping("/listing/all")
+	public ResponseEntity<Object> getJobListingAll(@RequestBody JobListingRequestDTO jobListingRequestDTO,
+			@RequestHeader(name = "Authorization") String token) {
+		Long userId = jwtUtil.getUserId(token);
+		Integer page = jobListingRequestDTO.getPage();
+		Integer pageSize = jobListingRequestDTO.getPageSize();
+		String sortBy = jobListingRequestDTO.getSortBy();
+		String sortDirection = jobListingRequestDTO.getSortDirection();
+		String searchTerm = jobListingRequestDTO.getSearchTerm();
+		List<String> searchFields = jobListingRequestDTO.getSearchFields();
+		String jobType = jobListingRequestDTO.getJobType();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			return ResponseUtil.generateSuccessResponse(
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType), HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} else {
+			return ResponseUtil.generateSuccessResponse(
+					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
+							searchFields, userId, jobType),
+					HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		}
+	}
+
 	@GetMapping
 	public ResponseEntity<?> getAllJobs(@RequestParam(defaultValue = "0") Integer pageNo,
 			@RequestParam(defaultValue = "10") Integer pageSize,
