@@ -157,26 +157,38 @@ public class JobCandidateStageService {
 				.findByJobAndCandidate(jobCandidateStageRequest.getJobId(), jobCandidateStageRequest.getCandidateId());
 
 		if (jobCandidateStageEntities.size() > 0) {
-			HashMap<String, JobTimelineTagDTO> timeline = new HashMap<String, JobTimelineTagDTO>();
+			List<JobStageEntity> jobStageEntities = jobStageRepository.findAllAndIsDeleted(false);
+
+			HashMap<Long, JobCandidateStageEntity> candidateJobstages = new HashMap<Long, JobCandidateStageEntity>();
 			jobCandidateStageEntities.forEach(item -> {
 				Long id = item.getJobStage().getId();
-				JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
-				jobTimelineTagDTO.setDate(Timestamp.valueOf(item.getUpdatedAt()));
-				jobTimelineTagDTO.setStatus(item.getStatus());
-				if (id == 1) {
-					timeline.put("TAG", jobTimelineTagDTO);
-				} else if (id == 2) {
-					timeline.put("ASSOCIATE", jobTimelineTagDTO);
-				} else if (id == 3) {
-					timeline.put("SUBMIT_TO_SALES", jobTimelineTagDTO);
-				} else if (id == 4) {
-					timeline.put("SUBMIT_TO_CLIENT", jobTimelineTagDTO);
-				} else if (id == 5) {
-					timeline.put("PROFILE_FEEDBACK_PENDING", jobTimelineTagDTO);
-				} else if (id == 6) {
-					timeline.put("SCHEDULE_INTERVIEW", jobTimelineTagDTO);
-				}
+				candidateJobstages.put(id, item);
 			});
+
+			HashMap<Long, JobStageEntity> jobStages = new HashMap<Long, JobStageEntity>();
+			jobStageEntities.forEach(item -> {
+				Long id = item.getId();
+				jobStages.put(id, item);
+			});
+
+			HashMap<String, JobTimelineTagDTO> timeline = new HashMap<String, JobTimelineTagDTO>();
+
+			for (long i = 1; i <= jobCandidateStageRequest.getJobStageId(); i++) {
+				JobCandidateStageEntity ob = candidateJobstages.get(i);
+				JobStageEntity jOb = jobStages.get(i);
+
+				JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
+				jobTimelineTagDTO.setOrder(jOb.getOrder());
+
+				if (ob != null) {
+					jobTimelineTagDTO.setDate(Timestamp.valueOf(ob.getUpdatedAt()));
+					jobTimelineTagDTO.setStatus(ob.getStatus());
+				} else {
+					jobTimelineTagDTO.setDate(null);
+					jobTimelineTagDTO.setStatus("SKIPPED");
+				}
+				timeline.put(jOb.getName(), jobTimelineTagDTO);
+			}
 
 			JsonNode timelineJson = new ObjectMapper().valueToTree(timeline);
 			jobTimelineEntity.setTimeline(timelineJson);

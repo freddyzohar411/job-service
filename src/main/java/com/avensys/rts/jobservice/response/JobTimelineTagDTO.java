@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class JobTimelineTagDTO {
 	private Timestamp date;
 	private String status;
+	private Long order;
 }
