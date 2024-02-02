@@ -2,6 +2,8 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.annotation.RequiresAllPermissions;
+import com.avensys.rts.jobservice.enums.Permission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,12 +179,37 @@ public class JobController {
 		String jobType = jobListingRequestDTO.getJobType();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType), HttpStatus.OK,
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, false), HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId, jobType),
+							searchFields, userId, jobType, false),
+					HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		}
+	}
+
+	@RequiresAllPermissions({ Permission.JOB_READ })
+	@PostMapping("/listing/all")
+	public ResponseEntity<Object> getJobListingAll(@RequestBody JobListingRequestDTO jobListingRequestDTO,
+			@RequestHeader(name = "Authorization") String token) {
+		Long userId = jwtUtil.getUserId(token);
+		Integer page = jobListingRequestDTO.getPage();
+		Integer pageSize = jobListingRequestDTO.getPageSize();
+		String sortBy = jobListingRequestDTO.getSortBy();
+		String sortDirection = jobListingRequestDTO.getSortDirection();
+		String searchTerm = jobListingRequestDTO.getSearchTerm();
+		List<String> searchFields = jobListingRequestDTO.getSearchFields();
+		String jobType = jobListingRequestDTO.getJobType();
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			return ResponseUtil.generateSuccessResponse(
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, true), HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} else {
+			return ResponseUtil.generateSuccessResponse(
+					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
+							searchFields, userId, jobType, true),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
@@ -249,10 +276,41 @@ public class JobController {
 		}
 	}
 
+	/**
+	 * Get job data
+	 * 
+	 * @param jobId
+	 * @return
+	 */
 	@GetMapping("/{jobId}/data")
 	public ResponseEntity<Object> getJobByIdData(@PathVariable Integer jobId) {
 		LOG.info("Job get by id data: Controller");
 		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdData(jobId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
+	 * Get all job fields including all related microservices
+	 * 
+	 * @return
+	 */
+	@GetMapping("/fields/all")
+	public ResponseEntity<Object> getAllJobsFieldsAll() {
+		LOG.info("Job get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.getAllJobsFieldsAll(), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
+	 * Get job data including all related microservices
+	 * 
+	 * @param jobId
+	 * @return
+	 */
+	@GetMapping("/{jobId}/data/all")
+	public ResponseEntity<Object> getJobByIdDataAll(@PathVariable Long jobId) {
+		LOG.info("Job get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdDataAll(jobId), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 

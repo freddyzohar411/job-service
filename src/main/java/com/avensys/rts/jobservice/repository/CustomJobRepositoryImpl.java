@@ -450,10 +450,16 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
+		// User ID condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = " AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
-				orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
+				userCondition, orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive);
@@ -466,7 +472,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
@@ -474,7 +482,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		List<JobEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds)";
+		String countQueryString = String.format("SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s", userCondition);
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
@@ -487,7 +495,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
 		// Create and return a Page object
@@ -514,10 +524,16 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
+		// User ID condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = " AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) ORDER BY %s %s NULLS LAST",
-				orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
+				userCondition, orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive);
@@ -530,7 +546,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
 
@@ -538,7 +556,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		List<JobEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds)";
+		String countQueryString = String.format("SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s", userCondition);
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
@@ -551,7 +569,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
 		// Create and return a Page object
@@ -599,10 +619,16 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			searchConditions.delete(0, 4);
 		}
 
+		// User ID condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = " AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
-				searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive);
@@ -615,7 +641,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
@@ -625,8 +653,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
-				searchConditions.toString());
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s AND (%s)",
+				userCondition, searchConditions.toString());
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
@@ -639,7 +667,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
@@ -688,10 +718,16 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			searchConditions.delete(0, 4);
 		}
 
+		// User ID condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = " AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s) ORDER BY %s %s NULLS LAST",
-				searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive);
@@ -704,7 +740,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
@@ -714,8 +752,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND (%s)",
-				searchConditions.toString());
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s AND (%s)",
+				userCondition, searchConditions.toString());
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
@@ -728,7 +766,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
