@@ -219,7 +219,7 @@ public class JobService {
 	}
 
 	public JobListingResponseDTO getJobListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Long userId, String jobType) {
+			Long userId, String jobType, Boolean getAll) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -232,12 +232,16 @@ public class JobService {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
 		Page<JobEntity> jobEntitiesPage = null;
+		List<Long> userIds = new ArrayList<>();
+		if (!getAll) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
 		// Try with numeric first else try with string (jsonb)
 		try {
-			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userUtil.getUsersIdUnderManager(), false,
+			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userIds, false,
 					true, pageRequest, jobType, userId);
 		} catch (Exception e) {
-			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(), false,
+			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userIds, false,
 					true, pageRequest, jobType, userId);
 		}
 
@@ -245,7 +249,7 @@ public class JobService {
 	}
 
 	public JobListingResponseDTO getJobListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Long userId, String jobType) {
+			String sortDirection, String searchTerm, List<String> searchFields, Long userId, String jobType, Boolean getAll) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -259,11 +263,15 @@ public class JobService {
 
 		Page<JobEntity> jobEntityPage = null;
 		// Try with numeric first else try with string (jsonb)
+		List<Long> userIds = new ArrayList<>();
+		if (!getAll) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
 		try {
-			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userUtil.getUsersIdUnderManager(),
+			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds,
 					false, true, pageRequest, searchFields, searchTerm, jobType, userId);
 		} catch (Exception e) {
-			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userUtil.getUsersIdUnderManager(),
+			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userIds,
 					false, true, pageRequest, searchFields, searchTerm, jobType, userId);
 		}
 

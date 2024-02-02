@@ -179,12 +179,12 @@ public class JobController {
 		String jobType = jobListingRequestDTO.getJobType();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType), HttpStatus.OK,
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, false), HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId, jobType),
+							searchFields, userId, jobType, false),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
@@ -204,12 +204,12 @@ public class JobController {
 		String jobType = jobListingRequestDTO.getJobType();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType), HttpStatus.OK,
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, true), HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId, jobType),
+							searchFields, userId, jobType, true),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
