@@ -30,11 +30,15 @@ import com.avensys.rts.jobservice.util.MappingUtil;
 import com.avensys.rts.jobservice.util.StringUtil;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Rahul Sahu
  * 
  */
+@AllArgsConstructor
+@NoArgsConstructor
 @Service
 public class JobService {
 
@@ -56,6 +60,12 @@ public class JobService {
 
 	@Autowired
 	private UserUtil userUtil;
+	
+	public JobService(JobRepository jobRepository, FormSubmissionAPIClient formSubmissionAPIClient, UserAPIClient userAPIClient) {
+		this.jobRepository = jobRepository;
+		this.formSubmissionAPIClient = formSubmissionAPIClient;
+		this.userAPIClient = userAPIClient;
+	}
 
 	/**
 	 * This method is used to convert JobRequest to JobEntity

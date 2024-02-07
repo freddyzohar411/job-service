@@ -26,6 +26,11 @@ public class JobStageService {
 
 	@Autowired
 	private MessageSource messageSource;
+	
+	public JobStageService (JobStageRepository jobStageRepository,MessageSource messageSource) {
+		this.jobStageRepository = jobStageRepository;
+		this.messageSource = messageSource;
+	}
 
 	/**
 	 * This method is used to save stage Need to implement roll back if error

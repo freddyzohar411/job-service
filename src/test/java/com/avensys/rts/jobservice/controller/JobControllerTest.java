@@ -94,6 +94,7 @@ public class JobControllerTest {
 	Set<FieldInformation> fieldSet;
 	List<String> searchFields;
 	JobListingRequestDTO jobListingRequestDTO;
+	String formData = "{\"id\":1,\"accountSubmissionData\":{\"msa\":\"yes\",\"revenue\":32432434,\"website\":\"www.tcs.com\",\"industry\":\"InformationTechnology\",\"salesName\":\"Test\",\"leadSource\":\"Test\",\"accountName\":\"TCS\",\"addressCity\":\"\",\"billingCity\":\"\",\"subIndustry\":\"SoftwareDevelopment\",\"addressLine1\":\"Bhopal\",\"addressLine2\":\"\",\"addressLine3\":\"\",\"accountRating\":\"Tier1\",\"accountSource\":\"TalentService\",\"accountStatus\":\"Active\",\"leadSalesName\":\"Test\",\"noOfEmployees\":6,\"parentCompany\":\"\",\"accountRemarks\":\"\",\"addressCountry\":\"\",\"billingAddress\":\"true\",\"landlineNumber\":324,\"secondaryOwner\":\"Test\",\"landlineCountry\":\"\",\"leadAccountName\":\"TCS\",\"revenueCurrency\":\"INR₹\",\"uploadAgreement\":\"Reema_Sahu_Java_5Yrs.docx(1).pdf\",\"addressPostalCode\":\"\",\"billingAddressLine1\":\"Bhopal\",\"billingAddressLine2\":\"\",\"billingAddressLine3\":\"\",\"billingAddressCountry\":\"\",\"billingAddressPostalCode\":\"\"},\"commercialSubmissionData\":{\"msp\":\"Test\",\"markUp\":\"Test\"},\"accountNumber\":\"A0958950\",\"createdAt\":\"2024-01-16T13:02:13.006307\",\"updatedAt\":\"2024-01-16T13:06:15.374175\",\"accountCountry\":\"India\",\"createdByName\":\"Super1Admin1\",\"updatedByName\":\"Super1Admin1\"}";
 
 	/**
 	 * This setup method is invoking before each test method
@@ -101,7 +102,7 @@ public class JobControllerTest {
 	@BeforeEach
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
-		jobRequest = new JobRequest(1L, "Java Developer", 1L, 1L, "form date", false, 1L, 1L);
+		jobRequest = new JobRequest(1L, "Java Developer", 1L, 1L, formData, false, 1L, 1L);
 		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
 		jobEntity1 = new JobEntity(2L, "Full Stack Developer", 1L, 1L, false, jobSubmissionData);
 		optionalJobEntity = Optional.of(jobEntity);
