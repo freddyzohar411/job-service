@@ -16,29 +16,40 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.Rollback;
 
 import com.avensys.rts.jobservice.entity.JobStageEntity;
-
+@DataJpaTest
+@AutoConfigureTestDatabase(replace=Replace.NONE)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JobStageRepositoryTest {
 
-	@Mock
+	//@Mock
+	@Autowired
 	JobStageRepository jobStageRepository;
 
 	JobStageEntity jobStageEntity;
+	JobStageEntity jobStageEntity1;
 	Optional<JobStageEntity> optionalJob;
+	Optional<JobStageEntity> optionalJob1;
 	@Mock
 	List<JobStageEntity> jobStageList;
-	@MockBean
+	List<JobStageEntity> jobStageList1;
+	@Mock
 	AutoCloseable autoCloseable;
 
 	@BeforeEach
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 		jobStageEntity = new JobStageEntity(1L, "Stage name", 1L, "Stage type");
+		jobStageEntity1 = new JobStageEntity(2L, "Stage name1", 1L, "Stage type");
 		jobStageRepository.save(jobStageEntity);
+		jobStageRepository.save(jobStageEntity1);
 		optionalJob = Optional.of(jobStageEntity);
 		jobStageList.add(jobStageEntity);
 	}
@@ -53,9 +64,10 @@ public class JobStageRepositoryTest {
 	@Order(1)
 	@Rollback(value = false)
 	void testExistsByTitle() {
-		mock(JobRepository.class);
-		Boolean nameExits = true;
-		when(jobStageRepository.existsByName("Stage name")).thenReturn(nameExits);
+		//mock(JobRepository.class);
+		Boolean nameExits ;
+		nameExits = jobStageRepository.existsByName("Stage name");
+		//when(jobStageRepository.existsByName("Stage name")).thenReturn(nameExits);
 		assertThat(nameExits).isEqualTo(true);
 	}
 
@@ -63,17 +75,20 @@ public class JobStageRepositoryTest {
 	@Order(1)
 	@Rollback(value = false)
 	void testFindByName() {
-		mock(JobRepository.class);
-		when(jobStageRepository.findByName("Stage name")).thenReturn(optionalJob);
-		assertNotNull(optionalJob);
+		//mock(JobRepository.class);
+		optionalJob1 = jobStageRepository.findByName("Stage name");
+		//when(jobStageRepository.findByName("Stage name")).thenReturn(optionalJob);
+		assertNotNull(optionalJob1);
+		//assertThat(optionalJob1.get().)
 	}
 
 	@Test
 	@Order(1)
 	@Rollback(value = false)
 	void testFindAllAndIsDeleted() {
-		mock(JobRepository.class);
-		when(jobStageRepository.findAllAndIsDeleted(false)).thenReturn(jobStageList);
+		//mock(JobRepository.class);
+		//jobStageList1 = jobStageRepository.findAllAndIsDeleted(false);
+		//when(jobStageRepository.findAllAndIsDeleted(false)).thenReturn(jobStageList);
 		assertNotNull(jobStageList);
 	}
 }

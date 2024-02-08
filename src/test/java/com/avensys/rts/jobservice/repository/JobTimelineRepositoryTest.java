@@ -10,16 +10,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.avensys.rts.jobservice.entity.CandidateEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
 import com.fasterxml.jackson.databind.JsonNode;
-
+@DataJpaTest
+@AutoConfigureTestDatabase(replace=Replace.NONE)
 public class JobTimelineRepositoryTest {
 
-	@Mock
+	@Autowired
+	//@Mock
 	JobTimelineRepository jobTimelineRepository;
 
 	JobTimelineEntity jobTimelineEntity;
@@ -28,7 +34,7 @@ public class JobTimelineRepositoryTest {
 	JsonNode timeline;
 	Optional<JobTimelineEntity> optionalJob;
 
-	@MockBean
+	@Mock
 	AutoCloseable autoCloseable;
 
 	@BeforeEach
@@ -48,7 +54,8 @@ public class JobTimelineRepositoryTest {
 	@Test
 	void testFindByJobAndCandidate() {
 
-		when(jobTimelineRepository.findByJobAndCandidate(1L, 1L)).thenReturn(optionalJob);
+		optionalJob = jobTimelineRepository.findByJobAndCandidate(1L, 1L);
+		//when(jobTimelineRepository.findByJobAndCandidate(1L, 1L)).thenReturn(optionalJob);
 		assertNotNull(optionalJob);
 	}
 

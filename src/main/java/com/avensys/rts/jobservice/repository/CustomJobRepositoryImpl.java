@@ -16,6 +16,7 @@ import com.avensys.rts.jobservice.entity.JobEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import lombok.NoArgsConstructor;
 
 @Repository
 public class CustomJobRepositoryImpl implements CustomJobRepository {
