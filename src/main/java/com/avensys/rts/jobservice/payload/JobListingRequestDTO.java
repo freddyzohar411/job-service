@@ -21,4 +21,5 @@ public class JobListingRequestDTO {
 	private String searchTerm;
 	private List<String> searchFields;
 	private String jobType;
+	private Long jobId;
 }

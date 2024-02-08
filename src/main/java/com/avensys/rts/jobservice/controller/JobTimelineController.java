@@ -50,6 +50,7 @@ public class JobTimelineController {
 	public ResponseEntity<Object> getJobListing(@RequestBody JobListingRequestDTO jobListingRequestDTO,
 			@RequestHeader(name = "Authorization") String token) {
 		Long userId = jwtUtil.getUserId(token);
+		Long jobId = jobListingRequestDTO.getJobId();
 		Integer page = jobListingRequestDTO.getPage();
 		Integer pageSize = jobListingRequestDTO.getPageSize();
 		String sortBy = jobListingRequestDTO.getSortBy();
@@ -58,13 +59,13 @@ public class JobTimelineController {
 		List<String> searchFields = jobListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobTimelineService.getJobTimelineListingPage(page, pageSize, sortBy, sortDirection, userId),
+					jobTimelineService.getJobTimelineListingPage(page, pageSize, sortBy, sortDirection, userId, jobId),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobTimelineService.getJobTimelineListingPageWithSearch(page, pageSize, sortBy, sortDirection,
-							searchTerm, searchFields, userId),
+							searchTerm, searchFields, userId, jobId),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}

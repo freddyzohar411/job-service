@@ -43,7 +43,7 @@ public class JobTimelineService {
 	private MessageSource messageSource;
 
 	public JobTimelineResponseDTO getJobTimelineListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Long userId) {
+			String sortDirection, Long userId, Long jobId) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -59,18 +59,18 @@ public class JobTimelineService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			jobEntitiesPage = jobTimelineRepository.findAllByOrderByNumericWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, true, pageRequest, userId);
+					userUtil.getUsersIdUnderManager(), false, true, pageRequest, userId, jobId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			jobEntitiesPage = jobTimelineRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(),
-					false, true, pageRequest, userId);
+					false, true, pageRequest, userId, jobId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
 	}
 
 	public JobTimelineResponseDTO getJobTimelineListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Long userId) {
+			String sortDirection, String searchTerm, List<String> searchFields, Long userId, Long jobId) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -86,13 +86,31 @@ public class JobTimelineService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			JobTimelineEntityPage = jobTimelineRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, true, pageRequest, searchFields, searchTerm, userId);
+					userUtil.getUsersIdUnderManager(), false, true, pageRequest, searchFields, searchTerm, userId,
+					jobId);
 		} catch (Exception e) {
 			JobTimelineEntityPage = jobTimelineRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, true, pageRequest, searchFields, searchTerm, userId);
+					userUtil.getUsersIdUnderManager(), false, true, pageRequest, searchFields, searchTerm, userId,
+					jobId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(JobTimelineEntityPage);
+	}
+
+	@Transactional
+	public List<Map<String, Long>> getJobTimelineCount(Long jobId) throws ServiceException {
+		if (jobId == null) {
+			throw new ServiceException(messageSource.getMessage("error.provide.id", new Object[] { jobId },
+					LocaleContextHolder.getLocale()));
+		}
+
+		List<Map<String, Long>> data = jobTimelineRepository.findJobTimelineCount(jobId);
+		if (data != null) {
+			return data;
+		} else {
+			throw new ServiceException(messageSource.getMessage("error.jobnotfound", new Object[] { jobId },
+					LocaleContextHolder.getLocale()));
+		}
 	}
 
 	private JobTimelineResponseDTO pageJobListingToJobListingResponseDTO(
@@ -119,22 +137,6 @@ public class JobTimelineService {
 		}).toList();
 		jobListingNewResponseDTO.setJobs(list);
 		return jobListingNewResponseDTO;
-	}
-
-	@Transactional
-	public List<Map<String, Long>> getJobTimelineCount(Long jobId) throws ServiceException {
-		if (jobId == null) {
-			throw new ServiceException(messageSource.getMessage("error.provide.id", new Object[] { jobId },
-					LocaleContextHolder.getLocale()));
-		}
-
-		List<Map<String, Long>> data = jobTimelineRepository.findJobTimelineCount(jobId);
-		if (data != null) {
-			return data;
-		} else {
-			throw new ServiceException(messageSource.getMessage("error.jobnotfound", new Object[] { jobId },
-					LocaleContextHolder.getLocale()));
-		}
 	}
 
 }
