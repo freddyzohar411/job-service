@@ -90,6 +90,8 @@ public class JobCandidateStageService {
 		if (jobCandidateStageOptional.isPresent()) {
 			jobCandidateStageEntity = jobCandidateStageOptional.get();
 			jobCandidateStageEntity.setJob(jobOptional.get());
+			//id added
+			//jobCandidateStageEntity.setId(jobCandidateStageOptional.get().getId());
 			jobCandidateStageEntity.setJobStage(jobStageOptional.get());
 			jobCandidateStageEntity.setCandidate(candidateOptional.get());
 			jobCandidateStageEntity.setStatus(jobCandidateStageRequest.getStatus());
