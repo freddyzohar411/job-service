@@ -62,8 +62,9 @@ public class JobService {
 
 	@Autowired
 	private UserUtil userUtil;
-	
-	public JobService(JobRepository jobRepository, FormSubmissionAPIClient formSubmissionAPIClient, UserAPIClient userAPIClient) {
+
+	public JobService(JobRepository jobRepository, FormSubmissionAPIClient formSubmissionAPIClient,
+			UserAPIClient userAPIClient) {
 		this.jobRepository = jobRepository;
 		this.formSubmissionAPIClient = formSubmissionAPIClient;
 		this.userAPIClient = userAPIClient;
@@ -248,18 +249,19 @@ public class JobService {
 		}
 		// Try with numeric first else try with string (jsonb)
 		try {
-			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userIds, false,
-					true, pageRequest, jobType, userId);
+			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userIds, false, true, pageRequest,
+					jobType, userId);
 		} catch (Exception e) {
-			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userIds, false,
-					true, pageRequest, jobType, userId);
+			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userIds, false, true, pageRequest,
+					jobType, userId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
 	}
 
 	public JobListingResponseDTO getJobListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Long userId, String jobType, Boolean getAll) {
+			String sortDirection, String searchTerm, List<String> searchFields, Long userId, String jobType,
+			Boolean getAll) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -278,11 +280,11 @@ public class JobService {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
 		try {
-			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds,
-					false, true, pageRequest, searchFields, searchTerm, jobType, userId);
+			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false, true, pageRequest,
+					searchFields, searchTerm, jobType, userId);
 		} catch (Exception e) {
-			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userIds,
-					false, true, pageRequest, searchFields, searchTerm, jobType, userId);
+			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false, true, pageRequest,
+					searchFields, searchTerm, jobType, userId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntityPage);
@@ -409,18 +411,26 @@ public class JobService {
 		jobListingDataDTOs = jobEntityPage.getContent().stream().map(jobEntity -> {
 			JobListingDataDTO jobListingDataDTO = new JobListingDataDTO(jobEntity);
 
-			// Get created by User data from user service
-			// Cast to Integer
-			HttpResponse userResponse = userAPIClient.getUserById(jobEntity.getCreatedBy().intValue());
-			UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
-			jobListingDataDTO.setCreatedByName(userData.getFirstName() + " " + userData.getLastName());
+			try {
+				// Get created by User data from user service
+				// Cast to Integer
+				HttpResponse userResponse = userAPIClient.getUserById(jobEntity.getCreatedBy().intValue());
+				UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(),
+						UserResponseDTO.class);
+				jobListingDataDTO.setCreatedByName(userData.getFirstName() + " " + userData.getLastName());
+			} catch (Exception e) {
+			}
 
-			// Get updated by User data from user service
-			HttpResponse updatedByUserResponse = userAPIClient.getUserById(jobEntity.getUpdatedBy().intValue());
-			UserResponseDTO updatedByUserData = MappingUtil.mapClientBodyToClass(updatedByUserResponse.getData(),
-					UserResponseDTO.class);
-			jobListingDataDTO
-					.setUpdatedByName(updatedByUserData.getFirstName() + " " + updatedByUserData.getLastName());
+			try {
+				// Get updated by User data from user service
+				HttpResponse updatedByUserResponse = userAPIClient.getUserById(jobEntity.getUpdatedBy().intValue());
+				UserResponseDTO updatedByUserData = MappingUtil.mapClientBodyToClass(updatedByUserResponse.getData(),
+						UserResponseDTO.class);
+				jobListingDataDTO
+						.setUpdatedByName(updatedByUserData.getFirstName() + " " + updatedByUserData.getLastName());
+			} catch (Exception e) {
+			}
+
 			return jobListingDataDTO;
 		}).toList();
 		jobListingNewResponseDTO.setJobs(jobListingDataDTOs);
