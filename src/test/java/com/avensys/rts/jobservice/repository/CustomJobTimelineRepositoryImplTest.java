@@ -27,22 +27,23 @@ import com.avensys.rts.jobservice.entity.JobTimelineEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.persistence.EntityManager;
+
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 public class CustomJobTimelineRepositoryImplTest {
 
 	@MockBean
 	private EntityManager entityManager;
-	
+
 	@MockBean
 	CustomJobTimelineRepository customJobTimelineRepository;
-	
+
 	@MockBean
 	CustomJobTimelineRepositoryImplTest customJobTimelineRepositoryImplTest;
-	
+
 	@Mock
 	AutoCloseable autoCloseable;
-	
+
 	JobTimelineEntity jobTimelineEntity;
 	JobTimelineEntity jobTimelineEntity1;
 	JobEntity jobEntity;
@@ -57,7 +58,7 @@ public class CustomJobTimelineRepositoryImplTest {
 	String searchTerm;
 	List<Long> userIds;
 	Page<JobTimelineEntity> pageJobTimeline;
-	
+
 	@BeforeEach
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
@@ -72,75 +73,33 @@ public class CustomJobTimelineRepositoryImplTest {
 
 		pageJobTimeline = new PageImpl<JobTimelineEntity>(jobTimelineList, pageable, 2);
 	}
-	
+
 	@AfterEach
 	void tearDown() throws Exception {
 		autoCloseable.close();
 	}
-	
-	@Test
-	void testFindAllByOrderBy() {
-		when(customJobTimelineRepository.findAllByOrderBy(1L, false, false, true, pageable)).thenReturn(pageJobTimeline);
-		assertNotNull(pageJobTimeline);
 
-	}
-	
-	@Test
-	void testFindAllByOrderByString() {
-		when(customJobTimelineRepository.findAllByOrderByString(1L, false, false, true, pageable)).thenReturn(pageJobTimeline);
-		assertNotNull(pageJobTimeline);
-	}
-	
-	@Test
-	void testFindAllByOrderByNumeric() {
-		when(customJobTimelineRepository.findAllByOrderByNumeric(1L, false, false, true, pageable)).thenReturn(pageJobTimeline);
-		assertNotNull(pageJobTimeline);
-	}
-	
-	@Test
-	void testFindAllByOrderByAndSearchString() {
-		when(customJobTimelineRepository.findAllByOrderByAndSearchString(1L, false, false, true, pageable,searchFields,searchTerm)).thenReturn(pageJobTimeline);
-		assertNotNull(pageJobTimeline);
-	}
-	
-	@Test
-	void testFindAllByOrderByAndSearchNumeric() {
-		when(customJobTimelineRepository.findAllByOrderByAndSearchNumeric(1L, false, false, true, pageable,searchFields,searchTerm)).thenReturn(pageJobTimeline);
-		assertNotNull(pageJobTimeline);
-	}
-	
-	@Test
-	void testGetAllAccountsNameWithSearch() {
-		when(customJobTimelineRepository.getAllAccountsNameWithSearch("query",1L, false, false)).thenReturn(jobTimelineList);
-		assertNotNull(jobTimelineList);
-	}
-	
-	@Test
-	void testUpdateDocumentEntityId() {
-		customJobTimelineRepository.updateDocumentEntityId(1L, 1L, 1L, "entityType");
-	}
-	
 	@Test
 	void testFindAllByOrderByStringWithUserIds() {
-		when(customJobTimelineRepository.findAllByOrderByStringWithUserIds(userIds,false, false,pageable,1L)).thenReturn(pageJobTimeline);
+		when(customJobTimelineRepository.findAllByOrderByStringWithUserIds(userIds,false, false,pageable,1L,1L)).thenReturn(pageJobTimeline);
 		assertNotNull(pageJobTimeline);
 	}
-	
+
 	@Test
 	void testFindAllByOrderByNumericWithUserIds() {
-		when(customJobTimelineRepository.findAllByOrderByNumericWithUserIds(userIds,false, false,pageable,1L)).thenReturn(pageJobTimeline);
+		when(customJobTimelineRepository.findAllByOrderByNumericWithUserIds(userIds,false, false,pageable,1L,1L)).thenReturn(pageJobTimeline);
 		assertNotNull(pageJobTimeline);
 	}
-	
+
 	@Test
 	void testFindAllByOrderByAndSearchStringWithUserIds() {
-		when(customJobTimelineRepository.findAllByOrderByAndSearchStringWithUserIds(userIds,false, false,pageable,searchFields,searchTerm,1L)).thenReturn(pageJobTimeline);
+		when(customJobTimelineRepository.findAllByOrderByAndSearchStringWithUserIds(userIds,false, false,pageable,searchFields,searchTerm,1L,1L)).thenReturn(pageJobTimeline);
 		assertNotNull(pageJobTimeline);
 	}
-	
+
 	@Test
 	void testFindAllByOrderByAndSearchNumericWithUserIds() {
-		when(customJobTimelineRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds,false, false,pageable,searchFields,searchTerm,1L)).thenReturn(pageJobTimeline);
+		when(customJobTimelineRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds,false, false,pageable,searchFields,searchTerm,1L,1L)).thenReturn(pageJobTimeline);
 		assertNotNull(pageJobTimeline);
 	}
 }

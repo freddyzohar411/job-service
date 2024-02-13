@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JobRecruiterFODRequest {
 
-	private Long jobId;
-	private Long recruiterId;
+	private Long[] jobId;
+	private Long[] recruiterId;
 	private Long sellerId;
 	private Long createdBy;
 	private Long updatedBy;

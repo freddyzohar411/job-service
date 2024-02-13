@@ -72,7 +72,7 @@ public class JobRecruiterFODServiceTest {
 		jobOptional = Optional.of(jobEntity);
 		jobRecruiterFODEntity = new JobRecruiterFODEntity(1L, job, recruiter, seller, "Status");
 		jobFODOptional = Optional.of(jobRecruiterFODEntity);
-		jobRecruiterFODRequest = new JobRecruiterFODRequest(1L, 1L, 1L, 1L, 1L);
+		jobRecruiterFODRequest = new JobRecruiterFODRequest(new Long[] { 1L }, new Long[] { 1L }, 1L, 1L, 1L);
 	}
 
 	@AfterEach
@@ -83,10 +83,10 @@ public class JobRecruiterFODServiceTest {
 	@Test
 	void testSave()throws Exception {
 		when( jobRecruiterFODRepository
-				.findByJob(jobRecruiterFODRequest.getJobId())).thenReturn(jobFODOptional);
+				.findByJob(jobRecruiterFODRequest.getJobId()[0])).thenReturn(jobFODOptional);
 		assertNotNull(jobOptional);
-		when(jobRepository.findById(jobRecruiterFODRequest.getJobId())).thenReturn(jobOptional);
-		when(userRepository.findById(jobRecruiterFODRequest.getRecruiterId())).thenReturn(recruiterOptional);
+		when(jobRepository.findById(jobRecruiterFODRequest.getJobId()[0])).thenReturn(jobOptional);
+		when(userRepository.findById(jobRecruiterFODRequest.getRecruiterId()[0])).thenReturn(recruiterOptional);
 		when( userRepository.findById(jobRecruiterFODRequest.getSellerId())).thenReturn(recruiterOptional);
 		jobRecruiterFODService.save(jobRecruiterFODRequest);
 	}

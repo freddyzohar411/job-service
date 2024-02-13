@@ -1,7 +1,6 @@
 package com.avensys.rts.jobservice.controller;
 
 import static org.mockito.Mockito.when;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
@@ -66,7 +65,7 @@ public class JobTimelineControllerTest {
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 		jobListingRequestDTO = new JobListingRequestDTO(1, 10, "updatedAt", "DEFAULT_DIRECTION", "name", searchFields,
-				"part-time");
+				"part-time", 1L);
 		jobTimelineResponseDTO = new JobTimelineResponseDTO(1, 1L, 1, 5, jobs);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(jobTimelineController).build();
 	}
@@ -89,7 +88,7 @@ public class JobTimelineControllerTest {
 	 */
 	@Test
 	void testGetJobListing() throws Exception {
-		when(jobTimelineService.getJobTimelineListingPageWithSearch(new Integer(1),new Integer(1), "updatedAt", "DEFAULT_DIRECTION", "name",searchFields,1L)).thenReturn(jobTimelineResponseDTO);
+		when(jobTimelineService.getJobTimelineListingPageWithSearch(new Integer(1),new Integer(1), "updatedAt", "DEFAULT_DIRECTION", "name",searchFields,1L,1L)).thenReturn(jobTimelineResponseDTO);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
 		ObjectWriter writer = mapper.writer().withDefaultPrettyPrinter();

@@ -53,7 +53,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class JobControllerTest {
 
-	
 	private MockMvc mockMvc;
 
 	@InjectMocks
@@ -110,14 +109,14 @@ public class JobControllerTest {
 		optionalJobEntity = Optional.of(jobEntity);
 		jobListingDataDTO = new JobListingDataDTO(1L, "Java Developer", jobSubmissionData, CURRENT_TIMESTAMP,
 				CURRENT_TIMESTAMP, "Kotaiah", "Kotaiah");
-		jobRecruiterFODRequest = new JobRecruiterFODRequest(1L, 1L, 1L, 1L, 1L);
+		jobRecruiterFODRequest = new JobRecruiterFODRequest(new Long[] { 1L }, new Long[] { 1L }, 1L, 1L, 1L);
 		jobRecruiterFODEntity = new JobRecruiterFODEntity(1L, job, recruiter, seller, "Active");
 		jobEntityList = Arrays.asList(jobEntity, jobEntity1);
 		sort = Sort.by(Sort.Direction.DESC, "updatedAt");
 		pageable = PageRequest.of(1, 2, sort);
 		page1 = new PageImpl<JobEntity>(jobEntityList, pageable, 2);
 		jobListingRequestDTO = new JobListingRequestDTO(1, 10, "updatedAt", "DEFAULT_DIRECTION", "name", searchFields,
-				"part-time");
+				"part-time", 1L);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(jobController).build();
 	}
 
@@ -323,8 +322,8 @@ public class JobControllerTest {
 	}
 
 	@Test
-	void testJobFODPositive()throws Exception {
-		when(jobRecruiterFODService.save(jobRecruiterFODRequest)).thenReturn(jobRecruiterFODEntity);
+	void testJobFODPositive() throws Exception {
+		jobRecruiterFODService.save(jobRecruiterFODRequest);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
 		RequestBuilder request = MockMvcRequestBuilders.post("/api/job/jobfod")
@@ -336,13 +335,13 @@ public class JobControllerTest {
 	}
 
 	@Test
-	void testJobFODNegative()throws Exception {
-		when(jobRecruiterFODService.save(jobRecruiterFODRequest)).thenReturn(jobRecruiterFODEntity);
+	void testJobFODNegative() throws Exception {
+		jobRecruiterFODService.save(jobRecruiterFODRequest);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
 		RequestBuilder request = MockMvcRequestBuilders.post("/api/job/jobfod")
-				.content(asJsonString(jobRecruiterFODRequest))
-				.contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON);
+				.content(asJsonString(jobRecruiterFODRequest)).contentType(MediaType.APPLICATION_JSON_VALUE)
+				.accept(MediaType.APPLICATION_JSON);
 		mockMvc.perform(request).andExpect(status().isBadRequest());
 	}
 
