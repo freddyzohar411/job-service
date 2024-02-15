@@ -16,7 +16,6 @@ import com.avensys.rts.jobservice.entity.JobEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-import lombok.NoArgsConstructor;
 
 @Repository
 public class CustomJobRepositoryImpl implements CustomJobRepository {
@@ -809,12 +808,14 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "active_jobs": {
 				isActive = true;
-				queryString = queryString.replace("{1}", "");
+				queryString = queryString.replace("{1}",
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
 				break;
 			}
 			case "inactive_jobs": {
 				isActive = false;
-				queryString = queryString.replace("{1}", "");
+				queryString = queryString.replace("{1}",
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
 				break;
 			}
 			case "closed_jobs": {
