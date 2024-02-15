@@ -161,13 +161,13 @@ public class JobCandidateStageService {
 
 			HashMap<Long, JobCandidateStageEntity> candidateJobstages = new HashMap<Long, JobCandidateStageEntity>();
 			jobCandidateStageEntities.forEach(item -> {
-				Long id = item.getJobStage().getId();
+				Long id = item.getJobStage().getOrder();
 				candidateJobstages.put(id, item);
 			});
 
 			HashMap<Long, JobStageEntity> jobStages = new HashMap<Long, JobStageEntity>();
 			jobStageEntities.forEach(item -> {
-				Long id = item.getId();
+				Long id = item.getOrder();
 				jobStages.put(id, item);
 			});
 
