@@ -14,6 +14,8 @@ public interface JobStageRepository extends CrudRepository<JobStageEntity, Long>
 
 	public Optional<JobStageEntity> findByName(String name);
 
+	public Optional<JobStageEntity> findByOrder(Long order);
+
 	@Query(value = "SELECT stage FROM job_stage stage WHERE stage.isDeleted = ?1")
 	List<JobStageEntity> findAllAndIsDeleted(boolean isDeleted);
 
