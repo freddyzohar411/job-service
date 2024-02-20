@@ -64,6 +64,10 @@ public class JobCandidateStageService {
 	@Autowired
 	private MessageSource messageSource;
 
+	private static Long PROFILE_FEEDBACK_PENDING_ID = 5l;
+	private static Long FIRST_INTERVIEW_SCHEDULED_ID = 6l;
+	private static String COMPLETED = "COMPLETED";
+
 	/**
 	 * This method is used to save job Need to implement roll back if error occurs.
 	 * 
@@ -106,6 +110,29 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
 			jobCandidateStageEntity.setIsActive(true);
 			jobCandidateStageEntity.setIsDeleted(false);
+		}
+
+		// First Interview schedules
+		if (jobCandidateStageRequest.getJobStageId() == FIRST_INTERVIEW_SCHEDULED_ID
+				&& jobCandidateStageRequest.getStatus().equals(COMPLETED)) {
+
+			Optional<JobStageEntity> profileOptional = jobStageRepository.findByOrder(PROFILE_FEEDBACK_PENDING_ID);
+
+			Optional<JobCandidateStageEntity> profileStageOptional = jobCandidateStageRepository
+					.findByJobAndStageAndCandidate(jobCandidateStageRequest.getJobId(), profileOptional.get().getId(),
+							jobCandidateStageRequest.getCandidateId());
+			if (profileStageOptional.isEmpty()) {
+				JobCandidateStageEntity profileFeedbackEntity = new JobCandidateStageEntity();
+				profileFeedbackEntity.setJob(jobOptional.get());
+				profileFeedbackEntity.setJobStage(profileOptional.get());
+				profileFeedbackEntity.setCandidate(candidateOptional.get());
+				profileFeedbackEntity.setStatus(COMPLETED);
+				profileFeedbackEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
+				profileFeedbackEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+				profileFeedbackEntity.setIsActive(true);
+				profileFeedbackEntity.setIsDeleted(false);
+				jobCandidateStageRepository.save(profileFeedbackEntity);
+			}
 		}
 
 		jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
@@ -175,10 +202,10 @@ public class JobCandidateStageService {
 
 			for (long i = 1; i <= jobCandidateStageRequest.getJobStageId(); i++) {
 				JobCandidateStageEntity ob = candidateJobstages.get(i);
-				JobStageEntity jOb = jobStages.get(i);
+				JobStageEntity job = jobStages.get(i);
 
 				JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
-				jobTimelineTagDTO.setOrder(jOb.getOrder());
+				jobTimelineTagDTO.setOrder(job.getOrder());
 
 				if (ob != null) {
 					jobTimelineTagDTO.setDate(Timestamp.valueOf(ob.getUpdatedAt()));
@@ -187,7 +214,7 @@ public class JobCandidateStageService {
 					jobTimelineTagDTO.setDate(null);
 					jobTimelineTagDTO.setStatus("SKIPPED");
 				}
-				timeline.put(jOb.getName(), jobTimelineTagDTO);
+				timeline.put(job.getName(), jobTimelineTagDTO);
 			}
 
 			JsonNode timelineJson = new ObjectMapper().valueToTree(timeline);

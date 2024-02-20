@@ -17,7 +17,7 @@ public interface JobCandidateStageRepository extends JpaRepository<JobCandidateS
 	@Query(value = "SELECT * FROM job_candidate_stage WHERE candidate_id = ?1", nativeQuery = true)
 	public List<JobCandidateStageEntity> findByCandidate(Long candidateId);
 
-	@Query(value = "SELECT * FROM job_candidate_stage WHERE job_id = ?1 and job_stage_id = ?2 and candidate_id = ?3", nativeQuery = true)
+	@Query(value = "SELECT * FROM job_candidate_stage WHERE job_id = ?1 and job_stage_id = (SELECT js.id from job_stage js where js.stage_order = ?2) and candidate_id = ?3", nativeQuery = true)
 	public Optional<JobCandidateStageEntity> findByJobAndStageAndCandidate(Long jobId, Long jobStageId,
 			Long candidateId);
 
