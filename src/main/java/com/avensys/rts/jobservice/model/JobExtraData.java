@@ -15,11 +15,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class JobExtraData {
@@ -51,10 +54,12 @@ public class JobExtraData {
 	// Get all field in map ( label and value)
 	public List<HashMap<String, String>> getAllFieldsMap() {
 		return getAllFields().stream().map(field -> {
-			return new HashMap<String, String>() {{
-				put("label", StringUtil.convertCamelCaseToTitleCase2(field));
-				put("value", field);
-			}};
+			return new HashMap<String, String>() {
+				{
+					put("label", StringUtil.convertCamelCaseToTitleCase2(field));
+					put("value", field);
+				}
+			};
 		}).collect(Collectors.toList());
 	}
 

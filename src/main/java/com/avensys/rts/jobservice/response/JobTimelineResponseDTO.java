@@ -5,10 +5,12 @@ import java.util.List;
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class JobTimelineResponseDTO {

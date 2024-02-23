@@ -3,14 +3,16 @@ package com.avensys.rts.jobservice.payload;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Author: Rahul Sahu This class is used to store the request parameters for the
  * account listing api
  */
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class JobListingRequestDTO {
