@@ -510,6 +510,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 	@Override
 	public Page<JobEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
 			Pageable pageable, String jobType, Long userId) {
+		System.out.println("Here");
+		System.out.println("JobType: " + jobType);
+
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
@@ -529,8 +532,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// User ID condition
 		String userCondition = "";
-//		if (!userIds.isEmpty() && !jobType.equals("fod")) {
-		if (!userIds.isEmpty()) {
+		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
 			userCondition = " AND created_by IN (:userIds)";
 		}
 
@@ -551,7 +553,6 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-//		if (!userIds.isEmpty() && !jobType.equals("fod")) {
 		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
 		}
@@ -577,7 +578,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("fod")) {
+		if (!userIds.isEmpty()) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
@@ -629,7 +630,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// User ID condition
 		String userCondition = "";
-		if (!userIds.isEmpty()) {
+		if (!userIds.isEmpty() && !jobType.equals("fod")) {
 			userCondition = " AND created_by IN (:userIds)";
 		}
 
@@ -649,7 +650,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty()) {
+		if (!userIds.isEmpty() && !jobType.equals("fod")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -810,10 +811,16 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
 				break;
 			}
+//			case "active_jobs": {
+//				isActive = true;
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+//				break;
+//			}
 			case "active_jobs": {
-				isActive = true;
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) "
+								+ "or sales_id in (:userIds))) AND ");
 				break;
 			}
 			case "inactive_jobs": {
@@ -833,22 +840,22 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 //								+ " or sales_id = " + userId + " and created_at >= current_date) AND ");
 //				break;
 //			}
-//			case "fod": {
-//				queryString = queryString.replace("{1}",
-//						"id in (select distinct(job_id) from job_recruiter_fod where recruiter_id in " + userIds
-//								+ " or sales_id in " + userIds + " and created_at >= current_date) AND ");
-//				break;
-//			}
 			case "fod": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) " +
-								"or sales_id in (:userIds)) and created_at >= current_date) AND ");
+						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) "
+								+ "or sales_id in (:userIds)) and created_at >= current_date) AND ");
 				break;
 			}
+//			case "assigned_jobs": {
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id = "
+//								+ userId + " or sales_id = " + userId + ")) AND ");
+//				break;
+//			}
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id = "
-								+ userId + " or sales_id = " + userId + ")) AND ");
+						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id in (:userIds) "
+								+ "or sales_id in (:userIds))) AND ");
 				break;
 			}
 			default:
