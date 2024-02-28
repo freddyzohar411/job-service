@@ -452,7 +452,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// User ID condition
 		String userCondition = "";
-		if (!userIds.isEmpty()) {
+		if (!userIds.isEmpty() && !jobType.equals("fod")) {
 			userCondition = " AND created_by IN (:userIds)";
 		}
 
@@ -462,7 +462,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				userCondition, orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
-			queryString = getQuery(queryString, jobType, userId, isActive);
+			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
+			System.out.println("QueryString: " + queryString);
 			isActive = getActive(jobType, isActive);
 		} else {
 			queryString = queryString.replace("{1}", "");
@@ -487,7 +488,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				userCondition);
 
 		if (jobType != null && jobType.length() > 0) {
-			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
+			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
 			isActive = getActive(jobType, isActive);
 		} else {
 			countQueryString = countQueryString.replace("{1}", "");
@@ -528,6 +529,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// User ID condition
 		String userCondition = "";
+//		if (!userIds.isEmpty() && !jobType.equals("fod")) {
 		if (!userIds.isEmpty()) {
 			userCondition = " AND created_by IN (:userIds)";
 		}
@@ -538,7 +540,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				userCondition, orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
-			queryString = getQuery(queryString, jobType, userId, isActive);
+			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
+			System.out.println("QueryStringNum: " + queryString);
 			isActive = getActive(jobType, isActive);
 		} else {
 			queryString = queryString.replace("{1}", "");
@@ -548,6 +551,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
+//		if (!userIds.isEmpty() && !jobType.equals("fod")) {
 		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
 		}
@@ -563,7 +567,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				userCondition);
 
 		if (jobType != null && jobType.length() > 0) {
-			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
+			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
 			isActive = getActive(jobType, isActive);
 		} else {
 			countQueryString = countQueryString.replace("{1}", "");
@@ -573,7 +577,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty()) {
+		if (!userIds.isEmpty() && !jobType.equals("fod")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
@@ -635,7 +639,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
-			queryString = getQuery(queryString, jobType, userId, isActive);
+			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
 			isActive = getActive(jobType, isActive);
 		} else {
 			queryString = queryString.replace("{1}", "");
@@ -661,7 +665,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				userCondition, searchConditions.toString());
 
 		if (jobType != null && jobType.length() > 0) {
-			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
+			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
 			isActive = getActive(jobType, isActive);
 		} else {
 			countQueryString = countQueryString.replace("{1}", "");
@@ -734,7 +738,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
-			queryString = getQuery(queryString, jobType, userId, isActive);
+			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
 			isActive = getActive(jobType, isActive);
 		} else {
 			queryString = queryString.replace("{1}", "");
@@ -760,7 +764,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				userCondition, searchConditions.toString());
 
 		if (jobType != null && jobType.length() > 0) {
-			countQueryString = getQuery(countQueryString, jobType, userId, isActive);
+			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
 			isActive = getActive(jobType, isActive);
 		} else {
 			countQueryString = countQueryString.replace("{1}", "");
@@ -798,7 +802,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		return active;
 	}
 
-	private String getQuery(String queryString, String jobType, Long userId, Boolean isActive) {
+	private String getQuery(String queryString, String jobType, Long userId, Boolean isActive, List<Long> userIds) {
 		if (jobType != null && jobType.length() > 0) {
 			switch (jobType) {
 			case "new_job": {
@@ -823,10 +827,22 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.status = 'CLOSED') AND ");
 				break;
 			}
+//			case "fod": {
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(job_id) from job_recruiter_fod where recruiter_id = " + userId
+//								+ " or sales_id = " + userId + " and created_at >= current_date) AND ");
+//				break;
+//			}
+//			case "fod": {
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(job_id) from job_recruiter_fod where recruiter_id in " + userIds
+//								+ " or sales_id in " + userIds + " and created_at >= current_date) AND ");
+//				break;
+//			}
 			case "fod": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod where recruiter_id = " + userId
-								+ " or sales_id = " + userId + " and created_at >= current_date) AND ");
+						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) " +
+								"or sales_id in (:userIds)) and created_at >= current_date) AND ");
 				break;
 			}
 			case "assigned_jobs": {
