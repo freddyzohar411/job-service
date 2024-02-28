@@ -803,20 +803,85 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		return active;
 	}
 
+//	private String getQuery(String queryString, String jobType, Long userId, Boolean isActive, List<Long> userIds) {
+//		if (jobType != null && jobType.length() > 0) {
+//			switch (jobType) {
+//			case "new_job": {
+//				queryString = queryString.replace("{1}",
+//						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+//				break;
+//			}
+////			case "active_jobs": {
+////				isActive = true;
+////				queryString = queryString.replace("{1}",
+////						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+////				break;
+////			}
+//			case "active_jobs": {
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) "
+//								+ "or sales_id in (:userIds))) AND ");
+//				break;
+//			}
+//			case "inactive_jobs": {
+//				isActive = false;
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+//				break;
+//			}
+//			case "closed_jobs": {
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.status = 'CLOSED') AND ");
+//				break;
+//			}
+////			case "fod": {
+////				queryString = queryString.replace("{1}",
+////						"id in (select distinct(job_id) from job_recruiter_fod where recruiter_id = " + userId
+////								+ " or sales_id = " + userId + " and created_at >= current_date) AND ");
+////				break;
+////			}
+//			case "fod": {
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) "
+//								+ "or sales_id in (:userIds)) and created_at >= current_date) AND ");
+//				break;
+//			}
+////			case "assigned_jobs": {
+////				queryString = queryString.replace("{1}",
+////						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id = "
+////								+ userId + " or sales_id = " + userId + ")) AND ");
+////				break;
+////			}
+//			case "assigned_jobs": {
+//				queryString = queryString.replace("{1}",
+//						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id in (:userIds) "
+//								+ "or sales_id in (:userIds))) AND ");
+//				break;
+//			}
+//			default:
+//				queryString = queryString.replace("{1}", "");
+//				break;
+//			}
+//		} else {
+//			queryString = queryString.replace("{1}", "");
+//		}
+//		return queryString;
+//	}
+
 	private String getQuery(String queryString, String jobType, Long userId, Boolean isActive, List<Long> userIds) {
-		if (jobType != null && jobType.length() > 0) {
+		if (jobType != null && jobType.length() > 0 && !userIds.isEmpty()) {
 			switch (jobType) {
 			case "new_job": {
 				queryString = queryString.replace("{1}",
 						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
 				break;
 			}
-//			case "active_jobs": {
-//				isActive = true;
-//				queryString = queryString.replace("{1}",
-//						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
-//				break;
-//			}
+			// case "active_jobs": {
+			// isActive = true;
+			// queryString = queryString.replace("{1}",
+			// "id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+			// break;
+			// }
 			case "active_jobs": {
 				queryString = queryString.replace("{1}",
 						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) "
@@ -834,24 +899,71 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.status = 'CLOSED') AND ");
 				break;
 			}
-//			case "fod": {
-//				queryString = queryString.replace("{1}",
-//						"id in (select distinct(job_id) from job_recruiter_fod where recruiter_id = " + userId
-//								+ " or sales_id = " + userId + " and created_at >= current_date) AND ");
-//				break;
-//			}
+			// case "fod": {
+			// queryString = queryString.replace("{1}",
+			// "id in (select distinct(job_id) from job_recruiter_fod where recruiter_id = "
+			// + userId
+			// + " or sales_id = " + userId + " and created_at >= current_date) AND ");
+			// break;
+			// }
 			case "fod": {
 				queryString = queryString.replace("{1}",
 						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) "
 								+ "or sales_id in (:userIds)) and created_at >= current_date) AND ");
 				break;
 			}
-//			case "assigned_jobs": {
-//				queryString = queryString.replace("{1}",
-//						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id = "
-//								+ userId + " or sales_id = " + userId + ")) AND ");
-//				break;
-//			}
+			// case "assigned_jobs": {
+			// queryString = queryString.replace("{1}",
+			// "id in (select distinct(job_id) from job_recruiter_fod where status !=
+			// 'CLOSED' and (recruiter_id = "
+			// + userId + " or sales_id = " + userId + ")) AND ");
+			// break;
+			// }
+			case "assigned_jobs": {
+				queryString = queryString.replace("{1}",
+						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id in (:userIds) "
+								+ "or sales_id in (:userIds))) AND ");
+				break;
+			}
+			default:
+				queryString = queryString.replace("{1}", "");
+				break;
+			}
+		} else if (jobType != null && jobType.length() > 0 && userIds.isEmpty()) {
+			switch (jobType) {
+			case "new_job": {
+				queryString = queryString.replace("{1}",
+						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+				break;
+			}
+			case "active_jobs": {
+				queryString = queryString.replace("{1}",
+						"id in (select distinct(job_id) from job_recruiter_fod) AND ");
+				break;
+			}
+			case "inactive_jobs": {
+				isActive = false;
+				queryString = queryString.replace("{1}",
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+				break;
+			}
+			case "closed_jobs": {
+				queryString = queryString.replace("{1}",
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.status = 'CLOSED') AND ");
+				break;
+			}
+			case "fod": {
+				queryString = queryString.replace("{1}",
+						"id in (select distinct(job_id) from job_recruiter_fod where created_at >= current_date) AND ");
+				break;
+			}
+			// case "assigned_jobs": {
+			// queryString = queryString.replace("{1}",
+			// "id in (select distinct(job_id) from job_recruiter_fod where status !=
+			// 'CLOSED' and (recruiter_id = "
+			// + userId + " or sales_id = " + userId + ")) AND ");
+			// break;
+			// }
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
 						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id in (:userIds) "
