@@ -24,4 +24,7 @@ public class JobListingRequestDTO {
 	private List<String> searchFields;
 	private String jobType;
 	private Long jobId;
+
+	// Added on 28022024 by Koh He Xiang
+	private Boolean isGetAll = false;
 }
