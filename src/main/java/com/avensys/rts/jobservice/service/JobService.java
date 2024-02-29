@@ -247,6 +247,7 @@ public class JobService {
 		if (!getAll) {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
+		// Find user id
 		// Try with numeric first else try with string (jsonb)
 		try {
 			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userIds, false, true, pageRequest,

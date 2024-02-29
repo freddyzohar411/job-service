@@ -175,15 +175,16 @@ public class JobController {
 		String searchTerm = jobListingRequestDTO.getSearchTerm();
 		List<String> searchFields = jobListingRequestDTO.getSearchFields();
 		String jobType = jobListingRequestDTO.getJobType();
+		Boolean isGetAll = jobListingRequestDTO.getIsGetAll();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, false),
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, isGetAll),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId, jobType, false),
+							searchFields, userId, jobType, isGetAll),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
