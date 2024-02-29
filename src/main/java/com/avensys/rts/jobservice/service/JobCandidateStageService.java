@@ -3,9 +3,12 @@ package com.avensys.rts.jobservice.service;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JsonParser;
+import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.PageRequest;
@@ -13,13 +16,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.avensys.rts.jobservice.apiclient.EmailAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.entity.CandidateEntity;
 import com.avensys.rts.jobservice.entity.JobCandidateStageEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.entity.JobStageEntity;
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
+import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.EmailMultiTemplateRequestDTO;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobCandidateStageRequest;
 import com.avensys.rts.jobservice.repository.CandidateRepository;
@@ -27,14 +33,17 @@ import com.avensys.rts.jobservice.repository.JobCandidateStageRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
 import com.avensys.rts.jobservice.repository.JobStageRepository;
 import com.avensys.rts.jobservice.repository.JobTimelineRepository;
+import com.avensys.rts.jobservice.repository.UserRepository;
 import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobTimelineTagDTO;
+import com.avensys.rts.jobservice.util.JobCanddateStageUtil;
 import com.avensys.rts.jobservice.util.MappingUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
+import lombok.val;
 
 /**
  * @author Rahul Sahu
@@ -59,14 +68,35 @@ public class JobCandidateStageService {
 	private JobTimelineRepository jobTimelineRepository;
 
 	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
+
+	@Autowired
+	private EmailAPIClient emailAPIClient;
 
 	@Autowired
 	private MessageSource messageSource;
 
-	private static Long PROFILE_FEEDBACK_PENDING_ID = 5l;
-	private static Long FIRST_INTERVIEW_SCHEDULED_ID = 6l;
-	private static String COMPLETED = "COMPLETED";
+	private void sendEmail(JobCandidateStageEntity jobCandidateStageEntity) {
+		EmailMultiTemplateRequestDTO dto = new EmailMultiTemplateRequestDTO();
+		dto.setTemplateName(JobCanddateStageUtil.JOB_TEMPLATE_NAME);
+		dto.setCategory(JobCanddateStageUtil.JOB_TEMPLATE_CATEGORY);
+
+		Optional<UserEntity> entity = userRepository.findById(jobCandidateStageEntity.getJob().getCreatedBy());
+		if (entity.isPresent()) {
+			dto.setTo(new String[] { entity.get().getEmail(),
+					jobCandidateStageEntity.getCandidate().getCandidateSubmissionData().get("email").asText() });
+		} else {
+			dto.setTo(new String[] {
+					jobCandidateStageEntity.getCandidate().getCandidateSubmissionData().get("email").asText() });
+		}
+
+		if (jobCandidateStageEntity.getJobStage().getId() == JobCanddateStageUtil.SUBMIT_TO_SALES) {
+			dto.setSubject("Submitted to sales");
+		}
+	}
 
 	/**
 	 * This method is used to save job Need to implement roll back if error occurs.
@@ -113,10 +143,11 @@ public class JobCandidateStageService {
 		}
 
 		// First Interview schedules
-		if (jobCandidateStageRequest.getJobStageId() == FIRST_INTERVIEW_SCHEDULED_ID
-				&& jobCandidateStageRequest.getStatus().equals(COMPLETED)) {
+		if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.FIRST_INTERVIEW_SCHEDULED_ID
+				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
 
-			Optional<JobStageEntity> profileOptional = jobStageRepository.findByOrder(PROFILE_FEEDBACK_PENDING_ID);
+			Optional<JobStageEntity> profileOptional = jobStageRepository
+					.findByOrder(JobCanddateStageUtil.PROFILE_FEEDBACK_PENDING_ID);
 
 			Optional<JobCandidateStageEntity> profileStageOptional = jobCandidateStageRepository
 					.findByJobAndStageAndCandidate(jobCandidateStageRequest.getJobId(), profileOptional.get().getId(),
@@ -126,7 +157,7 @@ public class JobCandidateStageService {
 				profileFeedbackEntity.setJob(jobOptional.get());
 				profileFeedbackEntity.setJobStage(profileOptional.get());
 				profileFeedbackEntity.setCandidate(candidateOptional.get());
-				profileFeedbackEntity.setStatus(COMPLETED);
+				profileFeedbackEntity.setStatus(JobCanddateStageUtil.COMPLETED);
 				profileFeedbackEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
 				profileFeedbackEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
 				profileFeedbackEntity.setIsActive(true);
