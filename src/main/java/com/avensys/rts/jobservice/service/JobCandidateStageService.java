@@ -3,12 +3,11 @@ package com.avensys.rts.jobservice.service;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.json.JsonParser;
-import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.PageRequest;
@@ -23,7 +22,6 @@ import com.avensys.rts.jobservice.entity.JobCandidateStageEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.entity.JobStageEntity;
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
-import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.payload.EmailMultiTemplateRequestDTO;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
@@ -43,7 +41,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
-import lombok.val;
 
 /**
  * @author Rahul Sahu
@@ -79,23 +76,52 @@ public class JobCandidateStageService {
 	@Autowired
 	private MessageSource messageSource;
 
+	private final Logger log = LoggerFactory.getLogger(JobCandidateStageService.class);
+
+	/**
+	 * @author Rahul Sahu
+	 * @param jobCandidateStageEntity
+	 */
 	private void sendEmail(JobCandidateStageEntity jobCandidateStageEntity) {
 		EmailMultiTemplateRequestDTO dto = new EmailMultiTemplateRequestDTO();
-		dto.setTemplateName(JobCanddateStageUtil.JOB_TEMPLATE_NAME);
+		dto.setTemplateName(JobCanddateStageUtil.JOB_ASSOCIATE_TEMPLATE);
 		dto.setCategory(JobCanddateStageUtil.JOB_TEMPLATE_CATEGORY);
 
-		Optional<UserEntity> entity = userRepository.findById(jobCandidateStageEntity.getJob().getCreatedBy());
-		if (entity.isPresent()) {
-			dto.setTo(new String[] { entity.get().getEmail(),
-					jobCandidateStageEntity.getCandidate().getCandidateSubmissionData().get("email").asText() });
-		} else {
-			dto.setTo(new String[] {
-					jobCandidateStageEntity.getCandidate().getCandidateSubmissionData().get("email").asText() });
+		JobEntity jobEntity = jobCandidateStageEntity.getJob();
+		CandidateEntity candidateEntity = jobCandidateStageEntity.getCandidate();
+		JobStageEntity jobStageEntity = jobCandidateStageEntity.getJobStage();
+		HashMap<String, String> params = new HashMap<String, String>();
+
+		// Associate
+		if (jobStageEntity.getId() == JobCanddateStageUtil.ASSOCIATE
+				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
+			dto.setTemplateName(JobCanddateStageUtil.JOB_ASSOCIATE_TEMPLATE);
+			dto.setTo(new String[] { candidateEntity.getCandidateSubmissionData().get("email").asText() });
+			dto.setSubject("Avensys | Job Application for " + JobCanddateStageUtil.getValue(jobEntity, "jobTitle"));
+			params.put("candidate.firstName", JobCanddateStageUtil.getValue(candidateEntity, "firstName"));
+			params.put("candidate.lastName", JobCanddateStageUtil.getValue(candidateEntity, "lastName"));
+			params.put("candidate.reasonForChange", JobCanddateStageUtil.getValue(candidateEntity, "reasonForChange"));
+			// 2
+			params.put("candidate.currentSalary",
+					JobCanddateStageUtil.getValue(candidateEntity, "candidateCurrentSalary"));
+			params.put("candidate.expectedSalary",
+					JobCanddateStageUtil.getValue(candidateEntity, "candidateExpectedSalary"));
+			params.put("candidate.noticePeriod", JobCanddateStageUtil.getValue(candidateEntity, "noticePeriod"));
+			// 2e
+			params.put("candidate.accountOwner", JobCanddateStageUtil.getValue(candidateEntity, ""));
+			params.put("candidate.accountOwnerEmail", JobCanddateStageUtil.getValue(candidateEntity, ""));
+			params.put("candidate.accountOwnerMobile", JobCanddateStageUtil.getValue(candidateEntity, ""));
+			params.put("candidate.noticePeriod", JobCanddateStageUtil.getValue(candidateEntity, ""));
+
+			params.put("job.jobTitle", JobCanddateStageUtil.getValue(jobEntity, ""));
+			params.put("job.clientName", JobCanddateStageUtil.getValue(jobEntity, ""));
+			params.put("job.jobType", JobCanddateStageUtil.getValue(jobEntity, ""));
+			params.put("job.durationOfContract", JobCanddateStageUtil.getValue(jobEntity, ""));
+			params.put("job.jobDescription", JobCanddateStageUtil.getValue(jobEntity, ""));
+
+			dto.setTemplateMap(params);
 		}
 
-		if (jobCandidateStageEntity.getJobStage().getId() == JobCanddateStageUtil.SUBMIT_TO_SALES) {
-			dto.setSubject("Submitted to sales");
-		}
 	}
 
 	/**
@@ -191,6 +217,13 @@ public class JobCandidateStageService {
 				jobCandidateStageEntity.setFormSubmissionId(formSubmissionData.getId());
 				jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 			}
+		}
+
+		// Send Email
+		try {
+			sendEmail(jobCandidateStageEntity);
+		} catch (Exception e) {
+			log.error("Error:", e);
 		}
 
 		Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository

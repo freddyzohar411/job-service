@@ -168,6 +168,7 @@ public class JobController {
 	public ResponseEntity<Object> getJobListing(@RequestBody JobListingRequestDTO jobListingRequestDTO,
 			@RequestHeader(name = "Authorization") String token) {
 		Long userId = jwtUtil.getUserId(token);
+		String email = JwtUtil.getEmailFromContext();
 		Integer page = jobListingRequestDTO.getPage();
 		Integer pageSize = jobListingRequestDTO.getPageSize();
 		String sortBy = jobListingRequestDTO.getSortBy();
@@ -178,13 +179,14 @@ public class JobController {
 		Boolean isGetAll = jobListingRequestDTO.getIsGetAll();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, isGetAll),
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, isGetAll,
+							email),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId, jobType, isGetAll),
+							searchFields, userId, jobType, isGetAll, email),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
@@ -195,6 +197,7 @@ public class JobController {
 	public ResponseEntity<Object> getJobListingAll(@RequestBody JobListingRequestDTO jobListingRequestDTO,
 			@RequestHeader(name = "Authorization") String token) {
 		Long userId = jwtUtil.getUserId(token);
+		String email = JwtUtil.getEmailFromContext();
 		Integer page = jobListingRequestDTO.getPage();
 		Integer pageSize = jobListingRequestDTO.getPageSize();
 		String sortBy = jobListingRequestDTO.getSortBy();
@@ -204,13 +207,13 @@ public class JobController {
 		String jobType = jobListingRequestDTO.getJobType();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, true),
+					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, true, email),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId, jobType, true),
+							searchFields, userId, jobType, true, email),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}

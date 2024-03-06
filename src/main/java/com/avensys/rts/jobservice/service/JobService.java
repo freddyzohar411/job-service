@@ -1,15 +1,15 @@
 package com.avensys.rts.jobservice.service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.avensys.rts.jobservice.apiclient.UserAPIClient;
-import com.avensys.rts.jobservice.model.FieldInformation;
-import com.avensys.rts.jobservice.model.JobExtraData;
-import com.avensys.rts.jobservice.response.*;
-import com.avensys.rts.jobservice.util.UserUtil;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +22,24 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
+import com.avensys.rts.jobservice.apiclient.UserAPIClient;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.model.FieldInformation;
+import com.avensys.rts.jobservice.model.JobExtraData;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
+import com.avensys.rts.jobservice.response.HttpResponse;
+import com.avensys.rts.jobservice.response.JobListingDataDTO;
+import com.avensys.rts.jobservice.response.JobListingResponseDTO;
+import com.avensys.rts.jobservice.response.UserResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
 import com.avensys.rts.jobservice.util.MappingUtil;
 import com.avensys.rts.jobservice.util.StringUtil;
+import com.avensys.rts.jobservice.util.UserUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -230,7 +240,7 @@ public class JobService {
 	}
 
 	public JobListingResponseDTO getJobListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Long userId, String jobType, Boolean getAll) {
+			Long userId, String jobType, Boolean getAll, String email) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -247,6 +257,7 @@ public class JobService {
 		if (!getAll) {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
+
 		// Find user id
 		// Try with numeric first else try with string (jsonb)
 		try {
@@ -262,7 +273,7 @@ public class JobService {
 
 	public JobListingResponseDTO getJobListingPageWithSearch(Integer page, Integer size, String sortBy,
 			String sortDirection, String searchTerm, List<String> searchFields, Long userId, String jobType,
-			Boolean getAll) {
+			Boolean getAll, String email) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -280,6 +291,7 @@ public class JobService {
 		if (!getAll) {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
+
 		try {
 			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false, true, pageRequest,
 					searchFields, searchTerm, jobType, userId);

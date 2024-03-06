@@ -453,7 +453,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		// User ID condition
 		String userCondition = "";
 		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
-			userCondition = " AND created_by IN (:userIds)";
+			userCondition = " AND (created_by IN (:userIds) OR CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) IN (:userIds))";
 		}
 
 		// Build the complete query string with user filter and excluding NULLs
@@ -533,7 +533,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		// User ID condition
 		String userCondition = "";
 		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
-			userCondition = " AND created_by IN (:userIds)";
+			userCondition = " AND (created_by IN (:userIds) OR CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) IN (:userIds))";
 		}
 
 		// Build the complete query string with user filter and excluding NULLs
@@ -631,7 +631,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		// User ID condition
 		String userCondition = "";
 		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
-			userCondition = " AND created_by IN (:userIds)";
+			userCondition = " AND (created_by IN (:userIds) OR CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) IN (:userIds))";
 		}
 
 		// Build the complete query string
@@ -730,7 +730,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		// User ID condition
 		String userCondition = "";
 		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
-			userCondition = " AND created_by IN (:userIds)";
+			userCondition = " AND (created_by IN (:userIds) OR CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) IN (:userIds))";
 		}
 
 		// Build the complete query string
@@ -852,8 +852,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				break;
 			}
 			case "active_jobs": {
-				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod) AND ");
+				queryString = queryString.replace("{1}", "id in (select distinct(job_id) from job_recruiter_fod) AND ");
 				break;
 			}
 			case "inactive_jobs": {
