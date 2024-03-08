@@ -22,6 +22,7 @@ import com.avensys.rts.jobservice.entity.JobCandidateStageEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.entity.JobStageEntity;
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
+import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.payload.EmailMultiTemplateRequestDTO;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
@@ -81,10 +82,10 @@ public class JobCandidateStageService {
 	/**
 	 * @author Rahul Sahu
 	 * @param jobCandidateStageEntity
+	 * @description TO send an email on one step completion of job time-line.
 	 */
 	private void sendEmail(JobCandidateStageEntity jobCandidateStageEntity) {
 		EmailMultiTemplateRequestDTO dto = new EmailMultiTemplateRequestDTO();
-		dto.setTemplateName(JobCanddateStageUtil.JOB_ASSOCIATE_TEMPLATE);
 		dto.setCategory(JobCanddateStageUtil.JOB_TEMPLATE_CATEGORY);
 
 		JobEntity jobEntity = jobCandidateStageEntity.getJob();
@@ -92,36 +93,82 @@ public class JobCandidateStageService {
 		JobStageEntity jobStageEntity = jobCandidateStageEntity.getJobStage();
 		HashMap<String, String> params = new HashMap<String, String>();
 
-		// Associate
-		if (jobStageEntity.getId() == JobCanddateStageUtil.ASSOCIATE
+		// Candidate params
+		UserEntity client = null;
+		String clientName = null;
+		try {
+			Long ownerId = Long.parseLong(JobCanddateStageUtil.getValue(jobEntity, "accountOwnerId"));
+			client = userRepository.findById(ownerId).get();
+			clientName = client.getFirstName() + " " + client.getLastName();
+
+			params.put("candidate.accountOwner", JobCanddateStageUtil.validateValue(clientName));
+			params.put("candidate.accountOwnerEmail", JobCanddateStageUtil.validateValue(client.getEmail()));
+			params.put("candidate.accountOwnerMobile", JobCanddateStageUtil.validateValue(client.getMobile()));
+		} catch (Exception e) {
+			log.error("Error:", e);
+		}
+		params.put("candidate.firstName", JobCanddateStageUtil.getValue(candidateEntity, "firstName"));
+		params.put("candidate.lastName", JobCanddateStageUtil.getValue(candidateEntity, "lastName"));
+		params.put("candidate.gender", JobCanddateStageUtil.getValue(candidateEntity, "gender"));
+		params.put("candidate.phoneCode", JobCanddateStageUtil.getValue(candidateEntity, "phoneCode"));
+		params.put("candidate.phone", JobCanddateStageUtil.getValue(candidateEntity, "phone"));
+		params.put("candidate.email", JobCanddateStageUtil.getValue(candidateEntity, "email"));
+		params.put("candidate.candidateNationality",
+				JobCanddateStageUtil.getValue(candidateEntity, "candidateNationality"));
+		params.put("candidate.visaStatus", JobCanddateStageUtil.getValue(candidateEntity, "visaStatus"));
+		params.put("candidate.currentLocation", JobCanddateStageUtil.getValue(candidateEntity, "currentLocation"));
+
+		params.put("candidate.profileSummary", JobCanddateStageUtil.getValue(candidateEntity, "profileSummary"));
+		params.put("candidate.currentPositionTitle",
+				JobCanddateStageUtil.getValue(candidateEntity, "currentPositionTitle"));
+		params.put("candidate.totalExperience", JobCanddateStageUtil.getValue(candidateEntity, "totalExperience"));
+		params.put("candidate.relevantExperience",
+				JobCanddateStageUtil.getValue(candidateEntity, "relevantExperience"));
+		params.put("candidate.currentPositionTitle",
+				JobCanddateStageUtil.getValue(candidateEntity, "currentPositionTitle"));
+		params.put("candidate.currentEmployer", JobCanddateStageUtil.getValue(candidateEntity, "currentEmployer"));
+		params.put("candidate.primarySkill", JobCanddateStageUtil.getValue(candidateEntity, "primarySkill"));
+
+		params.put("candidate.reasonForChange", JobCanddateStageUtil.getValue(candidateEntity, "reasonForChange"));
+		params.put("candidate.currentSalary", JobCanddateStageUtil.getValue(candidateEntity, "candidateCurrentSalary"));
+		params.put("candidate.expectedSalary",
+				JobCanddateStageUtil.getValue(candidateEntity, "candidateExpectedSalary"));
+		params.put("candidate.noticePeriod", JobCanddateStageUtil.getValue(candidateEntity, "noticePeriod"));
+
+		// Job Params
+		params.put("job.clientName", JobCanddateStageUtil.getValue(jobEntity, "clientName"));
+		params.put("job.jobTitle", JobCanddateStageUtil.getValue(jobEntity, "jobTitle"));
+		params.put("job.jobType", JobCanddateStageUtil.getValue(jobEntity, "jobType"));
+		params.put("job.durationOfContract", JobCanddateStageUtil.getValue(jobEntity, "duration"));
+		params.put("job.jobDescription", JobCanddateStageUtil.getValue(jobEntity, "jobDescription"));
+
+		if (jobStageEntity.getName().equals(JobCanddateStageUtil.ASSOCIATE_TEMPLATE)
 				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
-			dto.setTemplateName(JobCanddateStageUtil.JOB_ASSOCIATE_TEMPLATE);
+			// Associate
+			dto.setTemplateName(JobCanddateStageUtil.ASSOCIATE_TEMPLATE);
 			dto.setTo(new String[] { candidateEntity.getCandidateSubmissionData().get("email").asText() });
 			dto.setSubject("Avensys | Job Application for " + JobCanddateStageUtil.getValue(jobEntity, "jobTitle"));
-			params.put("candidate.firstName", JobCanddateStageUtil.getValue(candidateEntity, "firstName"));
-			params.put("candidate.lastName", JobCanddateStageUtil.getValue(candidateEntity, "lastName"));
-			params.put("candidate.reasonForChange", JobCanddateStageUtil.getValue(candidateEntity, "reasonForChange"));
-			// 2
-			params.put("candidate.currentSalary",
-					JobCanddateStageUtil.getValue(candidateEntity, "candidateCurrentSalary"));
-			params.put("candidate.expectedSalary",
-					JobCanddateStageUtil.getValue(candidateEntity, "candidateExpectedSalary"));
-			params.put("candidate.noticePeriod", JobCanddateStageUtil.getValue(candidateEntity, "noticePeriod"));
-			// 2e
-			params.put("candidate.accountOwner", JobCanddateStageUtil.getValue(candidateEntity, ""));
-			params.put("candidate.accountOwnerEmail", JobCanddateStageUtil.getValue(candidateEntity, ""));
-			params.put("candidate.accountOwnerMobile", JobCanddateStageUtil.getValue(candidateEntity, ""));
-			params.put("candidate.noticePeriod", JobCanddateStageUtil.getValue(candidateEntity, ""));
-
-			params.put("job.jobTitle", JobCanddateStageUtil.getValue(jobEntity, ""));
-			params.put("job.clientName", JobCanddateStageUtil.getValue(jobEntity, ""));
-			params.put("job.jobType", JobCanddateStageUtil.getValue(jobEntity, ""));
-			params.put("job.durationOfContract", JobCanddateStageUtil.getValue(jobEntity, ""));
-			params.put("job.jobDescription", JobCanddateStageUtil.getValue(jobEntity, ""));
-
-			dto.setTemplateMap(params);
+		} else if (jobStageEntity.getName().equals(JobCanddateStageUtil.SUBMIT_TO_SALES_TEMPLATE)
+				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)
+				&& params.get("candidate.accountOwnerEmail") != null) {
+			// Submit to Sales
+			dto.setTemplateName(JobCanddateStageUtil.SUBMIT_TO_SALES_TEMPLATE);
+			dto.setTo(new String[] { params.get("candidate.accountOwnerEmail") });
+			dto.setSubject(clientName + "_" + JobCanddateStageUtil.getValue(jobEntity, "jobTitle") + "_"
+					+ JobCanddateStageUtil.getValue(candidateEntity, "firstName") + " "
+					+ JobCanddateStageUtil.getValue(candidateEntity, "lastName"));
+		} else if (jobStageEntity.getName().equals(JobCanddateStageUtil.SUBMIT_TO_CLIENT_TEMPLATE)
+				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
+			// Submit to Client
+			dto.setTemplateName(JobCanddateStageUtil.SUBMIT_TO_CLIENT_TEMPLATE);
+			dto.setTo(new String[] { jobEntity.getJobSubmissionData().get("clientEmail").asText() });
+			dto.setSubject(clientName + "_" + JobCanddateStageUtil.getValue(jobEntity, "jobTitle") + "_"
+					+ JobCanddateStageUtil.getValue(candidateEntity, "firstName") + " "
+					+ JobCanddateStageUtil.getValue(candidateEntity, "lastName"));
 		}
 
+		dto.setTemplateMap(params);
+		emailAPIClient.sendEmailServiceTemplate(dto);
 	}
 
 	/**

@@ -16,18 +16,33 @@ public class JobCanddateStageUtil {
 	public static Long CONDITIONAL_OFFER_SENT = 10l;
 	public static Long CONDITIONAL_OFFER_ACCEPTED_OR_DECLINED = 11l;
 
+	public static String ASSOCIATE_TEMPLATE = "Associate";
+	public static String SUBMIT_TO_SALES_TEMPLATE = "Submit to Sales";
+	public static String SUBMIT_TO_CLIENT_TEMPLATE = "Submit to Client";
+
 	public static String COMPLETED = "COMPLETED";
 
-	public static String JOB_ASSOCIATE_TEMPLATE = "Job Associate";
 	public static String JOB_TEMPLATE_CATEGORY = "Email Templates";
 
 	public static String getValue(Object input, String key) {
 		String output = "N/A";
-		if (input instanceof JobEntity && ((JobEntity) input).getJobSubmissionData().get(key).asText() != null) {
-			output = ((JobEntity) input).getJobSubmissionData().get(key).asText();
-		} else if (input instanceof CandidateEntity
-				&& ((CandidateEntity) input).getCandidateSubmissionData().get(key).asText() != null) {
-			output = ((CandidateEntity) input).getCandidateSubmissionData().get(key).asText();
+		try {
+			if (input instanceof JobEntity && ((JobEntity) input).getJobSubmissionData().get(key).asText() != null) {
+				output = ((JobEntity) input).getJobSubmissionData().get(key).asText();
+			} else if (input instanceof CandidateEntity
+					&& ((CandidateEntity) input).getCandidateSubmissionData().get(key).asText() != null) {
+				output = ((CandidateEntity) input).getCandidateSubmissionData().get(key).asText();
+			}
+		} catch (Exception e) {
+			output = "N/A";
+		}
+		return output;
+	}
+
+	public static String validateValue(String value) {
+		String output = "N/A";
+		if (value != null && value.length() > 0) {
+			output = value;
 		}
 		return output;
 	}
