@@ -142,7 +142,18 @@ public class JobCandidateStageService {
 		params.put("job.durationOfContract", JobCanddateStageUtil.getValue(jobEntity, "duration"));
 		params.put("job.jobDescription", JobCanddateStageUtil.getValue(jobEntity, "jobDescription"));
 
-		if (jobStageEntity.getName().equals(JobCanddateStageUtil.ASSOCIATE_TEMPLATE)
+		if (jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.REJECTED)) {
+			// Associate
+			dto.setTemplateName(JobCanddateStageUtil.REJECT_TEMPLATE);
+			dto.setTo(new String[] { candidateEntity.getCandidateSubmissionData().get("email").asText() });
+			dto.setSubject("Interview Feedback");
+		} else if (jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.WITHDRAWN)) {
+			// Associate
+			dto.setTemplateName(JobCanddateStageUtil.WITHDRAWN_TEMPLATE);
+			dto.setTo(new String[] { jobEntity.getJobSubmissionData().get("clientEmail").asText(),
+					params.get("candidate.accountOwnerEmail") });
+			dto.setSubject("Candidate has withdrawn their application");
+		} else if (jobStageEntity.getName().equals(JobCanddateStageUtil.ASSOCIATE_TEMPLATE)
 				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
 			// Associate
 			dto.setTemplateName(JobCanddateStageUtil.ASSOCIATE_TEMPLATE);
