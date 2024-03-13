@@ -28,15 +28,15 @@ public class JobRecruiterFODEntity extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne(cascade = CascadeType.PERSIST)
 	@JoinColumn(name = "job_id", referencedColumnName = "id")
 	private JobEntity job;
 
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne(cascade = CascadeType.PERSIST)
 	@JoinColumn(name = "recruiter_id", referencedColumnName = "id", unique = false)
 	private UserEntity recruiter;
 
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne(cascade = CascadeType.PERSIST)
 	@JoinColumn(name = "sales_id", referencedColumnName = "id", unique = false)
 	private UserEntity seller;
 

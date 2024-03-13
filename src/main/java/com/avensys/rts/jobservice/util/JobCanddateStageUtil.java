@@ -20,6 +20,13 @@ public class JobCanddateStageUtil {
 	public static Long CONDITIONAL_OFFER_SENT = 10l;
 	public static Long CONDITIONAL_OFFER_ACCEPTED_OR_DECLINED = 11l;
 
+	// Job stage Name
+	public static String FIRST_INTERVIEW_SCHEDULED_NAME = "First Interview Scheduled";
+	public static String SECOND_INTERVIEW_SCHEDULED_NAME = "Second Interview Scheduled";
+	public static String THIRD_INTERVIEW_SCHEDULED_NAME = "Third Interview Scheduled";
+	public static String CONDITIONAL_OFFER_SENT_NAME = "Conditional Offer Sent";
+	public static String CONDITIONAL_OFFER_ACCEPTED_NAME = "Conditional Offer Accepted/Declined";
+
 	// Template category
 	public static String JOB_TEMPLATE_CATEGORY = "Email Templates";
 
@@ -29,7 +36,9 @@ public class JobCanddateStageUtil {
 	public static String SUBMIT_TO_CLIENT_TEMPLATE = "Submit to Client";
 	public static String REJECT_TEMPLATE = "Reject";
 	public static String WITHDRAWN_TEMPLATE = "Candidate Withdrawn";
-	
+	public static String INTERVIEW_SCHEDULED_TEMPLATE = "Interview Scheduled";
+	public static String CONDITIONAL_OFFER_TEMPLATE = "Conditional Offer";
+	public static String OFFER_ACCEPTED_TEMPLATE = "Offer Accepted";
 
 	// Job status
 	public static String COMPLETED = "COMPLETED";

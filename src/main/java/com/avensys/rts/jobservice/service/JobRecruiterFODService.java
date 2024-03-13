@@ -24,6 +24,7 @@ import jakarta.transaction.Transactional;
  * 
  */
 @Service
+@Transactional
 public class JobRecruiterFODService {
 
 	@Autowired
@@ -44,7 +45,6 @@ public class JobRecruiterFODService {
 	 * @param jobRecruiterFODRequest
 	 * @return
 	 */
-	@Transactional
 	public void save(JobRecruiterFODRequest jobRecruiterFODRequest) throws ServiceException {
 		// add check for title exists in a DB
 
@@ -90,6 +90,10 @@ public class JobRecruiterFODService {
 			throw new ServiceException(
 					messageSource.getMessage("error.provide.jobandrecriter", null, LocaleContextHolder.getLocale()));
 		}
+	}
+
+	public void deleteByJobId(Long id) throws ServiceException {
+		jobRecruiterFODRepository.deleteByJobId(id);
 	}
 
 }

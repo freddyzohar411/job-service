@@ -130,6 +130,25 @@ public class JobController {
 	}
 
 	/**
+	 * This method is used to Delete a job
+	 * 
+	 * @param headers
+	 * @param id
+	 * @return
+	 */
+	@RequiresAllPermissions({ Permission.JOB_DELETE })
+	@DeleteMapping("/deleteFOD/{id}")
+	public ResponseEntity<?> deleteFOD(@PathVariable Long id) {
+		try {
+			jobRecruiterFODService.deleteByJobId(id);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_DELETED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	/**
 	 * This method is used to retrieve a job Information
 	 * 
 	 * @param headers

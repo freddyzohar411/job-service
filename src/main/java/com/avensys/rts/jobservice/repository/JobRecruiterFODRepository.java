@@ -21,4 +21,6 @@ public interface JobRecruiterFODRepository extends JpaRepository<JobRecruiterFOD
 	@Query(value = "SELECT * FROM job_recruiter_fod WHERE job_id = ?1 AND recruiter_id = ?2", nativeQuery = true)
 	public Optional<JobRecruiterFODEntity> findByJobAndRecruiter(Long jobId, Long recruiterId);
 
+	public void deleteByJobId(Long jobId);
+
 }

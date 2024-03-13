@@ -1,5 +1,7 @@
 package com.avensys.rts.jobservice.service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
@@ -10,10 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.avensys.rts.jobservice.apiclient.EmailAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
@@ -77,6 +83,9 @@ public class JobCandidateStageService {
 	@Autowired
 	private MessageSource messageSource;
 
+	@Autowired
+	private ResourceLoader resourceLoader;
+
 	private final Logger log = LoggerFactory.getLogger(JobCandidateStageService.class);
 
 	/**
@@ -91,6 +100,8 @@ public class JobCandidateStageService {
 		JobEntity jobEntity = jobCandidateStageEntity.getJob();
 		CandidateEntity candidateEntity = jobCandidateStageEntity.getCandidate();
 		JobStageEntity jobStageEntity = jobCandidateStageEntity.getJobStage();
+		JsonNode submissionData = jobCandidateStageEntity.getSubmissionData();
+
 		HashMap<String, String> params = new HashMap<String, String>();
 
 		// Candidate params
@@ -142,6 +153,29 @@ public class JobCandidateStageService {
 		params.put("job.durationOfContract", JobCanddateStageUtil.getValue(jobEntity, "duration"));
 		params.put("job.jobDescription", JobCanddateStageUtil.getValue(jobEntity, "jobDescription"));
 
+		try {
+			if (submissionData != null
+					&& (jobStageEntity.getName().equals(JobCanddateStageUtil.FIRST_INTERVIEW_SCHEDULED_NAME)
+							|| jobStageEntity.getName().equals(JobCanddateStageUtil.SECOND_INTERVIEW_SCHEDULED_NAME)
+							|| jobStageEntity.getName().equals(JobCanddateStageUtil.THIRD_INTERVIEW_SCHEDULED_NAME))
+					&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
+				params.put("interviews.interviewDate",
+						JobCanddateStageUtil.validateValue(submissionData.get("interviewDate").asText()));
+				params.put("interviews.interviewTimeEnd",
+						JobCanddateStageUtil.validateValue(submissionData.get("interviewTimeEnd").asText()));
+				params.put("interviews.interviewTimeStart",
+						JobCanddateStageUtil.validateValue(submissionData.get("interviewTimeStart").asText()));
+				params.put("interviews.location",
+						JobCanddateStageUtil.validateValue(submissionData.get("location").asText()));
+				params.put("interviews.interviewer",
+						JobCanddateStageUtil.validateValue(submissionData.get("interviewer").asText()));
+				params.put("interviews.interviewerContactNumber",
+						JobCanddateStageUtil.validateValue(submissionData.get("interviewerContactNumber").asText()));
+			}
+		} catch (Exception e) {
+			log.error("Error:", e);
+		}
+
 		if (jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.REJECTED)) {
 			// Associate
 			dto.setTemplateName(JobCanddateStageUtil.REJECT_TEMPLATE);
@@ -176,6 +210,49 @@ public class JobCandidateStageService {
 			dto.setSubject(clientName + "_" + JobCanddateStageUtil.getValue(jobEntity, "jobTitle") + "_"
 					+ JobCanddateStageUtil.getValue(candidateEntity, "firstName") + " "
 					+ JobCanddateStageUtil.getValue(candidateEntity, "lastName"));
+		} else if ((jobStageEntity.getName().equals(JobCanddateStageUtil.FIRST_INTERVIEW_SCHEDULED_NAME)
+				|| jobStageEntity.getName().equals(JobCanddateStageUtil.SECOND_INTERVIEW_SCHEDULED_NAME)
+				|| jobStageEntity.getName().equals(JobCanddateStageUtil.THIRD_INTERVIEW_SCHEDULED_NAME))
+				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)
+				&& params.get("candidate.accountOwnerEmail") != null) {
+			// Interview Scheduled
+			dto.setTemplateName(JobCanddateStageUtil.INTERVIEW_SCHEDULED_TEMPLATE);
+			dto.setTo(new String[] { jobEntity.getJobSubmissionData().get("clientEmail").asText(),
+					params.get("candidate.accountOwnerEmail"),
+					candidateEntity.getCandidateSubmissionData().get("email").asText() });
+			dto.setSubject("Appointment | Interview for " + JobCanddateStageUtil.getValue(jobEntity, "jobTitle")
+					+ " by Avensys");
+		} else if (jobStageEntity.getName().equals(JobCanddateStageUtil.CONDITIONAL_OFFER_SENT_NAME)
+				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)
+				&& params.get("candidate.accountOwnerEmail") != null) {
+			// Interview Scheduled
+			dto.setTemplateName(JobCanddateStageUtil.CONDITIONAL_OFFER_TEMPLATE);
+			dto.setTo(new String[] { jobEntity.getJobSubmissionData().get("clientEmail").asText(),
+					params.get("candidate.accountOwnerEmail"),
+					candidateEntity.getCandidateSubmissionData().get("email").asText() });
+			dto.setSubject("[AVENSYS CONSULTING] Job Confirmation for "
+					+ JobCanddateStageUtil.getValue(candidateEntity, "firstName") + " "
+					+ JobCanddateStageUtil.getValue(candidateEntity, "lastName") + " with "
+					+ JobCanddateStageUtil.validateValue(params.get("job.clientName")));
+
+			try {
+				Resource resource = resourceLoader.getResource("classpath:ViewAttachment.pdf");
+				File file = resource.getFile();
+				MultipartFile multipartFile = new MockMultipartFile("ViewAttachment.pdf", new FileInputStream(file));
+
+//				dto.setAttachments(new MultipartFile[] { multipartFile });
+			} catch (Exception e) {
+				log.error("Error:", e);
+			}
+		} else if (jobStageEntity.getName().equals(JobCanddateStageUtil.CONDITIONAL_OFFER_ACCEPTED_NAME)
+				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)
+				&& params.get("candidate.accountOwnerEmail") != null) {
+			// Interview Scheduled
+			dto.setTemplateName(JobCanddateStageUtil.OFFER_ACCEPTED_TEMPLATE);
+			dto.setTo(new String[] { jobEntity.getJobSubmissionData().get("clientEmail").asText(),
+					params.get("candidate.accountOwnerEmail"),
+					candidateEntity.getCandidateSubmissionData().get("email").asText() });
+			dto.setSubject("Avensys Notification | Job Offer Acceptance");
 		}
 
 		dto.setTemplateMap(params);

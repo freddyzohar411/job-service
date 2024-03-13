@@ -20,5 +20,6 @@ public class EmailMultiTemplateRequestDTO {
 	private String category;
 	private String subCategory;
 	private String templateName;
-	Map<String, String> templateMap;
+	private Map<String, String> templateMap;
+//	private MultipartFile[] attachments;
 }
