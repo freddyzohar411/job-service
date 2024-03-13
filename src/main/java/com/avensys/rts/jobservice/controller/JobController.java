@@ -35,6 +35,7 @@ import com.avensys.rts.jobservice.service.JobRecruiterFODService;
 import com.avensys.rts.jobservice.service.JobService;
 import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.ResponseUtil;
+import com.avensys.rts.jobservice.util.UserUtil;
 
 import jakarta.validation.Valid;
 
@@ -60,6 +61,9 @@ public class JobController {
 
 	@Autowired
 	private MessageSource messageSource;
+
+	@Autowired
+	private UserUtil userUtil;
 
 	/**
 	 * This method is used to create a job
@@ -188,51 +192,17 @@ public class JobController {
 			@RequestHeader(name = "Authorization") String token) {
 		Long userId = jwtUtil.getUserId(token);
 		String email = JwtUtil.getEmailFromContext();
-		Integer page = jobListingRequestDTO.getPage();
-		Integer pageSize = jobListingRequestDTO.getPageSize();
-		String sortBy = jobListingRequestDTO.getSortBy();
-		String sortDirection = jobListingRequestDTO.getSortDirection();
-		String searchTerm = jobListingRequestDTO.getSearchTerm();
-		List<String> searchFields = jobListingRequestDTO.getSearchFields();
-		String jobType = jobListingRequestDTO.getJobType();
-		Boolean isGetAll = jobListingRequestDTO.getIsGetAll();
-		if (searchTerm == null || searchTerm.isEmpty()) {
-			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, isGetAll,
-							email),
-					HttpStatus.OK,
-					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
-		} else {
-			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId, jobType, isGetAll, email),
-					HttpStatus.OK,
-					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
-		}
-	}
+		Boolean isAdmin = userUtil.checkIsAdmin();
+		jobListingRequestDTO.setUserId(userId);
+		jobListingRequestDTO.setEmail(email);
+		jobListingRequestDTO.setGetAll(isAdmin);
 
-	@RequiresAllPermissions({ Permission.JOB_READ })
-	@PostMapping("/listing/all")
-	public ResponseEntity<Object> getJobListingAll(@RequestBody JobListingRequestDTO jobListingRequestDTO,
-			@RequestHeader(name = "Authorization") String token) {
-		Long userId = jwtUtil.getUserId(token);
-		String email = JwtUtil.getEmailFromContext();
-		Integer page = jobListingRequestDTO.getPage();
-		Integer pageSize = jobListingRequestDTO.getPageSize();
-		String sortBy = jobListingRequestDTO.getSortBy();
-		String sortDirection = jobListingRequestDTO.getSortDirection();
-		String searchTerm = jobListingRequestDTO.getSearchTerm();
-		List<String> searchFields = jobListingRequestDTO.getSearchFields();
-		String jobType = jobListingRequestDTO.getJobType();
-		if (searchTerm == null || searchTerm.isEmpty()) {
-			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPage(page, pageSize, sortBy, sortDirection, userId, jobType, true, email),
+		if (jobListingRequestDTO.getSearchTerm() == null || jobListingRequestDTO.getSearchTerm().isEmpty()) {
+			return ResponseUtil.generateSuccessResponse(jobService.getJobListingPage(jobListingRequestDTO),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
-			return ResponseUtil.generateSuccessResponse(
-					jobService.getJobListingPageWithSearch(page, pageSize, sortBy, sortDirection, searchTerm,
-							searchFields, userId, jobType, true, email),
+			return ResponseUtil.generateSuccessResponse(jobService.getJobListingPageWithSearch(jobListingRequestDTO),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}

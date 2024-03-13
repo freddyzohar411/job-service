@@ -21,10 +21,10 @@ public class JobListingRequestDTO {
 	private String sortBy;
 	private String sortDirection;
 	private String searchTerm;
-	private List<String> searchFields;
+	private Long userId;
 	private String jobType;
+	private Boolean getAll = false;
+	private String email;
+	private List<String> searchFields;
 	private Long jobId;
-
-	// Added on 28022024 by Koh He Xiang
-	private Boolean isGetAll = false;
 }

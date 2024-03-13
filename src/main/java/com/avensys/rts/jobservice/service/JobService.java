@@ -28,6 +28,7 @@ import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.model.FieldInformation;
 import com.avensys.rts.jobservice.model.JobExtraData;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.repository.JobRepository;
 import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
@@ -239,8 +240,15 @@ public class JobService {
 		}
 	}
 
-	public JobListingResponseDTO getJobListingPage(Integer page, Integer size, String sortBy, String sortDirection,
-			Long userId, String jobType, Boolean getAll, String email) {
+	public JobListingResponseDTO getJobListingPage(JobListingRequestDTO jobListingRequestDTO) {
+		Integer page = jobListingRequestDTO.getPage();
+		Integer size = jobListingRequestDTO.getPageSize();
+		String sortBy = jobListingRequestDTO.getSortBy();
+		String sortDirection = jobListingRequestDTO.getSortDirection();
+		String jobType = jobListingRequestDTO.getJobType();
+		Boolean getAll = jobListingRequestDTO.getGetAll();
+		Long userId = jobListingRequestDTO.getUserId();
+
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -271,9 +279,17 @@ public class JobService {
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
 	}
 
-	public JobListingResponseDTO getJobListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Long userId, String jobType,
-			Boolean getAll, String email) {
+	public JobListingResponseDTO getJobListingPageWithSearch(JobListingRequestDTO jobListingRequestDTO) {
+		Integer page = jobListingRequestDTO.getPage();
+		Integer size = jobListingRequestDTO.getPageSize();
+		String sortBy = jobListingRequestDTO.getSortBy();
+		String sortDirection = jobListingRequestDTO.getSortDirection();
+		List<String> searchFields = jobListingRequestDTO.getSearchFields();
+		String searchTerm = jobListingRequestDTO.getSearchTerm();
+		String jobType = jobListingRequestDTO.getJobType();
+		Boolean getAll = jobListingRequestDTO.getGetAll();
+		Long userId = jobListingRequestDTO.getUserId();
+
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
