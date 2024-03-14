@@ -457,7 +457,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty()) {
+		if (!userIds.isEmpty() && !jobType.equals("all_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setFirstResult((int) pageable.getOffset());
@@ -611,7 +611,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("fod")) {
+		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -763,12 +763,17 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "fod": {
 				queryString = queryString.replace("{1}",
-						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds) and fod.created_at >= current_date)) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds) and id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds) and fod.created_at >= current_date) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
-						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds) and id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds)) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+				break;
+			}
+			case "all_jobs": {
+				queryString = queryString.replace("{1}",
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) AND ");
 				break;
 			}
 			default:
