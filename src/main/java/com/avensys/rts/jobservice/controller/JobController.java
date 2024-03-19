@@ -91,6 +91,34 @@ public class JobController {
 	}
 
 	/**
+	 * This method is used to clone a job from existing job
+	 * 
+	 * @param headers
+	 * @param jobRequest
+	 * @return
+	 */
+	@RequiresAllPermissions({ Permission.JOB_WRITE })
+	@PostMapping("/clone")
+	public ResponseEntity<?> cloneJob(@Valid @RequestBody JobRequest jobRequest,
+			@RequestHeader(name = "Authorization") String token) {
+		LOG.info("cloneJob request received");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			jobRequest.setCreatedBy(userId);
+			jobRequest.setUpdatedBy(userId);
+			Long id = jobRequest.getId();
+			JobEntity jobEntity = jobService.getById(id);
+			JobRequest cloneJobRequest = jobEntityToJobRequest(jobEntity);
+			// jobRequest.setId(null);
+			JobEntity cloneJobEntity = jobService.save(cloneJobRequest);
+			return ResponseUtil.generateSuccessResponse(cloneJobEntity, HttpStatus.CREATED,
+					messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	/**
 	 * This method is used to update a job
 	 * 
 	 * @param headers
@@ -305,6 +333,25 @@ public class JobController {
 		LOG.info("Job get by id data: Controller");
 		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdDataAll(jobId), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("/clone/{jobId}")
+	public ResponseEntity<Object> getJobById(@PathVariable Integer jobId) {
+		LOG.info("Job get by id data: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdData(jobId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	public JobRequest jobEntityToJobRequest(JobEntity jobEntity) {
+		JobRequest jobRequest = new JobRequest();
+		jobRequest.setTitle(jobEntity.getTitle());
+		jobRequest.setFormData(jobEntity.getJobSubmissionData().toString());
+		jobRequest.setFormId(jobEntity.getFormId());
+		jobRequest.setCreatedBy(jobEntity.getCreatedBy());
+		jobRequest.setIsDraft(jobEntity.getIsDraft());
+		jobRequest.setUpdatedBy(jobEntity.getUpdatedBy());
+		jobRequest.setClone(true);
+		return jobRequest;
 	}
 
 }
