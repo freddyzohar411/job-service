@@ -2,6 +2,8 @@ package com.avensys.rts.jobservice.payload;
 
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +13,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Component
 public class EmailMultiTemplateRequestDTO {
 	private String[] to;
 	private String[] Bcc;
