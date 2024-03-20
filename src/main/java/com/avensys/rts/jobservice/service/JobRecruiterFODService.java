@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -55,6 +57,8 @@ public class JobRecruiterFODService {
 	@Autowired
 	private MessageSource messageSource;
 
+	private final Logger log = LoggerFactory.getLogger(JobRecruiterFODService.class);
+
 	private JobFODEmailThread getEmailThread(Boolean isAssign, JobEntity jobEntity, UserEntity seller,
 			LinkedList<String> recruiters) {
 		EmailMultiTemplateRequestDTO dto = new EmailMultiTemplateRequestDTO();
@@ -62,14 +66,15 @@ public class JobRecruiterFODService {
 
 		dto.setCategory(JobFODUtil.JOB_TEMPLATE_CATEGORY);
 		if (isAssign) {
+			dto.setSubject("FOD has been assigned");
 			dto.setTemplateName(JobFODUtil.FOD_ASSIGN);
 		} else {
+			dto.setSubject("FOD has been unassigned");
 			dto.setTemplateName(JobFODUtil.FOD_UNASSIGN);
 		}
 
 		dto.setTo(recruiters.toArray(String[]::new));
 		dto.setCc(new String[] { seller.getEmail() });
-		dto.setSubject("FOD has been assigned");
 
 		params.put("job.jobTitle", JobCanddateStageUtil.getValue(jobEntity, "jobTitle"));
 		params.put("sales.firstName", JobCanddateStageUtil.validateValue(seller.getFirstName()));
@@ -146,13 +151,25 @@ public class JobRecruiterFODService {
 	}
 
 	public void deleteByJobId(Long id) throws ServiceException {
-		List<JobRecruiterFODEntity> data = jobRecruiterFODRepository.getAllByJobId(id);
+		try {
+			LinkedList<String> recruiters = new LinkedList<String>();
+
+			Set<JobFODEmailThread> emailTasks = new HashSet<JobFODEmailThread>();
+
+			List<JobRecruiterFODEntity> data = jobRecruiterFODRepository.getAllByJobId(id);
+
+			if (data != null && data.size() > 0) {
+				data.stream().forEach(jfod -> {
+					recruiters.add(jfod.getRecruiter().getEmail());
+				});
+				emailTasks.add(getEmailThread(false, data.get(0).getJob(), data.get(0).getSeller(), recruiters));
+			}
+			jobFODMailService.sendEmails(emailTasks);
+		} catch (Exception e) {
+			log.error("Error:", e);
+		}
 
 		jobRecruiterFODRepository.deleteByJobId(id);
-
-		EmailMultiTemplateRequestDTO dto = new EmailMultiTemplateRequestDTO();
-		HashMap<String, String> params = new HashMap<String, String>();
-
 	}
 
 }
