@@ -23,14 +23,18 @@ import org.springframework.stereotype.Service;
 
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.apiclient.UserAPIClient;
+import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.model.FieldInformation;
 import com.avensys.rts.jobservice.model.JobExtraData;
+import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.repository.JobCustomFieldsRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
 import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobListingDataDTO;
@@ -67,6 +71,9 @@ public class JobService {
 
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
+
+	@Autowired
+	private JobCustomFieldsRepository jobCustomFieldsRepository;
 
 	@Autowired
 	private UserAPIClient userAPIClient;
@@ -491,6 +498,34 @@ public class JobService {
 				UserResponseDTO.class);
 		jobListingDataDTO.setUpdatedByName(updateUserData.getFirstName() + " " + updateUserData.getLastName());
 		return jobListingDataDTO;
+	}
+
+	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
+
+		System.out.println(" Save Job customFields : Service");
+		System.out.println(customFieldsRequestDTO);
+		CustomFieldsEntity jobCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
+				customFieldsRequestDTO);
+		return customFieldsEntityToCustomFieldsResponseDTO(jobCustomFieldsEntity);
+	}
+
+	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO) {
+		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
+		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
+		return jobCustomFieldsRepository.save(customFieldsEntity);
+	}
+
+	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(CustomFieldsEntity jobCustomFieldsEntity) {
+		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
+		customFieldsResponseDTO.setColumnName(jobCustomFieldsEntity.getColumnName());
+		customFieldsResponseDTO.setCreatedBy(jobCustomFieldsEntity.getCreatedBy());
+		customFieldsResponseDTO.setName(jobCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setUpdatedBy(jobCustomFieldsEntity.getUpdatedBy());
+		customFieldsResponseDTO.setId(jobCustomFieldsEntity.getId());
+		return customFieldsResponseDTO;
 	}
 
 }

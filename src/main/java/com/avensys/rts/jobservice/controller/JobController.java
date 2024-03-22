@@ -28,9 +28,11 @@ import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.enums.Permission;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRecruiterFODRequest;
 import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
 import com.avensys.rts.jobservice.service.JobRecruiterFODService;
 import com.avensys.rts.jobservice.service.JobService;
 import com.avensys.rts.jobservice.util.JwtUtil;
@@ -306,5 +308,15 @@ public class JobController {
 		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdDataAll(jobId), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
+	
+	/*
+     * save all the fields in the custom view
+     */
+    @PostMapping("/save/customfields")
+    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+    	LOG.info("Save Job customFields: Controller");
+        CustomFieldsResponseDTO customFieldsResponseDTO = jobService.saveCustomFields(customFieldsRequestDTO);
+        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+    }
 
 }
