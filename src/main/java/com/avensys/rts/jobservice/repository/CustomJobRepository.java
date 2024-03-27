@@ -1,6 +1,7 @@
 package com.avensys.rts.jobservice.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,4 +40,10 @@ public interface CustomJobRepository {
 
 	Page<JobEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
 			Pageable pageable, List<String> searchFields, String searchTerm, String jobType, Long userId);
+
+	void insertVector(Long jobId, String columnName, List<Float> vector);
+
+	void updateVector(Long jobId, String columnName, List<Float> vector);
+
+	Optional<List<Float>> getEmbeddingsById(Long jobId, String columnName);
 }

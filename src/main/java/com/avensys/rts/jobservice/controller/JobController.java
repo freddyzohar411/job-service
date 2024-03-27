@@ -307,4 +307,18 @@ public class JobController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	@GetMapping("/{jobId}/embeddings/get")
+	public ResponseEntity<Object> getEmbeddingsById(@PathVariable Long jobId) {
+		LOG.info("Get embeddings by id: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.getJobEmbeddingsById(jobId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("/{jobId}/embeddings/create")
+	public ResponseEntity<Object> updateEmbeddingsById(@PathVariable Long jobId) {
+		LOG.info("Create/Update embeddings by id: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.updateJobEmbeddings(jobId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 }
