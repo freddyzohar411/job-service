@@ -513,12 +513,28 @@ public class JobService {
 		jobRepository.updateVector(jobId, "job_embeddings",
 				jobEmbeddingData.getEmbedding());
 
+		// Open AI Embedding
+		HttpResponse jobEmbeddingResponseOpenAI = embeddingAPIClient
+				.getEmbeddingSingle(embeddingRequestDTO);
+		EmbeddingResponseDTO jobEmbeddingDataOpenAI = MappingUtil
+				.mapClientBodyToClass(jobEmbeddingResponseOpenAI.getData(), EmbeddingResponseDTO.class);
+
+		// Update the candidate with the embedding
+		jobRepository.updateVector(jobId, "job_embeddings_openai",
+				jobEmbeddingDataOpenAI.getEmbedding());
+
 		return jobHashMapData;
 	}
 
-	public EmbeddingResponseDTO getJobEmbeddingsById(Long jobId) {
-		List<Float> jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings").orElseThrow(
+	public EmbeddingResponseDTO getJobEmbeddingsById(Long jobId, String type) {
+		List<Float> jobEmbeddings = new ArrayList<>();
+		if (type.equals("default")) {
+		 	jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings").orElseThrow(
 				() -> new RuntimeException("Job Embeddings not found"));
+		} else {
+			jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings_openai").orElseThrow(
+					() -> new RuntimeException("Job Embeddings not found"));
+		}
 		EmbeddingResponseDTO embeddingResponseDTO = new EmbeddingResponseDTO();
 		embeddingResponseDTO.setEmbedding(jobEmbeddings);
 		return embeddingResponseDTO;
