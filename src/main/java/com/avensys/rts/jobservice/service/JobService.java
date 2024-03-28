@@ -1,6 +1,7 @@
 package com.avensys.rts.jobservice.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -500,19 +501,28 @@ public class JobService {
 		return jobListingDataDTO;
 	}
 
-	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO) {
+	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO)
+			throws ServiceException {
 
+		if (jobCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new ServiceException(
+					messageSource.getMessage("error.jobcustomnametaken", null, LocaleContextHolder.getLocale()));
+		}
 		System.out.println(" Save Job customFields : Service");
 		System.out.println(customFieldsRequestDTO);
-		CustomFieldsEntity jobCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(
-				customFieldsRequestDTO);
+		CustomFieldsEntity jobCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(customFieldsRequestDTO);
 		return customFieldsEntityToCustomFieldsResponseDTO(jobCustomFieldsEntity);
 	}
 
 	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO) {
 		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
 		customFieldsEntity.setName(customFieldsRequestDTO.getName());
-		customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setType(customFieldsRequestDTO.getType());
+
+		// converting list of string to comma saparated string
+		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setColumnName(columnNames);
+		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
 		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
 		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
 		return jobCustomFieldsRepository.save(customFieldsEntity);
@@ -520,9 +530,14 @@ public class JobService {
 
 	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(CustomFieldsEntity jobCustomFieldsEntity) {
 		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
-		customFieldsResponseDTO.setColumnName(jobCustomFieldsEntity.getColumnName());
+		// Converting String to List of String.
+		String columnNames = jobCustomFieldsEntity.getColumnName();
+		List<String> columnNamesList = Arrays.asList(columnNames.split("\\s*,\\s*"));
+		customFieldsResponseDTO.setColumnName(columnNamesList);
+		// customFieldsResponseDTO.setColumnName(jobCustomFieldsEntity.getColumnName());
 		customFieldsResponseDTO.setCreatedBy(jobCustomFieldsEntity.getCreatedBy());
 		customFieldsResponseDTO.setName(jobCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setType(jobCustomFieldsEntity.getType());
 		customFieldsResponseDTO.setUpdatedBy(jobCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(jobCustomFieldsEntity.getId());
 		return customFieldsResponseDTO;

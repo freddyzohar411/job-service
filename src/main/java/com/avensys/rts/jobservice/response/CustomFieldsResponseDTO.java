@@ -1,5 +1,7 @@
 package com.avensys.rts.jobservice.response;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +14,8 @@ import lombok.Setter;
 public class CustomFieldsResponseDTO {
 	private Long id;
 	private String name;
-	private String columnName;
-	private Integer createdBy;
-	private Integer updatedBy;
+	private String type;
+	private List<String> columnName;
+	private Long createdBy;
+	private Long updatedBy;
 }

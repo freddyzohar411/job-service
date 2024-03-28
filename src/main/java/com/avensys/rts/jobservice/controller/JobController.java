@@ -313,10 +313,18 @@ public class JobController {
      * save all the fields in the custom view
      */
     @PostMapping("/save/customfields")
-    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO) {
+    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO,@RequestHeader(name = "Authorization") String token) {
     	LOG.info("Save Job customFields: Controller");
-        CustomFieldsResponseDTO customFieldsResponseDTO = jobService.saveCustomFields(customFieldsRequestDTO);
-        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+    	try {
+    		Long userId = jwtUtil.getUserId(token);
+    		customFieldsRequestDTO.setCreatedBy(userId);
+    		customFieldsRequestDTO.setUpdatedBy(userId);
+    		 CustomFieldsResponseDTO customFieldsResponseDTO = jobService.saveCustomFields(customFieldsRequestDTO);
+    	        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+       
     }
 
 }
