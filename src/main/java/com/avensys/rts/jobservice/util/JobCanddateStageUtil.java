@@ -13,10 +13,14 @@ public class JobCanddateStageUtil {
 	public static Long SUBMIT_TO_SALES = 3l;
 	public static Long SUBMIT_TO_CLIENT = 4l;
 	public static Long PROFILE_FEEDBACK_PENDING_ID = 5l;
-	public static Long FIRST_INTERVIEW_SCHEDULED_ID = 6l;
-	public static Long SECOND_INTERVIEW_SCHEDULED = 7l;
-	public static Long THIRD_INTERVIEW_SCHEDULED = 8l;
-	public static Long INTERVIEW_FEEDBACK_PENDING = 9l;
+	public static Long SKILLS_ASSESSMENT_ID = 6l;
+	public static Long CODING_TEST_ID = 7l;
+	public static Long TECHNICAL_INTERVIEW_ID = 8l;
+	public static Long CULTURAL_FIT_TEST_ID = 9l;
+	public static Long FIRST_INTERVIEW_SCHEDULED_ID = 10l;
+	public static Long SECOND_INTERVIEW_SCHEDULED = 11l;
+	public static Long THIRD_INTERVIEW_SCHEDULED = 12l;
+	public static Long INTERVIEW_FEEDBACK_PENDING = 13l;
 	public static Long CONDITIONAL_OFFER_SENT = 10l;
 	public static Long CONDITIONAL_OFFER_ACCEPTED_OR_DECLINED = 11l;
 
@@ -44,6 +48,7 @@ public class JobCanddateStageUtil {
 	public static String COMPLETED = "COMPLETED";
 	public static String REJECTED = "REJECTED";
 	public static String WITHDRAWN = "WITHDRAWN";
+	public static String IN_PROGRESS = "IN_PROGRESS";
 
 	public static String getValue(Object input, String key) {
 		String output = "N/A";
