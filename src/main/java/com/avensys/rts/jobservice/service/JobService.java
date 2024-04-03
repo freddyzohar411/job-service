@@ -501,12 +501,30 @@ public class JobService {
 		return jobListingDataDTO;
 	}
 
+	public List<CustomFieldsEntity> getAllCreatedCustomViews(Long userId) {
+		List<CustomFieldsEntity> customfields = jobCustomFieldsRepository.findAllByUser(userId, "Job");
+		return customfields;
+	}
+
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO)
 			throws ServiceException {
 
 		if (jobCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
 			throw new ServiceException(
 					messageSource.getMessage("error.jobcustomnametaken", null, LocaleContextHolder.getLocale()));
+		}
+
+		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository
+				.findAllByUser(customFieldsRequestDTO.getCreatedBy(), "Job");
+
+		if (selectedCustomView != null) {
+			for (CustomFieldsEntity customView : selectedCustomView) {
+				if (customView.isSelected() == true) {
+					customView.setSelected(false);
+					jobCustomFieldsRepository.save(customView);
+				}
+			}
+
 		}
 		System.out.println(" Save Job customFields : Service");
 		System.out.println(customFieldsRequestDTO);
@@ -525,6 +543,7 @@ public class JobService {
 		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
 		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
 		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
+		customFieldsEntity.setSelected(true);
 		return jobCustomFieldsRepository.save(customFieldsEntity);
 	}
 
@@ -541,6 +560,26 @@ public class JobService {
 		customFieldsResponseDTO.setUpdatedBy(jobCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(jobCustomFieldsEntity.getId());
 		return customFieldsResponseDTO;
+	}
+	
+	public CustomFieldsResponseDTO updateCustomView(Long id ,Long userId) {
+		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository.findAllByUser(userId,
+				"Job");
+		for (CustomFieldsEntity customView : selectedCustomView) {
+			if (customView.isSelected() == true) {
+				customView.setSelected(false);
+				jobCustomFieldsRepository.save(customView);
+			}
+		}
+		Optional<CustomFieldsEntity> customFieldsEntity = jobCustomFieldsRepository
+				.findById(id);
+		customFieldsEntity.get().setSelected(true);
+		jobCustomFieldsRepository.save(customFieldsEntity.get());
+		
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
+		
+		
+
 	}
 
 }

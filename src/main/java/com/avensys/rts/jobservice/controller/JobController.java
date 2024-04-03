@@ -326,5 +326,22 @@ public class JobController {
 		}
        
     }
+    
+    @GetMapping("/customView/all")
+	public ResponseEntity<Object> getAllCreatedCustomViews(@RequestHeader(name = "Authorization") String token) {
+		LOG.info("Job get all custom views: Controller");
+		Long userId = jwtUtil.getUserId(token);
+		return ResponseUtil.generateSuccessResponse(jobService.getAllCreatedCustomViews(userId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+    
+    @PutMapping("/customView/update/{id}")
+	public ResponseEntity<Object> updateCustomView(@PathVariable Long id,@RequestHeader(name = "Authorization") String token) {
+    	LOG.info("Job custom view update: Controller");
+    	Long userId = jwtUtil.getUserId(token);
+		CustomFieldsResponseDTO response = jobService.updateCustomView(id,userId);
+		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
+	}
 
 }
