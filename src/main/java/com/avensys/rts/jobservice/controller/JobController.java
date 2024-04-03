@@ -81,9 +81,7 @@ public class JobController {
 			Long userId = jwtUtil.getUserId(token);
 			jobRequest.setCreatedBy(userId);
 			jobRequest.setUpdatedBy(userId);
-
-			jobService.save(jobRequest);
-			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
+			return ResponseUtil.generateSuccessResponse(jobService.save(jobRequest), HttpStatus.CREATED,
 					messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
@@ -307,6 +305,12 @@ public class JobController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	/**
+	 * Get job embedding by id and type (default or openAI)
+	 * @param jobId
+	 * @param type
+	 * @return
+	 */
 	@GetMapping("/{jobId}/embeddings/get/{type}")
 	public ResponseEntity<Object> getEmbeddingsById(@PathVariable Long jobId, @PathVariable String type) {
 		LOG.info("Get embeddings by id: Controller");
@@ -314,8 +318,11 @@ public class JobController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
-
-
+	/**
+	 * Update/create embeddings by id
+	 * @param jobId
+	 * @return
+	 */
 	@GetMapping("/{jobId}/embeddings/create")
 	public ResponseEntity<Object> updateEmbeddingsById(@PathVariable Long jobId) {
 		LOG.info("Create/Update embeddings by id: Controller");

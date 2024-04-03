@@ -492,14 +492,17 @@ public class JobService {
 		return jobListingDataDTO;
 	}
 
+	/**
+	 * This method is used to update/create job embeddings
+	 * @param jobId
+	 * @return
+	 */
 	public HashMap<String, Object> updateJobEmbeddings(Long jobId) {
 		HashMap<String, Object> jobHashMapData = getJobByIdDataAll(jobId);
 
 		// Convert HashMap to JSON String
 		JsonNode candidateDataJsonNode = MappingUtil.convertHashMapToJsonNode(jobHashMapData);
-
 		String jobDetails = JobDataExtractionUtil.extractJobInfo(candidateDataJsonNode);
-		System.out.println("Job Details: " + jobDetails);
 
 		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
 		embeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(jobDetails));
@@ -513,19 +516,15 @@ public class JobService {
 		jobRepository.updateVector(jobId, "job_embeddings",
 				jobEmbeddingData.getEmbedding());
 
-		// Open AI Embedding
-		HttpResponse jobEmbeddingResponseOpenAI = embeddingAPIClient
-				.getEmbeddingSingle(embeddingRequestDTO);
-		EmbeddingResponseDTO jobEmbeddingDataOpenAI = MappingUtil
-				.mapClientBodyToClass(jobEmbeddingResponseOpenAI.getData(), EmbeddingResponseDTO.class);
-
-		// Update the candidate with the embedding
-		jobRepository.updateVector(jobId, "job_embeddings_openai",
-				jobEmbeddingDataOpenAI.getEmbedding());
-
 		return jobHashMapData;
 	}
 
+	/**
+	 * Get job embeddings by id and type (default or openai)
+	 * @param jobId
+	 * @param type
+	 * @return
+	 */
 	public EmbeddingResponseDTO getJobEmbeddingsById(Long jobId, String type) {
 		List<Float> jobEmbeddings = new ArrayList<>();
 		if (type.equals("default")) {
