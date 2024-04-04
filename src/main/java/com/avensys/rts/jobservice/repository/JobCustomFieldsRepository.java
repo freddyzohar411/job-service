@@ -16,8 +16,8 @@ public interface JobCustomFieldsRepository extends JpaRepository<CustomFieldsEnt
 	  @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.isSelected = ?2")
 	    CustomFieldsResponseDTO findAllByUserAndSelected(Long userId,boolean isSelected);
 	  
-	  @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.type = ?2")
-	    List<CustomFieldsEntity> findAllByUser(Long userId,String type);
+	  @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.type = ?2 AND c.isDeleted =?3")
+	    List<CustomFieldsEntity> findAllByUser(Long userId,String type,boolean isDeleted);
 	  
 	  //for checkeing is there is any isSelected true.
 	    @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.type = ?2")
@@ -25,6 +25,9 @@ public interface JobCustomFieldsRepository extends JpaRepository<CustomFieldsEnt
 	    
 	    @Query(value = "SELECT c FROM customView c WHERE c.id = ?1")
 	    Optional<CustomFieldsEntity> findById(Long id);
+	    
+	    @Query(value = "SELECT c FROM customView c WHERE c.id = ?1 AND c.isDeleted = ?2 AND c.isActive = ?3")
+	    Optional<CustomFieldsEntity> findByIdAndDeleted(Long id, boolean isDeleted, boolean isActive);
 	    
 	    
 

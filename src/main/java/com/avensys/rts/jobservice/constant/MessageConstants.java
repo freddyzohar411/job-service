@@ -9,7 +9,7 @@ public class MessageConstants {
 	//new
 	public static final String JOB_CUSTOM_VIEW = "job.customViewSaved";
 	public static final String JOB_CUSTOM_VIEW_UPDATED = "job.customViewUpdated";
-
+	public static final String JOB_CUSTOM_VIEW_DELETED = "job.customViewDeleted";
 	public static final String USER_PERMISSIONDENIED_RESOURCE = "user.permissionDeniedResource";
 
 }

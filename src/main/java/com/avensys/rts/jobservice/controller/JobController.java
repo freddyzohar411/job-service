@@ -338,10 +338,26 @@ public class JobController {
     @PutMapping("/customView/update/{id}")
 	public ResponseEntity<Object> updateCustomView(@PathVariable Long id,@RequestHeader(name = "Authorization") String token) {
     	LOG.info("Job custom view update: Controller");
-    	Long userId = jwtUtil.getUserId(token);
-		CustomFieldsResponseDTO response = jobService.updateCustomView(id,userId);
-		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
-				messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
+    	try {
+    		Long userId = jwtUtil.getUserId(token);
+    		CustomFieldsResponseDTO response = jobService.updateCustomView(id,userId);
+    		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
+    				messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+    	
+	}
+    
+    @DeleteMapping("/customView/delete/{id}")
+	public ResponseEntity<?> softDeleteCustomView(@PathVariable Long id) {
+		try {
+			jobService.softDelete(id);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
 	}
 
 }

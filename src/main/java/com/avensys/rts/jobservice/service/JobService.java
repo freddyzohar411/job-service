@@ -218,6 +218,13 @@ public class JobService {
 		dbJob.setIsDeleted(true);
 		jobRepository.save(dbJob);
 	}
+	
+	public void softDelete(Long id) throws ServiceException {
+		CustomFieldsEntity customFieldsEntity = jobCustomFieldsRepository.findByIdAndDeleted(id, false, true).orElseThrow(() -> new RuntimeException("Custom view not found"));
+		customFieldsEntity.setIsDeleted(true);
+		customFieldsEntity.setSelected(false);
+		jobCustomFieldsRepository.save(customFieldsEntity);
+	}
 
 	public List<JobEntity> getAllJobs(Integer pageNo, Integer pageSize, String sortBy) throws ServiceException {
 		LOG.info("getAllJobs request processing");
@@ -502,7 +509,7 @@ public class JobService {
 	}
 
 	public List<CustomFieldsEntity> getAllCreatedCustomViews(Long userId) {
-		List<CustomFieldsEntity> customfields = jobCustomFieldsRepository.findAllByUser(userId, "Job");
+		List<CustomFieldsEntity> customfields = jobCustomFieldsRepository.findAllByUser(userId, "Job",false);
 		return customfields;
 	}
 
@@ -515,7 +522,7 @@ public class JobService {
 		}
 
 		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository
-				.findAllByUser(customFieldsRequestDTO.getCreatedBy(), "Job");
+				.findAllByUser(customFieldsRequestDTO.getCreatedBy(), "Job",false);
 
 		if (selectedCustomView != null) {
 			for (CustomFieldsEntity customView : selectedCustomView) {
@@ -562,9 +569,13 @@ public class JobService {
 		return customFieldsResponseDTO;
 	}
 	
-	public CustomFieldsResponseDTO updateCustomView(Long id ,Long userId) {
+	public CustomFieldsResponseDTO updateCustomView(Long id ,Long userId)throws ServiceException {
+		if (jobCustomFieldsRepository.findById(id).get().getIsDeleted()) {
+			throw new ServiceException(
+					messageSource.getMessage("error.jobcustomViewAlreadyDeleted", null, LocaleContextHolder.getLocale()));
+		}
 		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository.findAllByUser(userId,
-				"Job");
+				"Job",false);
 		for (CustomFieldsEntity customView : selectedCustomView) {
 			if (customView.isSelected() == true) {
 				customView.setSelected(false);
