@@ -28,9 +28,11 @@ import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.enums.Permission;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRecruiterFODRequest;
 import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
 import com.avensys.rts.jobservice.service.JobRecruiterFODService;
 import com.avensys.rts.jobservice.service.JobService;
 import com.avensys.rts.jobservice.util.JwtUtil;
@@ -333,6 +335,57 @@ public class JobController {
 		LOG.info("Job get by id data: Controller");
 		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdDataAll(jobId), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+	
+	/*
+     * save all the fields in the custom view
+     */
+    @PostMapping("/save/customfields")
+    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO,@RequestHeader(name = "Authorization") String token) {
+    	LOG.info("Save Job customFields: Controller");
+    	try {
+    		Long userId = jwtUtil.getUserId(token);
+    		customFieldsRequestDTO.setCreatedBy(userId);
+    		customFieldsRequestDTO.setUpdatedBy(userId);
+    		 CustomFieldsResponseDTO customFieldsResponseDTO = jobService.saveCustomFields(customFieldsRequestDTO);
+    	        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+       
+    }
+    
+    @GetMapping("/customView/all")
+	public ResponseEntity<Object> getAllCreatedCustomViews(@RequestHeader(name = "Authorization") String token) {
+		LOG.info("Job get all custom views: Controller");
+		Long userId = jwtUtil.getUserId(token);
+		return ResponseUtil.generateSuccessResponse(jobService.getAllCreatedCustomViews(userId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+    
+    @PutMapping("/customView/update/{id}")
+	public ResponseEntity<Object> updateCustomView(@PathVariable Long id,@RequestHeader(name = "Authorization") String token) {
+    	LOG.info("Job custom view update: Controller");
+    	try {
+    		Long userId = jwtUtil.getUserId(token);
+    		CustomFieldsResponseDTO response = jobService.updateCustomView(id,userId);
+    		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
+    				messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+    	
+	}
+    
+    @DeleteMapping("/customView/delete/{id}")
+	public ResponseEntity<?> softDeleteCustomView(@PathVariable Long id) {
+		try {
+			jobService.softDelete(id);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
 	}
 
 	@GetMapping("/clone/{jobId}")
