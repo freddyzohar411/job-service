@@ -1,23 +1,22 @@
 package com.avensys.rts.jobservice.payload;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
 @Getter
-@AllArgsConstructor
+@Setter
 @NoArgsConstructor
-public class JobRequest {
+@AllArgsConstructor
+public class CustomFieldsRequestDTO {
 
 	private Long id;
-	private String title;
-	private Long formId;
-	private Long tempDocId;
-	private String formData;
-	private Boolean isDraft;
+	private String name;
+	private String type;
+	private List<String> columnName;
 	private Long createdBy;
 	private Long updatedBy;
-	private boolean clone = false;
 }

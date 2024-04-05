@@ -105,7 +105,22 @@ public class JobTimelineService {
 		}
 
 		List<Map<String, Long>> data = jobTimelineRepository.findJobTimelineCount(jobId);
+
 		if (data != null) {
+			try {
+				Map<String, Long> interviewScheduledCount = jobTimelineRepository.findInterviewScheduledCount(jobId);
+				Map<String, Long> interviewHappenedCount = jobTimelineRepository.findInterviewHappenedCount(jobId);
+				Map<String, Long> interviewCancelledCount = jobTimelineRepository.findInterviewCancelledCount(jobId);
+				Map<String, Long> interviewFeedbackPendingCount = jobTimelineRepository
+						.findInterviewFeedbackPendingCount(jobId);
+
+				data.add(interviewScheduledCount);
+				data.add(interviewHappenedCount);
+				data.add(interviewCancelledCount);
+				data.add(interviewFeedbackPendingCount);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			return data;
 		} else {
 			throw new ServiceException(messageSource.getMessage("error.jobnotfound", new Object[] { jobId },
