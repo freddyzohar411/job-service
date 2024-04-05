@@ -303,10 +303,61 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setIsDeleted(false);
 		}
 
-		// First Interview schedules
-		if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.FIRST_INTERVIEW_SCHEDULED_ID
-				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
+		// Coding Test In progress
+		if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.CODING_TEST_ID
+				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.IN_PROGRESS)) {
 
+			Optional<JobStageEntity> skillsAssessmentOptional = jobStageRepository
+					.findByOrder(JobCanddateStageUtil.SKILLS_ASSESSMENT_ID);
+
+			Optional<JobCandidateStageEntity> skillsAssessmentStageOptional = jobCandidateStageRepository
+					.findByJobAndStageAndCandidate(jobCandidateStageRequest.getJobId(),
+							skillsAssessmentOptional.get().getOrder(), jobCandidateStageRequest.getCandidateId());
+			if (skillsAssessmentStageOptional.isPresent()) {
+				JobCandidateStageEntity skillsAssessmentEntity = skillsAssessmentStageOptional.get();
+				skillsAssessmentEntity.setStatus(JobCanddateStageUtil.COMPLETED);
+				skillsAssessmentEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+				skillsAssessmentEntity.setIsActive(true);
+				skillsAssessmentEntity.setIsDeleted(false);
+				jobCandidateStageRepository.save(skillsAssessmentEntity);
+			}
+		} else if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.TECHNICAL_INTERVIEW_ID
+				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.IN_PROGRESS)) {
+			// Technical Interview In progress
+			Optional<JobStageEntity> codingTestOptional = jobStageRepository
+					.findByOrder(JobCanddateStageUtil.CODING_TEST_ID);
+
+			Optional<JobCandidateStageEntity> codingTestStageOptional = jobCandidateStageRepository
+					.findByJobAndStageAndCandidate(jobCandidateStageRequest.getJobId(),
+							codingTestOptional.get().getOrder(), jobCandidateStageRequest.getCandidateId());
+			if (codingTestStageOptional.isPresent()) {
+				JobCandidateStageEntity codingTestEntity = codingTestStageOptional.get();
+				codingTestEntity.setStatus(JobCanddateStageUtil.COMPLETED);
+				codingTestEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+				codingTestEntity.setIsActive(true);
+				codingTestEntity.setIsDeleted(false);
+				jobCandidateStageRepository.save(codingTestEntity);
+			}
+		} else if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.CULTURAL_FIT_TEST_ID
+				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.IN_PROGRESS)) {
+			// Cultural fit test In progress
+			Optional<JobStageEntity> technicalIntrvwOptional = jobStageRepository
+					.findByOrder(JobCanddateStageUtil.TECHNICAL_INTERVIEW_ID);
+
+			Optional<JobCandidateStageEntity> technicalIntrvwStageOptional = jobCandidateStageRepository
+					.findByJobAndStageAndCandidate(jobCandidateStageRequest.getJobId(),
+							technicalIntrvwOptional.get().getOrder(), jobCandidateStageRequest.getCandidateId());
+			if (technicalIntrvwStageOptional.isPresent()) {
+				JobCandidateStageEntity technicalIntrvwEntity = technicalIntrvwStageOptional.get();
+				technicalIntrvwEntity.setStatus(JobCanddateStageUtil.COMPLETED);
+				technicalIntrvwEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+				technicalIntrvwEntity.setIsActive(true);
+				technicalIntrvwEntity.setIsDeleted(false);
+				jobCandidateStageRepository.save(technicalIntrvwEntity);
+			}
+		} else if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.FIRST_INTERVIEW_SCHEDULED_ID
+				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
+			// First Interview schedules
 			Optional<JobStageEntity> profileOptional = jobStageRepository
 					.findByOrder(JobCanddateStageUtil.PROFILE_FEEDBACK_PENDING_ID);
 

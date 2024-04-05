@@ -19,4 +19,5 @@ public class JobRequest {
 	private Boolean isDraft;
 	private Long createdBy;
 	private Long updatedBy;
+	private boolean clone = false;
 }
