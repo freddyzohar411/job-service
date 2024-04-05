@@ -64,8 +64,7 @@ public class JobTimelineControllerTest {
 	@BeforeEach
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
-		jobListingRequestDTO = new JobListingRequestDTO(1, 10, "updatedAt", "DEFAULT_DIRECTION", "name", searchFields,
-				"part-time", 1L, false);
+		jobListingRequestDTO = new JobListingRequestDTO();
 		jobTimelineResponseDTO = new JobTimelineResponseDTO(1, 1L, 1, 5, jobs);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(jobTimelineController).build();
 	}

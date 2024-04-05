@@ -149,9 +149,6 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
-		// Log the generated SQL (for debugging)
-		System.out.println(queryString);
-
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("userId", userId);
@@ -395,16 +392,11 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				values.add("%" + value.toLowerCase() + "%");
 			} else if (operator.equals(">") || operator.equals("<") || operator.equals(">=") || operator.equals("<=")) {
 				values.add(value);
-				System.out.println("Value: " + value);
 			} else {
 				values.add("%" + value.toLowerCase() + "%");
 			}
-
-//			values.add("%" + value.toLowerCase() + "%");
 			parameterPosition++;
 		}
-
-		System.out.println("SQL Query: " + sql);
 
 		NativeQuery<JobEntity> nativeQuery = (NativeQuery<JobEntity>) entityManager.createNativeQuery(sql.toString(),
 				JobEntity.class);
@@ -450,21 +442,13 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
-		// User ID condition
-		String userCondition = "";
-		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
-			userCondition = " AND (created_by IN (:userIds) OR CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) IN (:userIds))";
-		}
-
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
-				userCondition, orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
+				orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
-			System.out.println("QueryString: " + queryString);
-			isActive = getActive(jobType, isActive);
 		} else {
 			queryString = queryString.replace("{1}", "");
 		}
@@ -473,7 +457,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty()) {
+		if (!userIds.isEmpty() && !jobType.equals("all_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setFirstResult((int) pageable.getOffset());
@@ -483,13 +467,10 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		List<JobEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s",
-				userCondition);
+		String countQueryString = "SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive";
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
-			isActive = getActive(jobType, isActive);
 		} else {
 			countQueryString = countQueryString.replace("{1}", "");
 		}
@@ -510,8 +491,6 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 	@Override
 	public Page<JobEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
 			Pageable pageable, String jobType, Long userId) {
-		System.out.println("Here");
-		System.out.println("JobType: " + jobType);
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -530,21 +509,13 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
-		// User ID condition
-		String userCondition = "";
-		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
-			userCondition = " AND (created_by IN (:userIds) OR CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) IN (:userIds))";
-		}
-
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
-				userCondition, orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
+				orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
-			System.out.println("QueryStringNum: " + queryString);
-			isActive = getActive(jobType, isActive);
 		} else {
 			queryString = queryString.replace("{1}", "");
 		}
@@ -563,13 +534,10 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		List<JobEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s",
-				userCondition);
+		String countQueryString = "SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive";
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
-			isActive = getActive(jobType, isActive);
 		} else {
 			countQueryString = countQueryString.replace("{1}", "");
 		}
@@ -628,20 +596,13 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			searchConditions.delete(0, 4);
 		}
 
-		// User ID condition
-		String userCondition = "";
-		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
-			userCondition = " AND (created_by IN (:userIds) OR CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) IN (:userIds))";
-		}
-
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
+				searchConditions.toString(), orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
-			isActive = getActive(jobType, isActive);
 		} else {
 			queryString = queryString.replace("{1}", "");
 		}
@@ -650,7 +611,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("fod")) {
+		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -662,12 +623,11 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s AND (%s)",
-				userCondition, searchConditions.toString());
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s)",
+				searchConditions.toString());
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
-			isActive = getActive(jobType, isActive);
 		} else {
 			countQueryString = countQueryString.replace("{1}", "");
 		}
@@ -727,20 +687,13 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			searchConditions.delete(0, 4);
 		}
 
-		// User ID condition
-		String userCondition = "";
-		if (!userIds.isEmpty() && !jobType.equals("fod") && !jobType.equals("active_jobs")) {
-			userCondition = " AND (created_by IN (:userIds) OR CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) IN (:userIds))";
-		}
-
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s AND (%s) ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
+				searchConditions.toString(), orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
-			isActive = getActive(jobType, isActive);
 		} else {
 			queryString = queryString.replace("{1}", "");
 		}
@@ -761,12 +714,11 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s AND (%s)",
-				userCondition, searchConditions.toString());
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s)",
+				searchConditions.toString());
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
-			isActive = getActive(jobType, isActive);
 		} else {
 			countQueryString = countQueryString.replace("{1}", "");
 		}
@@ -785,59 +737,43 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		return new PageImpl<>(resultList, pageable, countResult);
 	}
 
-	private Boolean getActive(String jobType, Boolean isActive) {
-		Boolean active = isActive;
-		switch (jobType) {
-		case "active_jobs": {
-			active = true;
-			break;
-		}
-		case "inactive_jobs": {
-			active = false;
-			break;
-		}
-		default:
-			active = isActive;
-			break;
-		}
-		return active;
-	}
-
 	private String getQuery(String queryString, String jobType, Long userId, Boolean isActive, List<Long> userIds) {
 		if (jobType != null && jobType.length() > 0 && !userIds.isEmpty()) {
 			switch (jobType) {
 			case "new_job": {
 				queryString = queryString.replace("{1}",
-						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod) and is_active = true and is_deleted = false and (created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "active_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) "
-								+ "or sales_id in (:userIds))) AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "inactive_jobs": {
 				isActive = false;
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Inactive' AND ");
 				break;
 			}
 			case "closed_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.status = 'CLOSED') AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Closed' AND ");
 				break;
 			}
 			case "fod": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod where (recruiter_id in (:userIds) "
-								+ "or sales_id in (:userIds)) and created_at >= current_date) AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds) and id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds) and fod.created_at >= current_date) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id in (:userIds) "
-								+ "or sales_id in (:userIds))) AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds) and id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds)) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+				break;
+			}
+			case "all_jobs": {
+				queryString = queryString.replace("{1}",
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) AND ");
 				break;
 			}
 			default:
@@ -848,33 +784,33 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			switch (jobType) {
 			case "new_job": {
 				queryString = queryString.replace("{1}",
-						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod) and is_active = true and is_deleted = false and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "active_jobs": {
-				queryString = queryString.replace("{1}", "id in (select distinct(job_id) from job_recruiter_fod) AND ");
+				queryString = queryString.replace("{1}",
+						"CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "inactive_jobs": {
 				isActive = false;
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) AND ");
+						"CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Inactive' AND ");
 				break;
 			}
 			case "closed_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.status = 'CLOSED') AND ");
+						"CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Closed' AND ");
 				break;
 			}
 			case "fod": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod where created_at >= current_date) AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.created_at >= current_date) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(job_id) from job_recruiter_fod where status != 'CLOSED' and (recruiter_id in (:userIds) "
-								+ "or sales_id in (:userIds))) AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			default:

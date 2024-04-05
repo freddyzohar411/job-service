@@ -115,8 +115,7 @@ public class JobControllerTest {
 		sort = Sort.by(Sort.Direction.DESC, "updatedAt");
 		pageable = PageRequest.of(1, 2, sort);
 		page1 = new PageImpl<JobEntity>(jobEntityList, pageable, 2);
-		jobListingRequestDTO = new JobListingRequestDTO(1, 10, "updatedAt", "DEFAULT_DIRECTION", "name", searchFields,
-				"part-time", 1L, false);
+		jobListingRequestDTO = new JobListingRequestDTO();
 		this.mockMvc = MockMvcBuilders.standaloneSetup(jobController).build();
 	}
 

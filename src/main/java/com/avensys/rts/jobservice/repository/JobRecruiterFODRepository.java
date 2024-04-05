@@ -1,5 +1,6 @@
 package com.avensys.rts.jobservice.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,5 +23,7 @@ public interface JobRecruiterFODRepository extends JpaRepository<JobRecruiterFOD
 	public Optional<JobRecruiterFODEntity> findByJobAndRecruiter(Long jobId, Long recruiterId);
 
 	public void deleteByJobId(Long jobId);
+
+	public List<JobRecruiterFODEntity> getAllByJobId(Long jobId);
 
 }
