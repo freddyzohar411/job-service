@@ -103,7 +103,8 @@ public class JobControllerTest {
 	@BeforeEach
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
-		jobRequest = new JobRequest(1L, "Java Developer", 1L, 1L, formData, false, 1L, 1L);
+		// #He Xiang
+		jobRequest = new JobRequest(1L, "Java Developer", 1L, 1L, formData, false, 1L, 1L, false);
 		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
 		jobEntity1 = new JobEntity(2L, "Full Stack Developer", 1L, 1L, false, jobSubmissionData);
 		optionalJobEntity = Optional.of(jobEntity);
