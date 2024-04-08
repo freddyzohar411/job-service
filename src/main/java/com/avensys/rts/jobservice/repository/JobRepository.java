@@ -37,4 +37,7 @@ public interface JobRepository
 	@Query(value = "SELECT a FROM job a WHERE a.id = ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
 	Optional<JobEntity> findByIdAndDeleted(Long id, boolean isDeleted, boolean isActive);
 
+	@Query(value = "SELECT a FROM job a WHERE a.isDraft= ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
+	List<JobEntity> findAllByIsDraftAndIsDeletedAndIsActive(boolean isDraft, boolean isDeleted, boolean isActive);
+
 }

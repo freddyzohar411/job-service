@@ -121,10 +121,11 @@ public class JobService {
 	public JobEntity save(JobRequest jobRequest) throws ServiceException {
 		// add check for title exists in a DB
 		// if (!jobRequest.isClone()) {
-		// 	if (jobRepository.existsByTitle(jobRequest.getTitle())) {
-		// 		throw new ServiceException(
-		// 				messageSource.getMessage("error.jobtitletaken", null, LocaleContextHolder.getLocale()));
-		// 	}
+		// if (jobRepository.existsByTitle(jobRequest.getTitle())) {
+		// throw new ServiceException(
+		// messageSource.getMessage("error.jobtitletaken", null,
+		// LocaleContextHolder.getLocale()));
+		// }
 		// }
 
 		JobEntity jobEntity = mapRequestToEntity(jobRequest);
@@ -220,9 +221,10 @@ public class JobService {
 		dbJob.setIsDeleted(true);
 		jobRepository.save(dbJob);
 	}
-	
+
 	public void softDelete(Long id) throws ServiceException {
-		CustomFieldsEntity customFieldsEntity = jobCustomFieldsRepository.findByIdAndDeleted(id, false, true).orElseThrow(() -> new RuntimeException("Custom view not found"));
+		CustomFieldsEntity customFieldsEntity = jobCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
 		customFieldsEntity.setIsDeleted(true);
 		customFieldsEntity.setSelected(false);
 		jobCustomFieldsRepository.save(customFieldsEntity);
@@ -338,8 +340,8 @@ public class JobService {
 
 	public Set<FieldInformation> getAllJobFields(Long userId) throws ServiceException {
 
-		List<JobEntity> jobEntities = jobRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false,
-				true);
+		List<JobEntity> jobEntities = jobRepository.findAllByIsDraftAndIsDeletedAndIsActive(false, false, true);
+
 		if (jobEntities.isEmpty()) {
 			return null;
 		}
@@ -511,7 +513,7 @@ public class JobService {
 	}
 
 	public List<CustomFieldsEntity> getAllCreatedCustomViews(Long userId) {
-		List<CustomFieldsEntity> customfields = jobCustomFieldsRepository.findAllByUser(userId, "Job",false);
+		List<CustomFieldsEntity> customfields = jobCustomFieldsRepository.findAllByUser(userId, "Job", false);
 		return customfields;
 	}
 
@@ -524,7 +526,7 @@ public class JobService {
 		}
 
 		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository
-				.findAllByUser(customFieldsRequestDTO.getCreatedBy(), "Job",false);
+				.findAllByUser(customFieldsRequestDTO.getCreatedBy(), "Job", false);
 
 		if (selectedCustomView != null) {
 			for (CustomFieldsEntity customView : selectedCustomView) {
@@ -570,28 +572,24 @@ public class JobService {
 		customFieldsResponseDTO.setId(jobCustomFieldsEntity.getId());
 		return customFieldsResponseDTO;
 	}
-	
-	public CustomFieldsResponseDTO updateCustomView(Long id ,Long userId)throws ServiceException {
+
+	public CustomFieldsResponseDTO updateCustomView(Long id, Long userId) throws ServiceException {
 		if (jobCustomFieldsRepository.findById(id).get().getIsDeleted()) {
-			throw new ServiceException(
-					messageSource.getMessage("error.jobcustomViewAlreadyDeleted", null, LocaleContextHolder.getLocale()));
+			throw new ServiceException(messageSource.getMessage("error.jobcustomViewAlreadyDeleted", null,
+					LocaleContextHolder.getLocale()));
 		}
-		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository.findAllByUser(userId,
-				"Job",false);
+		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository.findAllByUser(userId, "Job", false);
 		for (CustomFieldsEntity customView : selectedCustomView) {
 			if (customView.isSelected() == true) {
 				customView.setSelected(false);
 				jobCustomFieldsRepository.save(customView);
 			}
 		}
-		Optional<CustomFieldsEntity> customFieldsEntity = jobCustomFieldsRepository
-				.findById(id);
+		Optional<CustomFieldsEntity> customFieldsEntity = jobCustomFieldsRepository.findById(id);
 		customFieldsEntity.get().setSelected(true);
 		jobCustomFieldsRepository.save(customFieldsEntity.get());
-		
+
 		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
-		
-		
 
 	}
 
