@@ -120,13 +120,13 @@ public class JobService {
 	@Transactional
 	public JobEntity save(JobRequest jobRequest) throws ServiceException {
 		// add check for title exists in a DB
-		// if (!jobRequest.isClone()) {
-		// if (jobRepository.existsByTitle(jobRequest.getTitle())) {
-		// throw new ServiceException(
-		// messageSource.getMessage("error.jobtitletaken", null,
-		// LocaleContextHolder.getLocale()));
-		// }
-		// }
+
+//		if (!jobRequest.isClone()) {
+//			if (jobRepository.existsByTitle(jobRequest.getTitle())) {
+//				throw new ServiceException(
+//						messageSource.getMessage("error.jobtitletaken", null, LocaleContextHolder.getLocale()));
+//			}
+//		}
 
 		JobEntity jobEntity = mapRequestToEntity(jobRequest);
 
