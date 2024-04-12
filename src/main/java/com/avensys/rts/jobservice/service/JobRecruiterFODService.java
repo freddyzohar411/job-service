@@ -1,5 +1,6 @@
 package com.avensys.rts.jobservice.service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -122,6 +123,7 @@ public class JobRecruiterFODService {
 						jobRecruiterFODEntity.setSeller(sellerOptional.get());
 						jobRecruiterFODEntity.setStatus("FOD");
 						jobRecruiterFODEntity.setUpdatedBy(jobRecruiterFODRequest.getUpdatedBy());
+						jobRecruiterFODEntity.setUpdatedAt(LocalDateTime.now());
 						jobRecruiterFODEntity.setIsActive(true);
 						jobRecruiterFODEntity.setIsDeleted(false);
 					} else {
