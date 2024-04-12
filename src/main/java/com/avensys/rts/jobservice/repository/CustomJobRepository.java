@@ -46,4 +46,6 @@ public interface CustomJobRepository {
 	void updateVector(Long jobId, String columnName, List<Float> vector);
 
 	Optional<List<Float>> getEmbeddingsById(Long jobId, String columnName);
+
+	List<JobEntity> findAllByEmbeddingIsNull();
 }

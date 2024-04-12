@@ -895,4 +895,11 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		return Optional.of(vector);
 	}
 
+	@Override
+	public List<JobEntity> findAllByEmbeddingIsNull() {
+		String queryString = "SELECT * FROM job WHERE job_embeddings IS NULL";
+		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
+		return query.getResultList();
+	}
+
 }

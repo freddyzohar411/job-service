@@ -519,6 +519,7 @@ public class JobService {
 
 	/**
 	 * This method is used to update/create job embeddings
+	 * 
 	 * @param jobId
 	 * @return
 	 */
@@ -532,20 +533,19 @@ public class JobService {
 		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
 		embeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(jobDetails));
 
-		HttpResponse jobEmbeddingResponse = embeddingAPIClient
-				.getEmbeddingSinglePy(embeddingRequestDTO);
-		EmbeddingResponseDTO jobEmbeddingData = MappingUtil
-				.mapClientBodyToClass(jobEmbeddingResponse.getData(), EmbeddingResponseDTO.class);
+		HttpResponse jobEmbeddingResponse = embeddingAPIClient.getEmbeddingSinglePy(embeddingRequestDTO);
+		EmbeddingResponseDTO jobEmbeddingData = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
+				EmbeddingResponseDTO.class);
 
 		// Update the candidate with the embedding
-		jobRepository.updateVector(jobId, "job_embeddings",
-				jobEmbeddingData.getEmbedding());
+		jobRepository.updateVector(jobId, "job_embeddings", jobEmbeddingData.getEmbedding());
 
 		return jobHashMapData;
 	}
 
 	/**
 	 * Get job embeddings by id and type (default or openai)
+	 * 
 	 * @param jobId
 	 * @param type
 	 * @return
@@ -553,11 +553,11 @@ public class JobService {
 	public EmbeddingResponseDTO getJobEmbeddingsById(Long jobId, String type) {
 		List<Float> jobEmbeddings = new ArrayList<>();
 		if (type.equals("default")) {
-		 	jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings").orElseThrow(
-				() -> new RuntimeException("Job Embeddings not found"));
+			jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings")
+					.orElseThrow(() -> new RuntimeException("Job Embeddings not found"));
 		} else {
-			jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings_openai").orElseThrow(
-					() -> new RuntimeException("Job Embeddings not found"));
+			jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings_openai")
+					.orElseThrow(() -> new RuntimeException("Job Embeddings not found"));
 		}
 		EmbeddingResponseDTO embeddingResponseDTO = new EmbeddingResponseDTO();
 		embeddingResponseDTO.setEmbedding(jobEmbeddings);
@@ -642,6 +642,32 @@ public class JobService {
 		jobCustomFieldsRepository.save(customFieldsEntity.get());
 
 		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
+
+	}
+
+	public void updateJobEmbeddingsAll() {
+		List<JobEntity> jobs = jobRepository.findAllByEmbeddingIsNull();
+		if (jobs != null && !jobs.isEmpty()) {
+			System.out.println("Total jobs to update: " + jobs.size());
+			int count = 0;
+			int passedCount = 0;
+			int failedCount = 0;
+			for (JobEntity job : jobs) {
+				try {
+					updateJobEmbeddings(job.getId());
+					passedCount++;
+				} catch (Exception e) {
+					e.printStackTrace();
+					failedCount++;
+				}
+				count++;
+				System.out.println("Updated: " + count + " jobs");
+			}
+			System.out.println("All jobs updated...");
+			System.out.println("Total jobs: " + jobs.size());
+			System.out.println("Total passed: " + passedCount);
+			System.out.println("Total failed: " + failedCount);
+		}
 
 	}
 

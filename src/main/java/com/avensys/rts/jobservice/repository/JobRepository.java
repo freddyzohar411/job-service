@@ -16,8 +16,8 @@ public interface JobRepository
 	public Boolean existsByTitle(String title);
 
 	public Optional<JobEntity> findByTitle(String title);
-	
-	//new
+
+	// new
 	public Optional<JobEntity> findById(Long id);
 
 	public Optional<JobEntity> findByIdAndIsDeleted(Long id, boolean isDeleted);
