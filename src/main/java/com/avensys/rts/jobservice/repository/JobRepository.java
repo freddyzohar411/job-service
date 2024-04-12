@@ -16,6 +16,9 @@ public interface JobRepository
 	public Boolean existsByTitle(String title);
 
 	public Optional<JobEntity> findByTitle(String title);
+	
+	//new
+	public Optional<JobEntity> findById(Long id);
 
 	public Optional<JobEntity> findByIdAndIsDeleted(Long id, boolean isDeleted);
 
@@ -33,5 +36,8 @@ public interface JobRepository
 
 	@Query(value = "SELECT a FROM job a WHERE a.id = ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
 	Optional<JobEntity> findByIdAndDeleted(Long id, boolean isDeleted, boolean isActive);
+
+	@Query(value = "SELECT a FROM job a WHERE a.isDraft= ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
+	List<JobEntity> findAllByIsDraftAndIsDeletedAndIsActive(boolean isDraft, boolean isDeleted, boolean isActive);
 
 }

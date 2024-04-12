@@ -93,14 +93,14 @@ public class JobServiceTest {
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 		jobListingDataDTO = new JobListingDataDTO(1L, "java developer", jobSubmissionData, createdAt, updatedAt,
-				"kittu", "kittu");
+				"kittu", "kittu", 1l, 1l);
 		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, submissionData);
 		dbJob = Optional.of(jobEntity);
 		jobRepository.save(jobEntity);
 		formSubmissionResponse = new HttpResponse(201, false, "job saved successfully", data, audit, timestamp);
 		formSubmissionsRequestDTO = new FormSubmissionsRequestDTO(1L, 1L, submissionData, 1L, "entityType");
-		jobRequest = new JobRequest(1L, "Java Developer", 1L, 1L, formData, false, 1L, 1L);
-		jobRequest1 = new JobRequest(2L, "Java Developer", 1L, 1L, formData, false, 1L, 1L);
+		jobRequest = new JobRequest(1L, "Java Developer", 1L, 1L, formData, false, 1L, 1L, false);
+		jobRequest1 = new JobRequest(2L, "Java Developer", 1L, 1L, formData, false, 1L, 1L, false);
 		sortDec = Sort.by(Sort.Direction.DESC, "updatedAt");
 		pageable = PageRequest.of(1, 2, sortDec);
 		jobEntityList = Arrays.asList(jobEntity);

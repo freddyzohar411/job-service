@@ -767,12 +767,12 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "fod": {
 				queryString = queryString.replace("{1}",
-						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds) and id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds) and fod.created_at >= current_date) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds) and fod.updated_at >= current_date) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
-						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds) and id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds)) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds)) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "all_jobs": {
@@ -809,7 +809,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "fod": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.created_at >= current_date) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.updated_at >= current_date) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "assigned_jobs": {

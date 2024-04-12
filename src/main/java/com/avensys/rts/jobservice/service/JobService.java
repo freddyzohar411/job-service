@@ -1,6 +1,7 @@
 package com.avensys.rts.jobservice.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.avensys.rts.jobservice.apiclient.EmbeddingAPIClient;
+import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
 import com.avensys.rts.jobservice.payload.EmbeddingRequestDTO;
 import com.avensys.rts.jobservice.response.*;
 import com.avensys.rts.jobservice.util.*;
@@ -27,14 +29,23 @@ import org.springframework.stereotype.Service;
 
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.apiclient.UserAPIClient;
+import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.model.FieldInformation;
 import com.avensys.rts.jobservice.model.JobExtraData;
+import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.repository.JobCustomFieldsRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
+import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
+import com.avensys.rts.jobservice.response.HttpResponse;
+import com.avensys.rts.jobservice.response.JobListingDataDTO;
+import com.avensys.rts.jobservice.response.JobListingResponseDTO;
+import com.avensys.rts.jobservice.response.UserResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -63,6 +74,9 @@ public class JobService {
 
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
+
+	@Autowired
+	private JobCustomFieldsRepository jobCustomFieldsRepository;
 
 	@Autowired
 	private UserAPIClient userAPIClient;
@@ -111,10 +125,13 @@ public class JobService {
 	@Transactional
 	public JobEntity save(JobRequest jobRequest) throws ServiceException {
 		// add check for title exists in a DB
-		if (jobRepository.existsByTitle(jobRequest.getTitle())) {
-			throw new ServiceException(
-					messageSource.getMessage("error.jobtitletaken", null, LocaleContextHolder.getLocale()));
-		}
+
+//		if (!jobRequest.isClone()) {
+//			if (jobRepository.existsByTitle(jobRequest.getTitle())) {
+//				throw new ServiceException(
+//						messageSource.getMessage("error.jobtitletaken", null, LocaleContextHolder.getLocale()));
+//			}
+//		}
 
 		JobEntity jobEntity = mapRequestToEntity(jobRequest);
 
@@ -151,7 +168,7 @@ public class JobService {
 	 */
 	public void update(JobRequest jobRequest) throws ServiceException {
 		LOG.info("Job updated : Service");
-		Optional<JobEntity> dbJob = jobRepository.findByTitle(jobRequest.getTitle());
+		Optional<JobEntity> dbJob = jobRepository.findById(jobRequest.getId());
 
 		// add check for title exists in a DB
 		if (dbJob.isPresent() && dbJob.get().getId() != jobRequest.getId()) {
@@ -208,6 +225,14 @@ public class JobService {
 		JobEntity dbJob = getById(id);
 		dbJob.setIsDeleted(true);
 		jobRepository.save(dbJob);
+	}
+
+	public void softDelete(Long id) throws ServiceException {
+		CustomFieldsEntity customFieldsEntity = jobCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		customFieldsEntity.setIsDeleted(true);
+		customFieldsEntity.setSelected(false);
+		jobCustomFieldsRepository.save(customFieldsEntity);
 	}
 
 	public List<JobEntity> getAllJobs(Integer pageNo, Integer pageSize, String sortBy) throws ServiceException {
@@ -320,8 +345,8 @@ public class JobService {
 
 	public Set<FieldInformation> getAllJobFields(Long userId) throws ServiceException {
 
-		List<JobEntity> jobEntities = jobRepository.findAllByUserIdsAndDeleted(userUtil.getUsersIdUnderManager(), false,
-				true);
+		List<JobEntity> jobEntities = jobRepository.findAllByIsDraftAndIsDeletedAndIsActive(false, false, true);
+
 		if (jobEntities.isEmpty()) {
 			return null;
 		}
@@ -537,6 +562,87 @@ public class JobService {
 		EmbeddingResponseDTO embeddingResponseDTO = new EmbeddingResponseDTO();
 		embeddingResponseDTO.setEmbedding(jobEmbeddings);
 		return embeddingResponseDTO;
+	}
+
+	public List<CustomFieldsEntity> getAllCreatedCustomViews(Long userId) {
+		List<CustomFieldsEntity> customfields = jobCustomFieldsRepository.findAllByUser(userId, "Job", false);
+		return customfields;
+	}
+
+	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO)
+			throws ServiceException {
+
+		if (jobCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new ServiceException(
+					messageSource.getMessage("error.jobcustomnametaken", null, LocaleContextHolder.getLocale()));
+		}
+
+		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository
+				.findAllByUser(customFieldsRequestDTO.getCreatedBy(), "Job", false);
+
+		if (selectedCustomView != null) {
+			for (CustomFieldsEntity customView : selectedCustomView) {
+				if (customView.isSelected() == true) {
+					customView.setSelected(false);
+					jobCustomFieldsRepository.save(customView);
+				}
+			}
+
+		}
+		System.out.println(" Save Job customFields : Service");
+		System.out.println(customFieldsRequestDTO);
+		CustomFieldsEntity jobCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(customFieldsRequestDTO);
+		return customFieldsEntityToCustomFieldsResponseDTO(jobCustomFieldsEntity);
+	}
+
+	CustomFieldsEntity customFieldsRequestDTOToCustomFieldsEntity(CustomFieldsRequestDTO customFieldsRequestDTO) {
+		CustomFieldsEntity customFieldsEntity = new CustomFieldsEntity();
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setType(customFieldsRequestDTO.getType());
+
+		// converting list of string to comma saparated string
+		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setColumnName(columnNames);
+		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
+		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
+		customFieldsEntity.setSelected(true);
+		return jobCustomFieldsRepository.save(customFieldsEntity);
+	}
+
+	CustomFieldsResponseDTO customFieldsEntityToCustomFieldsResponseDTO(CustomFieldsEntity jobCustomFieldsEntity) {
+		CustomFieldsResponseDTO customFieldsResponseDTO = new CustomFieldsResponseDTO();
+		// Converting String to List of String.
+		String columnNames = jobCustomFieldsEntity.getColumnName();
+		List<String> columnNamesList = Arrays.asList(columnNames.split("\\s*,\\s*"));
+		customFieldsResponseDTO.setColumnName(columnNamesList);
+		// customFieldsResponseDTO.setColumnName(jobCustomFieldsEntity.getColumnName());
+		customFieldsResponseDTO.setCreatedBy(jobCustomFieldsEntity.getCreatedBy());
+		customFieldsResponseDTO.setName(jobCustomFieldsEntity.getName());
+		customFieldsResponseDTO.setType(jobCustomFieldsEntity.getType());
+		customFieldsResponseDTO.setUpdatedBy(jobCustomFieldsEntity.getUpdatedBy());
+		customFieldsResponseDTO.setId(jobCustomFieldsEntity.getId());
+		return customFieldsResponseDTO;
+	}
+
+	public CustomFieldsResponseDTO updateCustomView(Long id, Long userId) throws ServiceException {
+		if (jobCustomFieldsRepository.findById(id).get().getIsDeleted()) {
+			throw new ServiceException(messageSource.getMessage("error.jobcustomViewAlreadyDeleted", null,
+					LocaleContextHolder.getLocale()));
+		}
+		List<CustomFieldsEntity> selectedCustomView = jobCustomFieldsRepository.findAllByUser(userId, "Job", false);
+		for (CustomFieldsEntity customView : selectedCustomView) {
+			if (customView.isSelected() == true) {
+				customView.setSelected(false);
+				jobCustomFieldsRepository.save(customView);
+			}
+		}
+		Optional<CustomFieldsEntity> customFieldsEntity = jobCustomFieldsRepository.findById(id);
+		customFieldsEntity.get().setSelected(true);
+		jobCustomFieldsRepository.save(customFieldsEntity.get());
+
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
+
 	}
 
 }

@@ -20,15 +20,18 @@ public class JobListingDataDTO {
 	private JsonNode jobSubmissionData;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
+	private String createdByName;
+	private String updatedByName;
+	private Long createdBy;
+	private Long updatedBy;
 
 	public JobListingDataDTO(JobEntity jobEntity) {
 		this.id = jobEntity.getId();
 		this.jobSubmissionData = jobEntity.getJobSubmissionData();
 		this.createdAt = jobEntity.getCreatedAt();
 		this.updatedAt = jobEntity.getUpdatedAt();
-
+		this.createdBy = jobEntity.getCreatedBy();
+		this.updatedBy = jobEntity.getUpdatedBy();
 	}
 
-	private String createdByName;
-	private String updatedByName;
 }
