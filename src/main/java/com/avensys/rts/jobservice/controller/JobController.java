@@ -83,9 +83,7 @@ public class JobController {
 			Long userId = jwtUtil.getUserId(token);
 			jobRequest.setCreatedBy(userId);
 			jobRequest.setUpdatedBy(userId);
-
-			jobService.save(jobRequest);
-			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
+			return ResponseUtil.generateSuccessResponse(jobService.save(jobRequest), HttpStatus.CREATED,
 					messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
@@ -336,53 +334,56 @@ public class JobController {
 		return ResponseUtil.generateSuccessResponse(jobService.getJobByIdDataAll(jobId), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-	
+
 	/*
-     * save all the fields in the custom view
-     */
-    @PostMapping("/save/customfields")
-    public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO,@RequestHeader(name = "Authorization") String token) {
-    	LOG.info("Save Job customFields: Controller");
-    	try {
-    		Long userId = jwtUtil.getUserId(token);
-    		customFieldsRequestDTO.setCreatedBy(userId);
-    		customFieldsRequestDTO.setUpdatedBy(userId);
-    		 CustomFieldsResponseDTO customFieldsResponseDTO = jobService.saveCustomFields(customFieldsRequestDTO);
-    	        return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED, messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
+	 * save all the fields in the custom view
+	 */
+	@PostMapping("/save/customfields")
+	public ResponseEntity<Object> saveCustomFields(@Valid @RequestBody CustomFieldsRequestDTO customFieldsRequestDTO,
+			@RequestHeader(name = "Authorization") String token) {
+		LOG.info("Save Job customFields: Controller");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			customFieldsRequestDTO.setCreatedBy(userId);
+			customFieldsRequestDTO.setUpdatedBy(userId);
+			CustomFieldsResponseDTO customFieldsResponseDTO = jobService.saveCustomFields(customFieldsRequestDTO);
+			return ResponseUtil.generateSuccessResponse(customFieldsResponseDTO, HttpStatus.CREATED,
+					messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
 		}
-       
-    }
-    
-    @GetMapping("/customView/all")
+
+	}
+
+	@GetMapping("/customView/all")
 	public ResponseEntity<Object> getAllCreatedCustomViews(@RequestHeader(name = "Authorization") String token) {
 		LOG.info("Job get all custom views: Controller");
 		Long userId = jwtUtil.getUserId(token);
 		return ResponseUtil.generateSuccessResponse(jobService.getAllCreatedCustomViews(userId), HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
-    
-    @PutMapping("/customView/update/{id}")
-	public ResponseEntity<Object> updateCustomView(@PathVariable Long id,@RequestHeader(name = "Authorization") String token) {
-    	LOG.info("Job custom view update: Controller");
-    	try {
-    		Long userId = jwtUtil.getUserId(token);
-    		CustomFieldsResponseDTO response = jobService.updateCustomView(id,userId);
-    		return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK,
-    				messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
+
+	@PutMapping("/customView/update/{id}")
+	public ResponseEntity<Object> updateCustomView(@PathVariable Long id,
+			@RequestHeader(name = "Authorization") String token) {
+		LOG.info("Job custom view update: Controller");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			CustomFieldsResponseDTO response = jobService.updateCustomView(id, userId);
+			return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK, messageSource
+					.getMessage(MessageConstants.JOB_CUSTOM_VIEW_UPDATED, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
 		}
-    	
+
 	}
-    
-    @DeleteMapping("/customView/delete/{id}")
+
+	@DeleteMapping("/customView/delete/{id}")
 	public ResponseEntity<?> softDeleteCustomView(@PathVariable Long id) {
 		try {
 			jobService.softDelete(id);
-			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
-					messageSource.getMessage(MessageConstants.JOB_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource
+					.getMessage(MessageConstants.JOB_CUSTOM_VIEW_DELETED, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
 		}
@@ -405,6 +406,41 @@ public class JobController {
 		jobRequest.setUpdatedBy(jobEntity.getUpdatedBy());
 		jobRequest.setClone(true);
 		return jobRequest;
+	}
+
+	/**
+	 * Get job embedding by id and type (default or openAI)
+	 * 
+	 * @param jobId
+	 * @param type
+	 * @return
+	 */
+	@GetMapping("/{jobId}/embeddings/get/{type}")
+	public ResponseEntity<Object> getEmbeddingsById(@PathVariable Long jobId, @PathVariable String type) {
+		LOG.info("Get embeddings by id: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.getJobEmbeddingsById(jobId, type), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	/**
+	 * Update/create embeddings by id
+	 * 
+	 * @param jobId
+	 * @return
+	 */
+	@GetMapping("/{jobId}/embeddings/create")
+	public ResponseEntity<Object> updateEmbeddingsById(@PathVariable Long jobId) {
+		LOG.info("Create/Update embeddings by id: Controller");
+		return ResponseUtil.generateSuccessResponse(jobService.updateJobEmbeddings(jobId), HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
+	@GetMapping("create-embeddings/all")
+	public ResponseEntity<Object> updateAllEmbeddings() {
+		LOG.info("Create/Update all embeddings: Controller");
+		jobService.updateJobEmbeddingsAll();
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
 }

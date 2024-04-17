@@ -11,6 +11,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.avensys.rts.jobservice.apiclient.EmbeddingAPIClient;
+import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
+import com.avensys.rts.jobservice.payload.EmbeddingRequestDTO;
+import com.avensys.rts.jobservice.response.*;
+import com.avensys.rts.jobservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +47,6 @@ import com.avensys.rts.jobservice.response.JobListingDataDTO;
 import com.avensys.rts.jobservice.response.JobListingResponseDTO;
 import com.avensys.rts.jobservice.response.UserResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
-import com.avensys.rts.jobservice.util.MappingUtil;
-import com.avensys.rts.jobservice.util.StringUtil;
-import com.avensys.rts.jobservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
@@ -81,6 +83,9 @@ public class JobService {
 
 	@Autowired
 	private UserUtil userUtil;
+
+	@Autowired
+	private EmbeddingAPIClient embeddingAPIClient;
 
 	public JobService(JobRepository jobRepository, FormSubmissionAPIClient formSubmissionAPIClient,
 			UserAPIClient userAPIClient) {
@@ -512,6 +517,53 @@ public class JobService {
 		return jobListingDataDTO;
 	}
 
+	/**
+	 * This method is used to update/create job embeddings
+	 * 
+	 * @param jobId
+	 * @return
+	 */
+	public HashMap<String, Object> updateJobEmbeddings(Long jobId) {
+		HashMap<String, Object> jobHashMapData = getJobByIdDataAll(jobId);
+
+		// Convert HashMap to JSON String
+		JsonNode candidateDataJsonNode = MappingUtil.convertHashMapToJsonNode(jobHashMapData);
+		String jobDetails = JobDataExtractionUtil.extractJobInfo(candidateDataJsonNode);
+
+		EmbeddingRequestDTO embeddingRequestDTO = new EmbeddingRequestDTO();
+		embeddingRequestDTO.setText(TextProcessingUtil.removeStopWords(jobDetails));
+
+		HttpResponse jobEmbeddingResponse = embeddingAPIClient.getEmbeddingSinglePy(embeddingRequestDTO);
+		EmbeddingResponseDTO jobEmbeddingData = MappingUtil.mapClientBodyToClass(jobEmbeddingResponse.getData(),
+				EmbeddingResponseDTO.class);
+
+		// Update the candidate with the embedding
+		jobRepository.updateVector(jobId, "job_embeddings", jobEmbeddingData.getEmbedding());
+
+		return jobHashMapData;
+	}
+
+	/**
+	 * Get job embeddings by id and type (default or openai)
+	 * 
+	 * @param jobId
+	 * @param type
+	 * @return
+	 */
+	public EmbeddingResponseDTO getJobEmbeddingsById(Long jobId, String type) {
+		List<Float> jobEmbeddings = new ArrayList<>();
+		if (type.equals("default")) {
+			jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings")
+					.orElseThrow(() -> new RuntimeException("Job Embeddings not found"));
+		} else {
+			jobEmbeddings = jobRepository.getEmbeddingsById(jobId, "job_embeddings_openai")
+					.orElseThrow(() -> new RuntimeException("Job Embeddings not found"));
+		}
+		EmbeddingResponseDTO embeddingResponseDTO = new EmbeddingResponseDTO();
+		embeddingResponseDTO.setEmbedding(jobEmbeddings);
+		return embeddingResponseDTO;
+	}
+
 	public List<CustomFieldsEntity> getAllCreatedCustomViews(Long userId) {
 		List<CustomFieldsEntity> customfields = jobCustomFieldsRepository.findAllByUser(userId, "Job", false);
 		return customfields;
@@ -590,6 +642,32 @@ public class JobService {
 		jobCustomFieldsRepository.save(customFieldsEntity.get());
 
 		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity.get());
+
+	}
+
+	public void updateJobEmbeddingsAll() {
+		List<JobEntity> jobs = jobRepository.findAllByEmbeddingIsNull();
+		if (jobs != null && !jobs.isEmpty()) {
+			System.out.println("Total jobs to update: " + jobs.size());
+			int count = 0;
+			int passedCount = 0;
+			int failedCount = 0;
+			for (JobEntity job : jobs) {
+				try {
+					updateJobEmbeddings(job.getId());
+					passedCount++;
+				} catch (Exception e) {
+					e.printStackTrace();
+					failedCount++;
+				}
+				count++;
+				System.out.println("Updated: " + count + " jobs");
+			}
+			System.out.println("All jobs updated...");
+			System.out.println("Total jobs: " + jobs.size());
+			System.out.println("Total passed: " + passedCount);
+			System.out.println("Total failed: " + failedCount);
+		}
 
 	}
 

@@ -1,9 +1,12 @@
 package com.avensys.rts.jobservice.repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.hibernate.query.NativeQuery;
 import org.springframework.data.domain.Page;
@@ -16,6 +19,7 @@ import com.avensys.rts.jobservice.entity.JobEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class CustomJobRepositoryImpl implements CustomJobRepository {
@@ -821,6 +825,81 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			queryString = queryString.replace("{1}", "");
 		}
 		return queryString;
+	}
+
+	@Override
+	public void insertVector(Long jobId, String columnName, List<Float> vector) {
+		// Convert your List<Float> to the format expected by the database for the vector type
+		String vectorString = vector.stream()
+				.map(Object::toString)
+				.collect(Collectors.joining(",", "[", "]")); // Note the change to square brackets
+
+		// Prepare your SQL query, ensuring the casting and formatting align with your database's requirements
+		String sql = "INSERT INTO job (id, :columnName) VALUES (:id, CAST(:vectorText AS vector))"; // Adjust as necessary
+
+		// Execute the native query with parameters, ensuring the correct format is applied
+		entityManager.createNativeQuery(sql)
+				.setParameter("id", jobId)
+				.setParameter("columnName", columnName)
+				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
+				.executeUpdate();
+	}
+
+	@Override
+	@Transactional
+	public void updateVector(Long jobId, String columnName, List<Float> vector) {
+		// Convert your List<Float> to the format expected by the database for the vector type
+		String vectorString = vector.stream()
+				.map(Object::toString)
+				.collect(Collectors.joining(",", "[", "]")); // Note the change to square brackets
+
+		// Prepare your SQL query, ensuring the casting and formatting align with your database's requirements
+		// Note the change to the SQL statement for updating instead of inserting
+		String sql = "UPDATE job SET " + columnName + " = CAST(:vectorText AS vector) WHERE id = :id";
+
+		// Execute the native query with parameters, ensuring the correct format is applied
+		entityManager.createNativeQuery(sql)
+				.setParameter("id", jobId)
+				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
+				.executeUpdate();
+	}
+
+	@Override
+	public Optional<List<Float>> getEmbeddingsById(Long jobId, String columnName) {
+		// Prepare your SQL query to retrieve the vector from the database
+		String sql = "SELECT " + columnName + " FROM job WHERE id = :id";
+
+		// Execute the native query with the job ID parameter
+		Object result = entityManager.createNativeQuery(sql)
+				.setParameter("id", jobId)
+				.getSingleResult();
+
+		// If the result is null, return an empty Optional
+		if (result == null) {
+			return Optional.empty();
+		}
+
+		// Convert the result to a String, assuming it's not null here
+		String vectorString = result.toString();
+		// If the vector string is null or empty, return an empty Optional
+		if (vectorString == null || vectorString.isEmpty()) {
+			return Optional.empty();
+		}
+
+		// Remove the brackets, split by commas, and convert each element to Float
+		List<Float> vector = Arrays.stream(vectorString.replace("[", "").replace("]", "").split(","))
+				.map(Float::valueOf)
+				.collect(Collectors.toList());
+
+		// Wrap the list in an Optional and return
+		return Optional.of(vector);
+	}
+
+	@Override
+	public List<JobEntity> findAllByEmbeddingIsNull() {
+		String queryString = "SELECT * FROM job WHERE job_embeddings IS NULL";
+		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
+		return query.getResultList();
 	}
 
 }
