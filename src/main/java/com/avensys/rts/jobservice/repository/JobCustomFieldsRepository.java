@@ -20,8 +20,8 @@ public interface JobCustomFieldsRepository extends JpaRepository<CustomFieldsEnt
 	    List<CustomFieldsEntity> findAllByUser(Long userId,String type,boolean isDeleted);
 	  
 	  //for checkeing is there is any isSelected true.
-	    @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.type = ?2")
-	    CustomFieldsEntity findByUserAndType(Long userId,String type);
+	   // @Query(value = "SELECT c FROM customView c WHERE c.createdBy = ?1 AND c.type = ?2")
+	   // CustomFieldsEntity findByUserAndType(Long userId,String type);
 	    
 	    @Query(value = "SELECT c FROM customView c WHERE c.id = ?1")
 	    Optional<CustomFieldsEntity> findById(Long id);
