@@ -435,7 +435,7 @@ public class JobController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
-	@GetMapping("embeddings/create/all")
+	@GetMapping("create-embeddings/all")
 	public ResponseEntity<Object> updateAllEmbeddings() {
 		LOG.info("Create/Update all embeddings: Controller");
 		jobService.updateJobEmbeddingsAll();
