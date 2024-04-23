@@ -2,6 +2,7 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.payload.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +29,6 @@ import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.enums.Permission;
 import com.avensys.rts.jobservice.exception.ServiceException;
-import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
-import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
-import com.avensys.rts.jobservice.payload.JobRecruiterFODRequest;
-import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
 import com.avensys.rts.jobservice.service.JobRecruiterFODService;
 import com.avensys.rts.jobservice.service.JobService;
@@ -442,5 +439,14 @@ public class JobController {
 		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
+
+	@PostMapping("/listing/delete")
+	public ResponseEntity<Object> deleteJobListing(@RequestBody JobListingDeleteRequestDTO jobListingDeleteRequestDTO) {
+		LOG.info("Job listing delete: Controller");
+		jobService.softDeleteJobs(jobListingDeleteRequestDTO);
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 
 }

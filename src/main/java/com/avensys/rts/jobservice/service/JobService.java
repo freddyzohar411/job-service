@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 import com.avensys.rts.jobservice.apiclient.EmbeddingAPIClient;
 import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
-import com.avensys.rts.jobservice.payload.EmbeddingRequestDTO;
+import com.avensys.rts.jobservice.payload.*;
 import com.avensys.rts.jobservice.response.*;
 import com.avensys.rts.jobservice.util.*;
 import org.slf4j.Logger;
@@ -34,10 +34,6 @@ import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.model.FieldInformation;
 import com.avensys.rts.jobservice.model.JobExtraData;
-import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
-import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
-import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
-import com.avensys.rts.jobservice.payload.JobRequest;
 import com.avensys.rts.jobservice.repository.JobCustomFieldsRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
 import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
@@ -669,6 +665,25 @@ public class JobService {
 			System.out.println("Total failed: " + failedCount);
 		}
 
+	}
+
+	public void softDeleteJobs(JobListingDeleteRequestDTO jobListingDeleteRequestDTO) {
+
+		if (jobListingDeleteRequestDTO.getJobIds().isEmpty()) {
+			throw new RuntimeException("No job selected");
+		}
+		List<JobEntity> jobEntities = jobRepository
+				.findAllByIdsAndDraftAndDeleted(jobListingDeleteRequestDTO.getJobIds(), false, false, true);
+
+		if (jobEntities.isEmpty()) {
+			throw new RuntimeException("No job found");
+		}
+
+		for (JobEntity jobEntity : jobEntities) {
+			jobEntity.setIsDeleted(true);
+		}
+
+		jobRepository.saveAll(jobEntities);
 	}
 
 }
