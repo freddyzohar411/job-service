@@ -41,16 +41,24 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 				? pageable.getSort().get().findFirst().get().getDirection().name()
 				: "ASC";
 
+		// User Condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = "AND created_by IN (:userIds)";
+		}
+
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND job_id = :jobId ORDER BY %s %s NULLS LAST",
-				orderByClause, sortDirection);
+				"SELECT * FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive %s AND job_id = :jobId ORDER BY %s %s NULLS LAST",
+				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setParameter("jobId", jobId);
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
@@ -59,13 +67,17 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		List<JobTimelineEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND job_id = :jobId";
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive %s AND job_id = :jobId",
+				userCondition);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		countQuery.setParameter("jobId", jobId);
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
@@ -88,6 +100,12 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			orderByClause = String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER)", jsonColumnName, jsonKey);
 		}
 
+		// User Condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = "AND created_by IN (:userIds)";
+		}
+
 		// Extract sort direction from pageable
 		String sortDirection = pageable.getSort().isSorted()
 				? pageable.getSort().get().findFirst().get().getDirection().name()
@@ -95,14 +113,16 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND job_id = :jobId ORDER BY %s %s NULLS LAST",
-				orderByClause, sortDirection);
+				"SELECT * FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive %s AND job_id = :jobId ORDER BY %s %s NULLS LAST",
+				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setParameter("jobId", jobId);
 		query.setFirstResult((int) pageable.getOffset());
 		query.setMaxResults(pageable.getPageSize());
@@ -111,13 +131,17 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		List<JobTimelineEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive AND created_by IN (:userIds) AND job_id = :jobId";
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive %s AND job_id = :jobId",
+				userCondition);
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		countQuery.setParameter("jobId", jobId);
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
 
@@ -158,16 +182,24 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			searchConditions.delete(0, 4);
 		}
 
+		// User Condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = "AND job_timeline.created_by IN (:userIds)";
+		}
+
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive AND job_timeline.created_by IN (:userIds) AND job_timeline.job_id = :jobId AND (%s) ORDER BY %s %s NULLS LAST",
-				searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId AND (%s) ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setParameter("jobId", jobId);
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
 		query.setFirstResult((int) pageable.getOffset());
@@ -178,14 +210,16 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive AND job_timeline.created_by IN (:userIds) AND job_timeline.job_id = :jobId AND (%s)",
-				searchConditions.toString());
+				"SELECT COUNT(*) FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId AND (%s)",
+				userCondition, searchConditions.toString());
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		countQuery.setParameter("jobId", jobId);
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
@@ -235,16 +269,24 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			searchConditions.delete(0, 4);
 		}
 
+		// User Condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = "AND job_timeline.created_by IN (:userIds)";
+		}
+
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive AND job_timeline.created_by IN (:userIds) AND job_timeline.job_id = :jobId AND (%s) ORDER BY %s %s NULLS LAST",
-				searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId AND (%s) ORDER BY %s %s NULLS LAST",
+				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		query.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
 		query.setParameter("jobId", jobId);
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
 		query.setFirstResult((int) pageable.getOffset());
@@ -255,14 +297,16 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive AND job_timeline.created_by IN (:userIds) AND job_timeline.job_id = :jobId AND (%s)",
-				searchConditions.toString());
+				"SELECT COUNT(*) FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId AND (%s)",
+				userCondition, searchConditions.toString());
 
 		// Create and execute the count query
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		countQuery.setParameter("userIds", userIds);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
 		countQuery.setParameter("jobId", jobId);
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();

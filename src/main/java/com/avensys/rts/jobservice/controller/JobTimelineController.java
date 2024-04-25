@@ -25,6 +25,7 @@ import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.service.JobTimelineService;
 import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.ResponseUtil;
+import com.avensys.rts.jobservice.util.UserUtil;
 
 /**
  * @author Rahul Sahu This class used to get/save/update/delete job timeline
@@ -45,6 +46,9 @@ public class JobTimelineController {
 	@Autowired
 	private MessageSource messageSource;
 
+	@Autowired
+	private UserUtil userUtil;
+
 	@RequiresAllPermissions({ Permission.JOB_READ })
 	@PostMapping("/listing")
 	public ResponseEntity<Object> getJobListing(@RequestBody JobListingRequestDTO jobListingRequestDTO,
@@ -56,16 +60,18 @@ public class JobTimelineController {
 		String sortBy = jobListingRequestDTO.getSortBy();
 		String sortDirection = jobListingRequestDTO.getSortDirection();
 		String searchTerm = jobListingRequestDTO.getSearchTerm();
+		Boolean isAdmin = userUtil.checkIsAdmin();
 		List<String> searchFields = jobListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
-					jobTimelineService.getJobTimelineListingPage(page, pageSize, sortBy, sortDirection, userId, jobId),
+					jobTimelineService.getJobTimelineListingPage(page, pageSize, sortBy, sortDirection, userId, jobId,
+							isAdmin),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} else {
 			return ResponseUtil.generateSuccessResponse(
 					jobTimelineService.getJobTimelineListingPageWithSearch(page, pageSize, sortBy, sortDirection,
-							searchTerm, searchFields, userId, jobId),
+							searchTerm, searchFields, userId, jobId, isAdmin),
 					HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		}
@@ -74,7 +80,8 @@ public class JobTimelineController {
 	@GetMapping("/jobtimelinecount/{jobId}")
 	public ResponseEntity<?> jobTimelineCount(@PathVariable Long jobId) {
 		try {
-			List<Map<String, Long>> response = jobTimelineService.getJobTimelineCount(jobId);
+			Boolean isAdmin = userUtil.checkIsAdmin();
+			List<Map<String, Long>> response = jobTimelineService.getJobTimelineCount(jobId, isAdmin);
 			return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK, null);
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());

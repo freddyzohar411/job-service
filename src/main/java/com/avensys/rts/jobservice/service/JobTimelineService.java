@@ -1,5 +1,6 @@
 package com.avensys.rts.jobservice.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public class JobTimelineService {
 	private MessageSource messageSource;
 
 	public JobTimelineResponseDTO getJobTimelineListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Long userId, Long jobId) {
+			String sortDirection, Long userId, Long jobId, Boolean isAdmin) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -53,24 +54,32 @@ public class JobTimelineService {
 			sortBy = "updated_at";
 			direction = Sort.Direction.DESC;
 		}
+
+		// User condition
+		List<Long> userIds = new ArrayList<>();
+		if (!isAdmin) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
+
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
 		Page<JobTimelineEntity> jobEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			jobEntitiesPage = jobTimelineRepository.findAllByOrderByNumericWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, true, pageRequest, userId, jobId);
+			jobEntitiesPage = jobTimelineRepository.findAllByOrderByNumericWithUserIds(userIds, false, true,
+					pageRequest, userId, jobId);
 		} catch (Exception e) {
 			e.printStackTrace();
-			jobEntitiesPage = jobTimelineRepository.findAllByOrderByStringWithUserIds(userUtil.getUsersIdUnderManager(),
-					false, true, pageRequest, userId, jobId);
+			jobEntitiesPage = jobTimelineRepository.findAllByOrderByStringWithUserIds(userIds, false, true, pageRequest,
+					userId, jobId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
 	}
 
 	public JobTimelineResponseDTO getJobTimelineListingPageWithSearch(Integer page, Integer size, String sortBy,
-			String sortDirection, String searchTerm, List<String> searchFields, Long userId, Long jobId) {
+			String sortDirection, String searchTerm, List<String> searchFields, Long userId, Long jobId,
+			Boolean isAdmin) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -84,27 +93,41 @@ public class JobTimelineService {
 
 		Page<JobTimelineEntity> JobTimelineEntityPage = null;
 		// Try with numeric first else try with string (jsonb)
+
+		// User condition
+		List<Long> userIds = new ArrayList<>();
+		if (!isAdmin) {
+			userIds = userUtil.getUsersIdUnderManager();
+		}
+
 		try {
-			JobTimelineEntityPage = jobTimelineRepository.findAllByOrderByAndSearchNumericWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, true, pageRequest, searchFields, searchTerm, userId,
-					jobId);
+			JobTimelineEntityPage = jobTimelineRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false,
+					true, pageRequest, searchFields, searchTerm, userId, jobId);
 		} catch (Exception e) {
-			JobTimelineEntityPage = jobTimelineRepository.findAllByOrderByAndSearchStringWithUserIds(
-					userUtil.getUsersIdUnderManager(), false, true, pageRequest, searchFields, searchTerm, userId,
-					jobId);
+			JobTimelineEntityPage = jobTimelineRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false,
+					true, pageRequest, searchFields, searchTerm, userId, jobId);
 		}
 
 		return pageJobListingToJobListingResponseDTO(JobTimelineEntityPage);
 	}
 
 	@Transactional
-	public List<Map<String, Long>> getJobTimelineCount(Long jobId) throws ServiceException {
+	public List<Map<String, Long>> getJobTimelineCount(Long jobId, Boolean isAdmin) throws ServiceException {
 		if (jobId == null) {
 			throw new ServiceException(messageSource.getMessage("error.provide.id", new Object[] { jobId },
 					LocaleContextHolder.getLocale()));
 		}
 
-		List<Map<String, Long>> data = jobTimelineRepository.findJobTimelineCount(jobId);
+		List<Map<String, Long>> data = null;
+
+		// User condition
+		List<Long> userIds = new ArrayList<>();
+		if (!isAdmin) {
+			userIds = userUtil.getUsersIdUnderManager();
+			data = jobTimelineRepository.findJobTimelineCount(jobId, userIds);
+		} else {
+			data = jobTimelineRepository.findJobTimelineCountAdmin(jobId);
+		}
 
 		if (data != null) {
 			try {
