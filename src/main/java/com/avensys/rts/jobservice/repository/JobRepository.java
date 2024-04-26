@@ -40,4 +40,7 @@ public interface JobRepository
 	@Query(value = "SELECT a FROM job a WHERE a.isDraft= ?1 AND a.isDeleted = ?2 AND a.isActive = ?3")
 	List<JobEntity> findAllByIsDraftAndIsDeletedAndIsActive(boolean isDraft, boolean isDeleted, boolean isActive);
 
+	@Query(value = "SELECT j FROM job j WHERE j.id IN (?1) AND j.isDraft = ?2 AND j.isDeleted = ?3 AND j.isActive = ?4")
+	List<JobEntity> findAllByIdsAndDraftAndDeleted(List<Long> jobIds, boolean draft, boolean isDeleted, boolean isActive);
+
 }

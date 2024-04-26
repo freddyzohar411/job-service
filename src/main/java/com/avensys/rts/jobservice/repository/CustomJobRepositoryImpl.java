@@ -897,7 +897,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 	@Override
 	public List<JobEntity> findAllByEmbeddingIsNull() {
-		String queryString = "SELECT * FROM job WHERE job_embeddings IS NULL";
+		String queryString = "SELECT * FROM job WHERE job_embeddings IS NULL AND is_deleted = false AND is_draft = false AND is_active = true";
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		return query.getResultList();
 	}
