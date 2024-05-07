@@ -153,7 +153,7 @@ public class JobService {
 		}
 		Optional<JobEntity> jobOptional = jobRepository.findById(tosRequestDTO.getJobId());
 		entity.setJobEnity(jobOptional.get());
-		Optional<CandidateEntity> candidateOptional = candidateRepository.findById(tosRequestDTO.getJobId());
+		Optional<CandidateEntity> candidateOptional = candidateRepository.findById(tosRequestDTO.getCandidateId());
 		entity.setCandidate(candidateOptional.get());
 		Optional<UserEntity> sellerOptional = userRepository.findById(tosRequestDTO.getSalesUserId());
 		entity.setSeller(sellerOptional.get());
