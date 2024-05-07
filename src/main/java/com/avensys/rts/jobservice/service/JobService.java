@@ -11,11 +11,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.avensys.rts.jobservice.apiclient.EmbeddingAPIClient;
-import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
-import com.avensys.rts.jobservice.payload.*;
-import com.avensys.rts.jobservice.response.*;
-import com.avensys.rts.jobservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,22 +22,42 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.avensys.rts.jobservice.apiclient.EmbeddingAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.apiclient.UserAPIClient;
+import com.avensys.rts.jobservice.entity.CandidateEntity;
 import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.entity.TosEntity;
+import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.model.FieldInformation;
 import com.avensys.rts.jobservice.model.JobExtraData;
+import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
+import com.avensys.rts.jobservice.payload.EmbeddingRequestDTO;
+import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingDeleteRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
+import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.payload.TosRequestDTO;
+import com.avensys.rts.jobservice.repository.CandidateRepository;
 import com.avensys.rts.jobservice.repository.JobCustomFieldsRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.repository.TosRepository;
+import com.avensys.rts.jobservice.repository.UserRepository;
 import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
+import com.avensys.rts.jobservice.response.EmbeddingResponseDTO;
 import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobListingDataDTO;
 import com.avensys.rts.jobservice.response.JobListingResponseDTO;
 import com.avensys.rts.jobservice.response.UserResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
+import com.avensys.rts.jobservice.util.JobDataExtractionUtil;
+import com.avensys.rts.jobservice.util.MappingUtil;
+import com.avensys.rts.jobservice.util.StringUtil;
+import com.avensys.rts.jobservice.util.TextProcessingUtil;
+import com.avensys.rts.jobservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
@@ -61,9 +76,19 @@ public class JobService {
 	private static final Logger LOG = LoggerFactory.getLogger(JobService.class);
 	private static final String JOB_TYPE = "job";
 	private static final String JOB_DOCUMENT = "job_document";
+	private static final String TOS_TYPE = "tos";
 
 	@Autowired
 	private MessageSource messageSource;
+
+	@Autowired
+	private CandidateRepository candidateRepository;
+
+	// @Autowired
+	// private AccountRepository accountRepository;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	@Autowired
 	private JobRepository jobRepository;
@@ -73,6 +98,9 @@ public class JobService {
 
 	@Autowired
 	private JobCustomFieldsRepository jobCustomFieldsRepository;
+
+	@Autowired
+	private TosRepository tosRepository;
 
 	@Autowired
 	private UserAPIClient userAPIClient;
@@ -107,6 +135,32 @@ public class JobService {
 		entity.setUpdatedBy(jobRequest.getUpdatedBy());
 		entity.setFormId(jobRequest.getFormId());
 		entity.setIsDraft(jobRequest.getIsDraft());
+		entity.setIsActive(true);
+		entity.setIsDeleted(false);
+		return entity;
+	}
+
+	/**
+	 * This method is used to convert TosRequest to TosEntity
+	 * 
+	 * @param tosRequestDTO
+	 * @return
+	 */
+	private TosEntity mapTosRequestToTosEntity(TosRequestDTO tosRequestDTO) {
+		TosEntity entity = new TosEntity();
+		if (tosRequestDTO.getId() != null) {
+			entity.setId(tosRequestDTO.getId());
+		}
+		Optional<JobEntity> jobOptional = jobRepository.findById(tosRequestDTO.getJobId());
+		entity.setJobEnity(jobOptional.get());
+		Optional<CandidateEntity> candidateOptional = candidateRepository.findById(tosRequestDTO.getJobId());
+		entity.setCandidate(candidateOptional.get());
+		Optional<UserEntity> sellerOptional = userRepository.findById(tosRequestDTO.getSalesUserId());
+		entity.setSeller(sellerOptional.get());
+		entity.setCreatedBy(tosRequestDTO.getCreatedBy());
+		entity.setStatus(tosRequestDTO.getStatus());
+		entity.setUpdatedBy(tosRequestDTO.getUpdatedBy());
+		entity.setFormId(tosRequestDTO.getFormId());
 		entity.setIsActive(true);
 		entity.setIsDeleted(false);
 		return entity;
@@ -156,6 +210,35 @@ public class JobService {
 	}
 
 	/**
+	 * This method is used to save TOS.
+	 * 
+	 * @param tosRequestDTO
+	 * @return
+	 */
+	@Transactional
+	public TosEntity saveTos(TosRequestDTO tosRequestDTO) throws ServiceException {
+
+		TosEntity tosEntity = mapTosRequestToTosEntity(tosRequestDTO);
+
+		tosEntity = tosRepository.save(tosEntity);
+		FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+		formSubmissionsRequestDTO.setUserId(tosRequestDTO.getCreatedBy());
+		formSubmissionsRequestDTO.setFormId(tosRequestDTO.getFormId());
+		formSubmissionsRequestDTO.setEntityId(tosRequestDTO.getId());
+		formSubmissionsRequestDTO.setEntityType(TOS_TYPE);
+		HttpResponse formSubmissionResponse = formSubmissionAPIClient.addFormSubmission(formSubmissionsRequestDTO);
+		FormSubmissionsResponseDTO formSubmissionData = MappingUtil
+				.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
+
+		tosEntity.setTosSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+		tosEntity.setFormSubmissionId(formSubmissionData.getId());
+
+		tosRepository.save(tosEntity);
+
+		return tosEntity;
+	}
+
+	/**
 	 * This method is used to update a job
 	 * 
 	 * @param id
@@ -192,6 +275,31 @@ public class JobService {
 	}
 
 	/**
+	 * This method is used to update the TOS.
+	 * 
+	 * @param tosRequestDTO
+	 * @throws ServiceException
+	 */
+	public void updateTos(TosRequestDTO tosRequestDTO) throws ServiceException {
+		LOG.info("Tos updated : Service");
+		TosEntity tosEntity = getByTosId(tosRequestDTO.getId());
+		tosEntity.setStatus(tosRequestDTO.getStatus());
+		tosEntity.setUpdatedBy(tosRequestDTO.getUpdatedBy());
+		tosEntity.setIsActive(true);
+		tosEntity.setIsDeleted(false);
+		tosRepository.save(tosEntity);
+
+		FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+		formSubmissionsRequestDTO.setUserId(tosRequestDTO.getUpdatedBy());
+		formSubmissionsRequestDTO.setFormId(tosRequestDTO.getFormId());
+		formSubmissionsRequestDTO.setEntityId(tosRequestDTO.getId());
+		formSubmissionsRequestDTO.setEntityType(TOS_TYPE);
+
+		formSubmissionAPIClient.updateFormSubmission(tosEntity.getFormSubmissionId().intValue(),
+				formSubmissionsRequestDTO);
+	}
+
+	/**
 	 * This method is used to retrieve a job Information
 	 * 
 	 * @param id
@@ -213,6 +321,28 @@ public class JobService {
 	}
 
 	/**
+	 * This method is used to retrieve a TOS Information
+	 * 
+	 * @param id
+	 * @return
+	 * @throws ServiceException
+	 */
+	public TosEntity getByTosId(Long id) throws ServiceException {
+		if (id == null) {
+			throw new ServiceException(
+					messageSource.getMessage("error.provide.id", new Object[] { id }, LocaleContextHolder.getLocale()));
+		}
+
+		Optional<TosEntity> permission = tosRepository.findById(id);
+		if (permission.isPresent() && !permission.get().getIsDeleted()) {
+			return permission.get();
+		} else {
+			throw new ServiceException(messageSource.getMessage("error.tosnotfound", new Object[] { id },
+					LocaleContextHolder.getLocale()));
+		}
+	}
+
+	/**
 	 * This method is used to Delete a job
 	 * 
 	 * @param id
@@ -221,6 +351,18 @@ public class JobService {
 		JobEntity dbJob = getById(id);
 		dbJob.setIsDeleted(true);
 		jobRepository.save(dbJob);
+	}
+
+	/**
+	 * This method is used to Delete a TOS
+	 * 
+	 * @param id
+	 * @throws ServiceException
+	 */
+	public void deleteTos(Long id) throws ServiceException {
+		TosEntity tos = getByTosId(id);
+		tos.setIsDeleted(true);
+		tosRepository.save(tos);
 	}
 
 	public void softDelete(Long id) throws ServiceException {
