@@ -26,9 +26,9 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
-				: "updated_at";
+				: "job_timeline.updated_at";
 		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
-				: "updated_at";
+				: "job_timeline.updated_at";
 		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
 			String[] parts = sortBy.split("\\.");
 			String jsonColumnName = parts[0];
@@ -44,7 +44,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		// User Condition
 		String userCondition = "";
 		if (!userIds.isEmpty()) {
-			userCondition = "AND created_by IN (:userIds)";
+			userCondition = "AND job_timeline.created_by IN (:userIds)";
 		}
 
 		// Build the complete query string with user filter and excluding NULLs
@@ -90,9 +90,9 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			Boolean isActive, Pageable pageable, Long userId, Long jobId) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
-				: "updated_at";
+				: "job_timeline.updated_at";
 		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
-				: "updated_at";
+				: "job_timeline.updated_at";
 		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
 			String[] parts = sortBy.split("\\.");
 			String jsonColumnName = parts[0];
@@ -103,7 +103,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		// User Condition
 		String userCondition = "";
 		if (!userIds.isEmpty()) {
-			userCondition = "AND created_by IN (:userIds)";
+			userCondition = "AND job_timeline.created_by IN (:userIds)";
 		}
 
 		// Extract sort direction from pageable
@@ -234,7 +234,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			Long jobId) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
-				: "updated_at";
+				: "job_timeline.updated_at";
 		String orderByClause;
 		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
 			String[] parts = sortBy.split("\\.");
