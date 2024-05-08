@@ -33,7 +33,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			String[] parts = sortBy.split("\\.");
 			String jsonColumnName = parts[0];
 			String jsonKey = parts[1];
-			orderByClause = String.format("(%s->>'%s')", jsonColumnName, jsonKey);
+			orderByClause = String.format("%s.%s", jsonColumnName, jsonKey);
 		}
 
 		// Extract sort direction from pageable
@@ -49,7 +49,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive %s AND job_id = :jobId ORDER BY %s %s NULLS LAST",
+				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId ORDER BY %s %s NULLS LAST",
 				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -68,7 +68,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive %s AND job_id = :jobId",
+				"SELECT COUNT(*) FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId",
 				userCondition);
 
 		// Create and execute the count query
@@ -97,7 +97,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			String[] parts = sortBy.split("\\.");
 			String jsonColumnName = parts[0];
 			String jsonKey = parts[1];
-			orderByClause = String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER)", jsonColumnName, jsonKey);
+			orderByClause = String.format("CAST(NULLIF(%s.%s, '') AS INTEGER)", jsonColumnName, jsonKey);
 		}
 
 		// User Condition
@@ -113,7 +113,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive %s AND job_id = :jobId ORDER BY %s %s NULLS LAST",
+				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId ORDER BY %s %s NULLS LAST",
 				userCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -132,7 +132,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job_timeline WHERE is_deleted = :isDeleted AND is_active = :isActive %s AND job_id = :jobId",
+				"SELECT COUNT(*) FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId",
 				userCondition);
 
 		// Create and execute the count query
@@ -240,7 +240,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			String[] parts = sortBy.split("\\.");
 			String jsonColumnName = parts[0];
 			String jsonKey = parts[1];
-			orderByClause = String.format("CAST(NULLIF(%s->>'%s', '') AS INTEGER)", jsonColumnName, jsonKey);
+			orderByClause = String.format("CAST(NULLIF(%s.%s, '') AS INTEGER)", jsonColumnName, jsonKey);
 		} else {
 			orderByClause = sortBy;
 		}
@@ -277,7 +277,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId AND (%s) ORDER BY %s %s NULLS LAST",
 				userCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
