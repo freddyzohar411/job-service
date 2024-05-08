@@ -87,7 +87,7 @@ public class JobTimelineControllerTest {
 	 */
 	@Test
 	void testGetJobListing() throws Exception {
-		when(jobTimelineService.getJobTimelineListingPageWithSearch(new Integer(1),new Integer(1), "updatedAt", "DEFAULT_DIRECTION", "name",searchFields,1L,1L)).thenReturn(jobTimelineResponseDTO);
+		when(jobTimelineService.getJobTimelineListingPageWithSearch(new Integer(1),new Integer(1), "updatedAt", "DEFAULT_DIRECTION", "name",searchFields,1L,1L,true)).thenReturn(jobTimelineResponseDTO);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
 		ObjectWriter writer = mapper.writer().withDefaultPrettyPrinter();
