@@ -405,6 +405,11 @@ public class JobCandidateStageService {
 				jobCandidateStageEntity.setFormSubmissionId(formSubmissionData.getId());
 				jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 			}
+		} else {
+			if (jobCandidateStageRequest.getFormData() != null) {
+				jobCandidateStageEntity.setSubmissionData(
+						MappingUtil.convertJSONStringToJsonNode(jobCandidateStageRequest.getFormData()));
+			}
 		}
 
 		// Send Email
@@ -477,11 +482,13 @@ public class JobCandidateStageService {
 	}
 
 	@Transactional
-	public JobCandidateStageEntity saveWithAttachments(JobCandidateStageWithAttachmentsRequest jobCandidateStageWithAttachmentsRequest) throws ServiceException {
+	public JobCandidateStageEntity saveWithAttachments(
+			JobCandidateStageWithAttachmentsRequest jobCandidateStageWithAttachmentsRequest) throws ServiceException {
 
 		Optional<JobCandidateStageEntity> jobCandidateStageOptional = jobCandidateStageRepository
 				.findByJobAndStageAndCandidate(jobCandidateStageWithAttachmentsRequest.getJobId(),
-						jobCandidateStageWithAttachmentsRequest.getJobStageId(), jobCandidateStageWithAttachmentsRequest.getCandidateId());
+						jobCandidateStageWithAttachmentsRequest.getJobStageId(),
+						jobCandidateStageWithAttachmentsRequest.getCandidateId());
 
 		Optional<JobEntity> jobOptional = jobRepository.findById(jobCandidateStageWithAttachmentsRequest.getJobId());
 
@@ -520,8 +527,8 @@ public class JobCandidateStageService {
 			FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
 			formSubmissionsRequestDTO.setUserId(jobCandidateStageWithAttachmentsRequest.getCreatedBy());
 			formSubmissionsRequestDTO.setFormId(jobCandidateStageWithAttachmentsRequest.getFormId());
-			formSubmissionsRequestDTO
-					.setSubmissionData(MappingUtil.convertJSONStringToJsonNode(jobCandidateStageWithAttachmentsRequest.getFormData()));
+			formSubmissionsRequestDTO.setSubmissionData(
+					MappingUtil.convertJSONStringToJsonNode(jobCandidateStageWithAttachmentsRequest.getFormData()));
 			formSubmissionsRequestDTO.setEntityId(jobCandidateStageEntity.getId());
 			formSubmissionsRequestDTO.setEntityType(jobCandidateStageWithAttachmentsRequest.getJobType());
 
@@ -555,8 +562,9 @@ public class JobCandidateStageService {
 			log.error("Error:", e);
 		}
 
-		Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository
-				.findByJobAndCandidate(jobCandidateStageWithAttachmentsRequest.getJobId(), jobCandidateStageWithAttachmentsRequest.getCandidateId());
+		Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository.findByJobAndCandidate(
+				jobCandidateStageWithAttachmentsRequest.getJobId(),
+				jobCandidateStageWithAttachmentsRequest.getCandidateId());
 
 		JobTimelineEntity jobTimelineEntity = null;
 
@@ -573,8 +581,9 @@ public class JobCandidateStageService {
 			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithAttachmentsRequest.getUpdatedBy());
 		}
 
-		List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository
-				.findByJobAndCandidate(jobCandidateStageWithAttachmentsRequest.getJobId(), jobCandidateStageWithAttachmentsRequest.getCandidateId());
+		List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository.findByJobAndCandidate(
+				jobCandidateStageWithAttachmentsRequest.getJobId(),
+				jobCandidateStageWithAttachmentsRequest.getCandidateId());
 
 		if (jobCandidateStageEntities.size() > 0) {
 			List<JobStageEntity> jobStageEntities = jobStageRepository.findAllAndIsDeleted(false);
@@ -653,6 +662,17 @@ public class JobCandidateStageService {
 		} catch (Exception e) {
 			throw new ServiceException(e.getLocalizedMessage());
 		}
+	}
+
+	public JobCandidateStageEntity getStage(JobCandidateStageGetRequest jobCandidateStageGetRequest)
+			throws ServiceException {
+		Optional<JobCandidateStageEntity> jobCandidateStageOptional = jobCandidateStageRepository
+				.findByJobAndStageAndCandidate(jobCandidateStageGetRequest.getJobId(),
+						jobCandidateStageGetRequest.getJobStageId(), jobCandidateStageGetRequest.getCandidateId());
+		if (jobCandidateStageOptional.isPresent()) {
+			return jobCandidateStageOptional.get();
+		}
+		return null;
 	}
 
 }

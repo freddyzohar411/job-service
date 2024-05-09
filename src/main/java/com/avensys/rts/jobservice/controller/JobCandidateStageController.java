@@ -2,6 +2,7 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.payload.JobCandidateStageGetRequest;
 import com.avensys.rts.jobservice.payload.JobCandidateStageWithAttachmentsRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,6 +153,18 @@ public class JobCandidateStageController {
 		try {
 			List<JobCandidateStageEntity> jobEntityList = jobCandidateStageService.getAll(pageNo, pageSize, sortBy);
 			return ResponseUtil.generateSuccessResponse(jobEntityList, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	@PostMapping("/get-stage")
+	public ResponseEntity<?> getStage(@RequestBody JobCandidateStageGetRequest jobCandidateStageGetRequest) {
+		LOG.info("getStage request received");
+		try {
+			JobCandidateStageEntity jobEntity = jobCandidateStageService.getStage(jobCandidateStageGetRequest);
+			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
