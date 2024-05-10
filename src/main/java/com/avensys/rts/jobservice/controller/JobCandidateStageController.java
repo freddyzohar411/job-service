@@ -2,6 +2,8 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.payload.JobCandidateStageGetRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageWithAttachmentsRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,16 +11,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.avensys.rts.jobservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.jobservice.constant.MessageConstants;
@@ -70,6 +63,24 @@ public class JobCandidateStageController {
 			jobCandidateStageRequest.setUpdatedBy(userId);
 
 			jobCandidateStageService.save(jobCandidateStageRequest);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
+					messageSource.getMessage("job.tag.created", null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	@RequiresAllPermissions({ Permission.JOB_WRITE })
+	@PostMapping("create-with-attachments")
+	public ResponseEntity<?> createWithAttachments(@ModelAttribute JobCandidateStageWithAttachmentsRequest jobCandidateStageWithAttachmentsRequest,
+			@RequestHeader(name = "Authorization") String token) {
+		LOG.info("create request received");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			jobCandidateStageWithAttachmentsRequest.setCreatedBy(userId);
+			jobCandidateStageWithAttachmentsRequest.setUpdatedBy(userId);
+
+			jobCandidateStageService.saveWithAttachments(jobCandidateStageWithAttachmentsRequest);
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
 					messageSource.getMessage("job.tag.created", null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
@@ -142,6 +153,18 @@ public class JobCandidateStageController {
 		try {
 			List<JobCandidateStageEntity> jobEntityList = jobCandidateStageService.getAll(pageNo, pageSize, sortBy);
 			return ResponseUtil.generateSuccessResponse(jobEntityList, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	@PostMapping("/get-stage")
+	public ResponseEntity<?> getStage(@RequestBody JobCandidateStageGetRequest jobCandidateStageGetRequest) {
+		LOG.info("getStage request received");
+		try {
+			JobCandidateStageEntity jobEntity = jobCandidateStageService.getStage(jobCandidateStageGetRequest);
+			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
