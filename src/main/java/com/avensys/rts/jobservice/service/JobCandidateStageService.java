@@ -391,7 +391,8 @@ public class JobCandidateStageService {
 			formSubmissionsRequestDTO.setEntityId(jobCandidateStageEntity.getId());
 			formSubmissionsRequestDTO.setEntityType(jobCandidateStageRequest.getJobType());
 
-			if (jobCandidateStageOptional.isPresent()) {
+			// Check for null as the previous stage no dynamic form was submitted (E.g. new submit to sales)
+			if (jobCandidateStageOptional.isPresent() && jobCandidateStageEntity.getFormSubmissionId() != null) {
 				formSubmissionAPIClient.updateFormSubmission(jobCandidateStageEntity.getFormSubmissionId().intValue(),
 						formSubmissionsRequestDTO);
 			} else {
@@ -532,7 +533,7 @@ public class JobCandidateStageService {
 			formSubmissionsRequestDTO.setEntityId(jobCandidateStageEntity.getId());
 			formSubmissionsRequestDTO.setEntityType(jobCandidateStageWithAttachmentsRequest.getJobType());
 
-			if (jobCandidateStageOptional.isPresent()) {
+			if (jobCandidateStageOptional.isPresent() && jobCandidateStageEntity.getFormSubmissionId() != null) {
 				formSubmissionAPIClient.updateFormSubmission(jobCandidateStageEntity.getFormSubmissionId().intValue(),
 						formSubmissionsRequestDTO);
 			} else {
