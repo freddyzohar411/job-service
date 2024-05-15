@@ -11,5 +11,9 @@ public class MessageConstants {
 	public static final String JOB_CUSTOM_VIEW_UPDATED = "job.customViewUpdated";
 	public static final String JOB_CUSTOM_VIEW_DELETED = "job.customViewDeleted";
 	public static final String USER_PERMISSIONDENIED_RESOURCE = "user.permissionDeniedResource";
+	//tos
+	public static final String TOS_MESSAGE_CREATED = "tos.created";
+	public static final String TOS_MESSAGE_UPDATED = "tos.updated";
+	public static final String TOS_MESSAGE_DELETED = "tos.deleted";
 
 }
