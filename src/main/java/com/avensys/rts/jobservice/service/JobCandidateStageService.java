@@ -627,6 +627,149 @@ public class JobCandidateStageService {
 		return jobCandidateStageEntity;
 	}
 
+
+	@Transactional
+	public JobCandidateStageEntity saveWithFiles(
+			JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest) throws ServiceException {
+
+		Optional<JobCandidateStageEntity> jobCandidateStageOptional = jobCandidateStageRepository
+				.findByJobAndStageAndCandidate(jobCandidateStageWithFilesRequest.getJobId(),
+						jobCandidateStageWithFilesRequest.getJobStageId(),
+						jobCandidateStageWithFilesRequest.getCandidateId());
+
+		Optional<JobEntity> jobOptional = jobRepository.findById(jobCandidateStageWithFilesRequest.getJobId());
+
+		Optional<JobStageEntity> jobStageOptional = jobStageRepository
+				.findByOrder(jobCandidateStageWithFilesRequest.getJobStageId());
+
+		Optional<CandidateEntity> candidateOptional = candidateRepository
+				.findById(jobCandidateStageWithFilesRequest.getCandidateId());
+
+		JobCandidateStageEntity jobCandidateStageEntity = null;
+
+		if (jobCandidateStageOptional.isPresent()) {
+			jobCandidateStageEntity = jobCandidateStageOptional.get();
+			jobCandidateStageEntity.setJob(jobOptional.get());
+			jobCandidateStageEntity.setJobStage(jobStageOptional.get());
+			jobCandidateStageEntity.setCandidate(candidateOptional.get());
+			jobCandidateStageEntity.setStatus(jobCandidateStageWithFilesRequest.getStatus());
+			jobCandidateStageEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
+			jobCandidateStageEntity.setIsActive(true);
+			jobCandidateStageEntity.setIsDeleted(false);
+		} else {
+			jobCandidateStageEntity = new JobCandidateStageEntity();
+			jobCandidateStageEntity.setJob(jobOptional.get());
+			jobCandidateStageEntity.setJobStage(jobStageOptional.get());
+			jobCandidateStageEntity.setCandidate(candidateOptional.get());
+			jobCandidateStageEntity.setStatus(jobCandidateStageWithFilesRequest.getStatus());
+			jobCandidateStageEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
+			jobCandidateStageEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
+			jobCandidateStageEntity.setIsActive(true);
+			jobCandidateStageEntity.setIsDeleted(false);
+		}
+
+		jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
+
+		if (jobCandidateStageWithFilesRequest.getFormId() != null) {
+			FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+			formSubmissionsRequestDTO.setUserId(jobCandidateStageWithFilesRequest.getCreatedBy());
+			formSubmissionsRequestDTO.setFormId(jobCandidateStageWithFilesRequest.getFormId());
+			formSubmissionsRequestDTO.setSubmissionData(
+					MappingUtil.convertJSONStringToJsonNode(jobCandidateStageWithFilesRequest.getFormData()));
+			formSubmissionsRequestDTO.setEntityId(jobCandidateStageEntity.getId());
+			formSubmissionsRequestDTO.setEntityType(jobCandidateStageWithFilesRequest.getJobType());
+
+			if (jobCandidateStageOptional.isPresent() && jobCandidateStageEntity.getFormSubmissionId() != null) {
+				formSubmissionAPIClient.updateFormSubmission(jobCandidateStageEntity.getFormSubmissionId().intValue(),
+						formSubmissionsRequestDTO);
+			} else {
+				HttpResponse formSubmissionResponse = formSubmissionAPIClient
+						.addFormSubmission(formSubmissionsRequestDTO);
+				FormSubmissionsResponseDTO formSubmissionData = MappingUtil
+						.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
+
+				jobCandidateStageEntity.setFormId(jobCandidateStageWithFilesRequest.getFormId());
+				jobCandidateStageEntity.setSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+				jobCandidateStageEntity.setFormSubmissionId(formSubmissionData.getId());
+				jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
+			}
+		}
+
+		// If Jobtype is TOS, save into TOS table
+
+		// Send Email
+		//		try {
+		//			sendEmail(jobCandidateStageEntity);
+		//		} catch (Exception e) {
+		//			log.error("Error:", e);
+		//		}
+
+
+
+		Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository.findByJobAndCandidate(
+				jobCandidateStageWithFilesRequest.getJobId(),
+				jobCandidateStageWithFilesRequest.getCandidateId());
+
+		JobTimelineEntity jobTimelineEntity = null;
+
+		if (timelineoptional.isPresent()) {
+			jobTimelineEntity = timelineoptional.get();
+			jobTimelineEntity.setJob(jobOptional.get());
+			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
+		} else {
+			jobTimelineEntity = new JobTimelineEntity();
+			jobTimelineEntity.setJob(jobOptional.get());
+			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
+			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
+		}
+
+		List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository.findByJobAndCandidate(
+				jobCandidateStageWithFilesRequest.getJobId(),
+				jobCandidateStageWithFilesRequest.getCandidateId());
+
+		if (jobCandidateStageEntities.size() > 0) {
+			List<JobStageEntity> jobStageEntities = jobStageRepository.findAllAndIsDeleted(false);
+
+			HashMap<Long, JobCandidateStageEntity> candidateJobstages = new HashMap<Long, JobCandidateStageEntity>();
+			jobCandidateStageEntities.forEach(item -> {
+				Long id = item.getJobStage().getOrder();
+				candidateJobstages.put(id, item);
+			});
+
+			HashMap<Long, JobStageEntity> jobStages = new HashMap<Long, JobStageEntity>();
+			jobStageEntities.forEach(item -> {
+				Long id = item.getOrder();
+				jobStages.put(id, item);
+			});
+
+			HashMap<String, JobTimelineTagDTO> timeline = new HashMap<String, JobTimelineTagDTO>();
+
+			for (long i = 1; i <= jobCandidateStageWithFilesRequest.getJobStageId(); i++) {
+				JobCandidateStageEntity ob = candidateJobstages.get(i);
+				JobStageEntity job = jobStages.get(i);
+
+				JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
+				jobTimelineTagDTO.setOrder(job.getOrder());
+
+				if (ob != null) {
+					jobTimelineTagDTO.setDate(Timestamp.valueOf(ob.getUpdatedAt()));
+					jobTimelineTagDTO.setStatus(ob.getStatus());
+				} else {
+					jobTimelineTagDTO.setDate(null);
+					jobTimelineTagDTO.setStatus("SKIPPED");
+				}
+				timeline.put(job.getName(), jobTimelineTagDTO);
+			}
+
+			JsonNode timelineJson = new ObjectMapper().valueToTree(timeline);
+			jobTimelineEntity.setTimeline(timelineJson);
+			jobTimelineRepository.save(jobTimelineEntity);
+		}
+		return jobCandidateStageEntity;
+	}
+
 	public void delete(Long id) throws ServiceException {
 		JobCandidateStageEntity dbUser = getById(id);
 		dbUser.setIsDeleted(true);
