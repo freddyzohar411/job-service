@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UpdateDocumentListKeyDTO {
 	private String entityType;
 	private int entityId;
-	private DocumentKeyRequestDTO[] documentKeyRequestDTO;
-//	private String[] fileKeys;
-//	private MultipartFile[] files;
+//	private DocumentKeyRequestDTO[] documentKeyRequestDTO;
+	private String[] fileKeys;
+	private MultipartFile[] files;
 }

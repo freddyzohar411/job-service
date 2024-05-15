@@ -11,7 +11,9 @@ import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.util.MappingUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class TosService {
@@ -89,33 +91,33 @@ public class TosService {
 			UpdateDocumentListKeyDTO updateDocumentListKeyDTO = new UpdateDocumentListKeyDTO();
 			updateDocumentListKeyDTO.setEntityType("TOS");
 			updateDocumentListKeyDTO.setEntityId(tosEntity.getId().intValue());
-			System.out.println("jobCandidateStageWithFilesRequest.getFiles().length: " + jobCandidateStageWithFilesRequest.getFiles().length);
 
-			// Loop Through and set the document key, file and entity id
-			DocumentKeyRequestDTO[] documentKeyRequestDTO = new DocumentKeyRequestDTO[jobCandidateStageWithFilesRequest
-					.getFiles().length];
-			if (jobCandidateStageWithFilesRequest.getFiles().length > 0) {
+			if (jobCandidateStageWithFilesRequest.getFiles() != null) {
 				System.out.println("jobCandidateStageWithFilesRequest.getFiles().length2: " + jobCandidateStageWithFilesRequest.getFiles().length);
+				int fileLength = jobCandidateStageWithFilesRequest.getFiles().length;
+				String[] fileKeys = new String[fileLength];
+				MultipartFile[] files = new MultipartFile[fileLength];
 				for (int i = 0; i < jobCandidateStageWithFilesRequest.getFiles().length; i++) {
 					FileDataDTO fileData = jobCandidateStageWithFilesRequest.getFiles()[i];
-					DocumentKeyRequestDTO documentKeyRequestDTO1 = new DocumentKeyRequestDTO();
 					if (fileData.getFileKey() == null) {
-						documentKeyRequestDTO1.setDocumentKey("");
+						fileKeys[i] = null;
 					} else {
-						documentKeyRequestDTO1.setDocumentKey(fileData.getFileKey());
+						fileKeys[i] = fileData.getFileKey();
 					}
 					if (fileData.getFile() != null) {
-						documentKeyRequestDTO1.setFile(fileData.getFile());
+						files[i] = fileData.getFile();
 					}
-					documentKeyRequestDTO[i] = documentKeyRequestDTO1;
+					else  {
+						files[i] = new MockMultipartFile("mock_emptyFile", "", "multipart/form-data", new byte[0]);
+					}
 				}
-				updateDocumentListKeyDTO.setDocumentKeyRequestDTO(documentKeyRequestDTO);
-				documentAPIClient.updateDocumentListWithKeys(updateDocumentListKeyDTO.getEntityType(),
-						updateDocumentListKeyDTO.getEntityId(), documentKeyRequestDTO);
+				updateDocumentListKeyDTO.setFileKeys(fileKeys);
+				updateDocumentListKeyDTO.setFiles(files);
+				documentAPIClient.updateDocumentListWithKeys(updateDocumentListKeyDTO);
 			} else {
-				documentAPIClient.updateDocumentListWithKeys(updateDocumentListKeyDTO.getEntityType(),
-						updateDocumentListKeyDTO.getEntityId(), documentKeyRequestDTO);
+				documentAPIClient.updateDocumentListWithKeys(updateDocumentListKeyDTO);
 			}
+
 		}
 		return tosRepository.save(tosEntity);
 	}
