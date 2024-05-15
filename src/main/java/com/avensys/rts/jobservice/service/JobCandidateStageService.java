@@ -7,7 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import com.avensys.rts.jobservice.apiclient.DocumentAPIClient;
+import com.avensys.rts.jobservice.entity.*;
 import com.avensys.rts.jobservice.payload.*;
+import com.avensys.rts.jobservice.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,19 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.avensys.rts.jobservice.apiclient.EmailAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
-import com.avensys.rts.jobservice.entity.CandidateEntity;
-import com.avensys.rts.jobservice.entity.JobCandidateStageEntity;
-import com.avensys.rts.jobservice.entity.JobEntity;
-import com.avensys.rts.jobservice.entity.JobStageEntity;
-import com.avensys.rts.jobservice.entity.JobTimelineEntity;
-import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
-import com.avensys.rts.jobservice.repository.CandidateRepository;
-import com.avensys.rts.jobservice.repository.JobCandidateStageRepository;
-import com.avensys.rts.jobservice.repository.JobRepository;
-import com.avensys.rts.jobservice.repository.JobStageRepository;
-import com.avensys.rts.jobservice.repository.JobTimelineRepository;
-import com.avensys.rts.jobservice.repository.UserRepository;
 import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobTimelineTagDTO;
@@ -83,6 +74,12 @@ public class JobCandidateStageService {
 
 	@Autowired
 	private ResourceLoader resourceLoader;
+
+	@Autowired
+	private TosRepository tosRepository;
+
+	@Autowired
+	private DocumentAPIClient documentAPIClient;
 
 	private final Logger log = LoggerFactory.getLogger(JobCandidateStageService.class);
 
@@ -391,7 +388,8 @@ public class JobCandidateStageService {
 			formSubmissionsRequestDTO.setEntityId(jobCandidateStageEntity.getId());
 			formSubmissionsRequestDTO.setEntityType(jobCandidateStageRequest.getJobType());
 
-			// Check for null as the previous stage no dynamic form was submitted (E.g. new submit to sales)
+			// Check for null as the previous stage no dynamic form was submitted (E.g. new
+			// submit to sales)
 			if (jobCandidateStageOptional.isPresent() && jobCandidateStageEntity.getFormSubmissionId() != null) {
 				formSubmissionAPIClient.updateFormSubmission(jobCandidateStageEntity.getFormSubmissionId().intValue(),
 						formSubmissionsRequestDTO);
@@ -627,10 +625,9 @@ public class JobCandidateStageService {
 		return jobCandidateStageEntity;
 	}
 
-
 	@Transactional
-	public JobCandidateStageEntity saveWithFiles(
-			JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest) throws ServiceException {
+	public JobCandidateStageEntity saveWithFiles(JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest)
+			throws ServiceException {
 
 		Optional<JobCandidateStageEntity> jobCandidateStageOptional = jobCandidateStageRepository
 				.findByJobAndStageAndCandidate(jobCandidateStageWithFilesRequest.getJobId(),
@@ -695,79 +692,125 @@ public class JobCandidateStageService {
 			}
 		}
 
+		System.out.println("Job Type: " + jobCandidateStageWithFilesRequest.getJobType());
+
 		// If Jobtype is TOS, save into TOS table
+		if (jobCandidateStageWithFilesRequest.getJobType().equals(JobCanddateStageUtil.PREPARE_TERM_OF_SERVICE)) {
+			// Save into TOS table
+			TosEntity tosEntity = new TosEntity();
+			tosEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
+			tosEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
+			tosEntity.setIsActive(true);
+			tosEntity.setIsDeleted(false);
+			tosEntity.setCandidate(candidateOptional.get());
+			tosEntity.setJobEnity(jobOptional.get());
+			tosEntity.setStatus("PREPARE");
+			TosEntity tosEnitySaved = tosRepository.save(tosEntity);
 
-		// Send Email
-		//		try {
-		//			sendEmail(jobCandidateStageEntity);
-		//		} catch (Exception e) {
-		//			log.error("Error:", e);
-		//		}
+			// Set Form submission
+			if (jobCandidateStageWithFilesRequest.getFormId() != null) {
+				FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+				formSubmissionsRequestDTO.setUserId(jobCandidateStageWithFilesRequest.getCreatedBy());
+				formSubmissionsRequestDTO.setFormId(jobCandidateStageWithFilesRequest.getFormId());
+				formSubmissionsRequestDTO.setSubmissionData(
+						MappingUtil.convertJSONStringToJsonNode(jobCandidateStageWithFilesRequest.getFormData()));
+				formSubmissionsRequestDTO.setEntityId(tosEnitySaved.getId());
+				formSubmissionsRequestDTO.setEntityType(jobCandidateStageWithFilesRequest.getJobType());
 
-
-
-		Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository.findByJobAndCandidate(
-				jobCandidateStageWithFilesRequest.getJobId(),
-				jobCandidateStageWithFilesRequest.getCandidateId());
-
-		JobTimelineEntity jobTimelineEntity = null;
-
-		if (timelineoptional.isPresent()) {
-			jobTimelineEntity = timelineoptional.get();
-			jobTimelineEntity.setJob(jobOptional.get());
-			jobTimelineEntity.setCandidate(candidateOptional.get());
-			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
-		} else {
-			jobTimelineEntity = new JobTimelineEntity();
-			jobTimelineEntity.setJob(jobOptional.get());
-			jobTimelineEntity.setCandidate(candidateOptional.get());
-			jobTimelineEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
-			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
-		}
-
-		List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository.findByJobAndCandidate(
-				jobCandidateStageWithFilesRequest.getJobId(),
-				jobCandidateStageWithFilesRequest.getCandidateId());
-
-		if (jobCandidateStageEntities.size() > 0) {
-			List<JobStageEntity> jobStageEntities = jobStageRepository.findAllAndIsDeleted(false);
-
-			HashMap<Long, JobCandidateStageEntity> candidateJobstages = new HashMap<Long, JobCandidateStageEntity>();
-			jobCandidateStageEntities.forEach(item -> {
-				Long id = item.getJobStage().getOrder();
-				candidateJobstages.put(id, item);
-			});
-
-			HashMap<Long, JobStageEntity> jobStages = new HashMap<Long, JobStageEntity>();
-			jobStageEntities.forEach(item -> {
-				Long id = item.getOrder();
-				jobStages.put(id, item);
-			});
-
-			HashMap<String, JobTimelineTagDTO> timeline = new HashMap<String, JobTimelineTagDTO>();
-
-			for (long i = 1; i <= jobCandidateStageWithFilesRequest.getJobStageId(); i++) {
-				JobCandidateStageEntity ob = candidateJobstages.get(i);
-				JobStageEntity job = jobStages.get(i);
-
-				JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
-				jobTimelineTagDTO.setOrder(job.getOrder());
-
-				if (ob != null) {
-					jobTimelineTagDTO.setDate(Timestamp.valueOf(ob.getUpdatedAt()));
-					jobTimelineTagDTO.setStatus(ob.getStatus());
-				} else {
-					jobTimelineTagDTO.setDate(null);
-					jobTimelineTagDTO.setStatus("SKIPPED");
-				}
-				timeline.put(job.getName(), jobTimelineTagDTO);
+				HttpResponse formSubmissionResponse = formSubmissionAPIClient
+						.addFormSubmission(formSubmissionsRequestDTO);
+				FormSubmissionsResponseDTO formSubmissionData = MappingUtil
+						.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
+				tosEntity.setTosSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+				tosEntity.setFormSubmissionId(formSubmissionData.getId());
 			}
 
-			JsonNode timelineJson = new ObjectMapper().valueToTree(timeline);
-			jobTimelineEntity.setTimeline(timelineJson);
-			jobTimelineRepository.save(jobTimelineEntity);
+			if (jobCandidateStageWithFilesRequest.getFiles() != null) {
+				// Use For loop
+				for (FileDataDTO fileData : jobCandidateStageWithFilesRequest.getFiles()) {
+					DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
+					documentRequestDTO.setEntityId(tosEnitySaved.getId());
+					documentRequestDTO.setEntityType("TOS");
+					documentRequestDTO.setFile(fileData.getFile());
+					documentRequestDTO.setDocumentKey(fileData.getFileKey());
+					documentAPIClient.createDocument(documentRequestDTO);
+				}
+			}
+
 		}
-		return jobCandidateStageEntity;
+
+		// Set Files into Document services
+
+
+	// Send Email
+	// try {
+	// sendEmail(jobCandidateStageEntity);
+	// } catch (Exception e) {
+	// log.error("Error:", e);
+	// }
+
+	Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository.findByJobAndCandidate(
+			jobCandidateStageWithFilesRequest.getJobId(), jobCandidateStageWithFilesRequest.getCandidateId());
+
+	JobTimelineEntity jobTimelineEntity = null;
+
+	if(timelineoptional.isPresent())
+	{
+		jobTimelineEntity = timelineoptional.get();
+		jobTimelineEntity.setJob(jobOptional.get());
+		jobTimelineEntity.setCandidate(candidateOptional.get());
+		jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
+	}else
+	{
+		jobTimelineEntity = new JobTimelineEntity();
+		jobTimelineEntity.setJob(jobOptional.get());
+		jobTimelineEntity.setCandidate(candidateOptional.get());
+		jobTimelineEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
+		jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
+	}
+
+	List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository.findByJobAndCandidate(
+			jobCandidateStageWithFilesRequest.getJobId(), jobCandidateStageWithFilesRequest.getCandidateId());
+
+	if(jobCandidateStageEntities.size()>0)
+	{
+		List<JobStageEntity> jobStageEntities = jobStageRepository.findAllAndIsDeleted(false);
+
+		HashMap<Long, JobCandidateStageEntity> candidateJobstages = new HashMap<Long, JobCandidateStageEntity>();
+		jobCandidateStageEntities.forEach(item -> {
+			Long id = item.getJobStage().getOrder();
+			candidateJobstages.put(id, item);
+		});
+
+		HashMap<Long, JobStageEntity> jobStages = new HashMap<Long, JobStageEntity>();
+		jobStageEntities.forEach(item -> {
+			Long id = item.getOrder();
+			jobStages.put(id, item);
+		});
+
+		HashMap<String, JobTimelineTagDTO> timeline = new HashMap<String, JobTimelineTagDTO>();
+
+		for (long i = 1; i <= jobCandidateStageWithFilesRequest.getJobStageId(); i++) {
+			JobCandidateStageEntity ob = candidateJobstages.get(i);
+			JobStageEntity job = jobStages.get(i);
+
+			JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
+			jobTimelineTagDTO.setOrder(job.getOrder());
+
+			if (ob != null) {
+				jobTimelineTagDTO.setDate(Timestamp.valueOf(ob.getUpdatedAt()));
+				jobTimelineTagDTO.setStatus(ob.getStatus());
+			} else {
+				jobTimelineTagDTO.setDate(null);
+				jobTimelineTagDTO.setStatus("SKIPPED");
+			}
+			timeline.put(job.getName(), jobTimelineTagDTO);
+		}
+
+		JsonNode timelineJson = new ObjectMapper().valueToTree(timeline);
+		jobTimelineEntity.setTimeline(timelineJson);
+		jobTimelineRepository.save(jobTimelineEntity);
+	}return jobCandidateStageEntity;
 	}
 
 	public void delete(Long id) throws ServiceException {
@@ -817,6 +860,12 @@ public class JobCandidateStageService {
 			return jobCandidateStageOptional.get();
 		}
 		return null;
+	}
+
+	@Transactional
+	public void untagCandidate(Long jobId, Long candidateId) throws ServiceException {
+		jobCandidateStageRepository.deleteByJobAndCandidate(jobId, candidateId);
+		jobTimelineRepository.deleteByJobAndCandidate(jobId, candidateId);
 	}
 
 }

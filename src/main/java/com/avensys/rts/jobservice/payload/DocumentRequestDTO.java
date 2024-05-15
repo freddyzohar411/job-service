@@ -25,5 +25,6 @@ public class DocumentRequestDTO {
 	private Long entityId;
 	private String entityType;
 	private MultipartFile file;
+	private String documentKey;
 
 }

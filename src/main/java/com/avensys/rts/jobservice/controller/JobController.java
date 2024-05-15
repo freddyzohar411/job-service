@@ -2,7 +2,6 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
-import com.avensys.rts.jobservice.payload.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +26,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.avensys.rts.jobservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.entity.TosEntity;
 import com.avensys.rts.jobservice.enums.Permission;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingDeleteRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
+import com.avensys.rts.jobservice.payload.JobRecruiterFODRequest;
+import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.payload.TosRequestDTO;
 import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
 import com.avensys.rts.jobservice.service.JobRecruiterFODService;
 import com.avensys.rts.jobservice.service.JobService;
@@ -448,5 +454,84 @@ public class JobController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	/**
+	 * This method is used to Prepare TOS.
+	 * 
+	 * @param tosRequestDTO
+	 * @param token
+	 * @return
+	 */
+	@PostMapping("/tos/create")
+	public ResponseEntity<?> createTos(@Valid @RequestBody TosRequestDTO tosRequestDTO,
+			@RequestHeader(name = "Authorization") String token) {
+		LOG.info("create Tos request received");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			tosRequestDTO.setCreatedBy(userId);
+			tosRequestDTO.setUpdatedBy(userId);
+			return ResponseUtil.generateSuccessResponse(jobService.saveTos(tosRequestDTO), HttpStatus.CREATED,
+					messageSource.getMessage(MessageConstants.TOS_MESSAGE_CREATED, null,
+							LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	/**
+	 * This method is used to Update the TOS.
+	 * 
+	 * @param tosRequestDTO
+	 * @param token
+	 * @return
+	 */
+	@PutMapping("/tos/{id}")
+	public ResponseEntity<?> updateTos(@RequestBody TosRequestDTO tosRequestDTO,
+			@RequestHeader(name = "Authorization") String token) {
+		LOG.info("update Tos request received");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			tosRequestDTO.setUpdatedBy(userId);
+			jobService.updateTos(tosRequestDTO);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource
+					.getMessage(MessageConstants.TOS_MESSAGE_UPDATED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	/**
+	 * This method is used to Delete the TOS.
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@DeleteMapping("/tos/{id}")
+	public ResponseEntity<?> deleteTos(@PathVariable Long id) {
+		LOG.info("delete Tos request received");
+		try {
+			jobService.deleteTos(id);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK, messageSource
+					.getMessage(MessageConstants.TOS_MESSAGE_DELETED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	/**
+	 * This method is used to retrieve a TOS Information.
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@GetMapping("/tos/{id}")
+	public ResponseEntity<?> findTos(@PathVariable Long id) {
+		LOG.info("find Tos request received");
+		try {
+			TosEntity tosEntity = jobService.getByTosId(id);
+			return ResponseUtil.generateSuccessResponse(tosEntity, HttpStatus.OK, null);
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
 
 }

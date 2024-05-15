@@ -12,14 +12,26 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.avensys.rts.jobservice.annotation.RequiresAllPermissions;
 import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.entity.JobCandidateStageEntity;
 import com.avensys.rts.jobservice.enums.Permission;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.JobCandidateStageGetRequest;
 import com.avensys.rts.jobservice.payload.JobCandidateStageRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageWithAttachmentsRequest;
 import com.avensys.rts.jobservice.service.JobCandidateStageService;
 import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.ResponseUtil;
@@ -125,6 +137,25 @@ public class JobCandidateStageController {
 					messageSource.getMessage("job.tag.created", null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	/**
+	 * This method is used to Delete a job
+	 *
+	 * @param headers
+	 * @param id
+	 * @return
+	 */
+	@RequiresAllPermissions({ Permission.JOB_DELETE })
+	@DeleteMapping("/untag/{jobId}/{candidateId}")
+	public ResponseEntity<?> untagCandidate(@PathVariable Long jobId, @PathVariable Long candidateId) {
+		try {
+			jobCandidateStageService.untagCandidate(jobId, candidateId);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+					messageSource.getMessage(MessageConstants.MESSAGE_DELETED, null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
 		}
 	}
 
