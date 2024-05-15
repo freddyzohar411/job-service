@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
@@ -37,5 +38,9 @@ public interface JobTimelineRepository extends JpaRepository<JobTimelineEntity, 
 
 	@Query(value = "select 'Interview Pending Feedback' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order = 13", nativeQuery = true)
 	public Map<String, Long> findInterviewFeedbackPendingCount(Long jobId);
+
+	@Modifying
+	@Query(value = "delete from job_timeline  where job_id = ?1 and candidate_id = ?2", nativeQuery = true)
+	public Integer deleteByJobAndCandidate(Long jobId, Long candidateId);
 
 }

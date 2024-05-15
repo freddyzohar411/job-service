@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import com.avensys.rts.jobservice.payload.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +30,12 @@ import com.avensys.rts.jobservice.entity.JobStageEntity;
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
 import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.EmailMultiRequestDTO;
+import com.avensys.rts.jobservice.payload.EmailMultiTemplateRequestDTO;
+import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
+import com.avensys.rts.jobservice.payload.JobCandidateStageGetRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageWithAttachmentsRequest;
 import com.avensys.rts.jobservice.repository.CandidateRepository;
 import com.avensys.rts.jobservice.repository.JobCandidateStageRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
@@ -391,7 +396,8 @@ public class JobCandidateStageService {
 			formSubmissionsRequestDTO.setEntityId(jobCandidateStageEntity.getId());
 			formSubmissionsRequestDTO.setEntityType(jobCandidateStageRequest.getJobType());
 
-			// Check for null as the previous stage no dynamic form was submitted (E.g. new submit to sales)
+			// Check for null as the previous stage no dynamic form was submitted (E.g. new
+			// submit to sales)
 			if (jobCandidateStageOptional.isPresent() && jobCandidateStageEntity.getFormSubmissionId() != null) {
 				formSubmissionAPIClient.updateFormSubmission(jobCandidateStageEntity.getFormSubmissionId().intValue(),
 						formSubmissionsRequestDTO);
@@ -674,6 +680,12 @@ public class JobCandidateStageService {
 			return jobCandidateStageOptional.get();
 		}
 		return null;
+	}
+
+	@Transactional
+	public void untagCandidate(Long jobId, Long candidateId) throws ServiceException {
+		jobCandidateStageRepository.deleteByJobAndCandidate(jobId, candidateId);
+		jobTimelineRepository.deleteByJobAndCandidate(jobId, candidateId);
 	}
 
 }
