@@ -1,6 +1,7 @@
 package com.avensys.rts.jobservice.apiclient;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +13,7 @@ import com.avensys.rts.jobservice.interceptor.JwtTokenInterceptor;
 import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 
-@FeignClient(name = "form-service", url = "${api.form-submission.url}", configuration = JwtTokenInterceptor.class)
+@FeignClient(name = "form-service", url = "${api.form-submission.url}", configuration = JwtTokenInterceptor.class )
 public interface FormSubmissionAPIClient {
 
 	@PostMapping("")
@@ -21,7 +22,7 @@ public interface FormSubmissionAPIClient {
 	@GetMapping("/{formSubmissionId}")
 	HttpResponse getFormSubmission(@PathVariable int formSubmissionId);
 
-	@PutMapping("/{formSubmissionId}")
+	@PutMapping(value="/{formSubmissionId}")
 	HttpResponse updateFormSubmission(@PathVariable int formSubmissionId,
 			@RequestBody FormSubmissionsRequestDTO formSubmissionsRequestDTO);
 

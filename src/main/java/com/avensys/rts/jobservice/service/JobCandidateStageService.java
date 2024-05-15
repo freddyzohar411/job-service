@@ -81,6 +81,9 @@ public class JobCandidateStageService {
 	@Autowired
 	private DocumentAPIClient documentAPIClient;
 
+	@Autowired
+	private TosService tosService;
+
 	private final Logger log = LoggerFactory.getLogger(JobCandidateStageService.class);
 
 	/**
@@ -695,48 +698,21 @@ public class JobCandidateStageService {
 		System.out.println("Job Type: " + jobCandidateStageWithFilesRequest.getJobType());
 
 		// If Jobtype is TOS, save into TOS table
-		if (jobCandidateStageWithFilesRequest.getJobType().equals(JobCanddateStageUtil.PREPARE_TERM_OF_SERVICE)) {
-			// Save into TOS table
-			TosEntity tosEntity = new TosEntity();
-			tosEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
-			tosEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
-			tosEntity.setIsActive(true);
-			tosEntity.setIsDeleted(false);
-			tosEntity.setCandidate(candidateOptional.get());
-			tosEntity.setJobEnity(jobOptional.get());
-			tosEntity.setStatus("PREPARE");
-			TosEntity tosEnitySaved = tosRepository.save(tosEntity);
-
-			// Set Form submission
-			if (jobCandidateStageWithFilesRequest.getFormId() != null) {
-				FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
-				formSubmissionsRequestDTO.setUserId(jobCandidateStageWithFilesRequest.getCreatedBy());
-				formSubmissionsRequestDTO.setFormId(jobCandidateStageWithFilesRequest.getFormId());
-				formSubmissionsRequestDTO.setSubmissionData(
-						MappingUtil.convertJSONStringToJsonNode(jobCandidateStageWithFilesRequest.getFormData()));
-				formSubmissionsRequestDTO.setEntityId(tosEnitySaved.getId());
-				formSubmissionsRequestDTO.setEntityType(jobCandidateStageWithFilesRequest.getJobType());
-
-				HttpResponse formSubmissionResponse = formSubmissionAPIClient
-						.addFormSubmission(formSubmissionsRequestDTO);
-				FormSubmissionsResponseDTO formSubmissionData = MappingUtil
-						.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
-				tosEntity.setTosSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
-				tosEntity.setFormSubmissionId(formSubmissionData.getId());
+		if (jobCandidateStageWithFilesRequest.getJobType().equals("prepare_tos")) {
+			Optional<TosEntity> tosEntityOptional = tosRepository.findByJobAndCandidate(
+					jobCandidateStageWithFilesRequest.getJobId(), jobCandidateStageWithFilesRequest.getCandidateId());
+			if (tosEntityOptional.isPresent()) {
+				tosService.updateTosEntity(tosEntityOptional.get(), jobCandidateStageWithFilesRequest);
+//				System.out.println("TOS Entity Found");
+//				if (jobCandidateStageWithFilesRequest.getFiles() != null) {
+//					System.out.println("Files Found");
+//					for (FileDataDTO fileData : jobCandidateStageWithFilesRequest.getFiles()) {
+//						System.out.println("File Data: " +  fileData.getFileKey());
+//					}
+//				}
+			} else {
+				tosService.createTosEntity(jobCandidateStageWithFilesRequest, candidateOptional.get(), jobOptional.get());
 			}
-
-			if (jobCandidateStageWithFilesRequest.getFiles() != null) {
-				// Use For loop
-				for (FileDataDTO fileData : jobCandidateStageWithFilesRequest.getFiles()) {
-					DocumentRequestDTO documentRequestDTO = new DocumentRequestDTO();
-					documentRequestDTO.setEntityId(tosEnitySaved.getId());
-					documentRequestDTO.setEntityType("TOS");
-					documentRequestDTO.setFile(fileData.getFile());
-					documentRequestDTO.setDocumentKey(fileData.getFileKey());
-					documentAPIClient.createDocument(documentRequestDTO);
-				}
-			}
-
 		}
 
 		// Set Files into Document services
