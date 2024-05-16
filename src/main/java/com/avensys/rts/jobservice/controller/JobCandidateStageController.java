@@ -2,6 +2,9 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.payload.JobCandidateStageGetRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageWithAttachmentsRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageWithFilesRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,8 +85,7 @@ public class JobCandidateStageController {
 
 	@RequiresAllPermissions({ Permission.JOB_WRITE })
 	@PostMapping("create-with-attachments")
-	public ResponseEntity<?> createWithAttachments(
-			@ModelAttribute JobCandidateStageWithAttachmentsRequest jobCandidateStageWithAttachmentsRequest,
+	public ResponseEntity<?> createWithAttachments(@ModelAttribute JobCandidateStageWithAttachmentsRequest jobCandidateStageWithAttachmentsRequest,
 			@RequestHeader(name = "Authorization") String token) {
 		LOG.info("create request received");
 		try {
@@ -92,6 +94,24 @@ public class JobCandidateStageController {
 			jobCandidateStageWithAttachmentsRequest.setUpdatedBy(userId);
 
 			jobCandidateStageService.saveWithAttachments(jobCandidateStageWithAttachmentsRequest);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
+					messageSource.getMessage("job.tag.created", null, LocaleContextHolder.getLocale()));
+		} catch (ServiceException e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	@RequiresAllPermissions({ Permission.JOB_WRITE })
+	@PostMapping("create-with-files")
+	public ResponseEntity<?> createWithFiles(@ModelAttribute JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest,
+			@RequestHeader(name = "Authorization") String token) {
+		LOG.info("create request received");
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			jobCandidateStageWithFilesRequest.setCreatedBy(userId);
+			jobCandidateStageWithFilesRequest.setUpdatedBy(userId);
+
+			jobCandidateStageService.saveWithFiles(jobCandidateStageWithFilesRequest);
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
 					messageSource.getMessage("job.tag.created", null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
@@ -122,7 +142,7 @@ public class JobCandidateStageController {
 
 	/**
 	 * This method is used to Delete a job
-	 * 
+	 *
 	 * @param headers
 	 * @param id
 	 * @return

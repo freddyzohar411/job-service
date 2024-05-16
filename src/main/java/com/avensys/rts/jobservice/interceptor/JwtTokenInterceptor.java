@@ -5,7 +5,12 @@ import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.RequestCtxUtil;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import feign.codec.Encoder;
+import feign.form.spring.SpringFormEncoder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 public class JwtTokenInterceptor implements RequestInterceptor {
 
 	@Override
@@ -16,4 +21,9 @@ public class JwtTokenInterceptor implements RequestInterceptor {
 			requestTemplate.header("Audit", audit);
 		}
 	}
+
+//	@Bean
+//	public Encoder feignFormEncoder() {
+//		return new SpringFormEncoder();
+//	}
 }

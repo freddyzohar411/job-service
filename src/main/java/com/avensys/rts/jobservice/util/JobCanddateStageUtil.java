@@ -31,6 +31,8 @@ public class JobCanddateStageUtil {
 	public static String CONDITIONAL_OFFER_SENT_NAME = "Conditional Offer Sent";
 	public static String CONDITIONAL_OFFER_ACCEPTED_NAME = "Conditional Offer Accepted/Declined";
 
+	public static String PREPARE_TERM_OF_SERVICE = "Prepare TOS";
+
 	// Template category
 	public static String JOB_TEMPLATE_CATEGORY = "Email Templates";
 
