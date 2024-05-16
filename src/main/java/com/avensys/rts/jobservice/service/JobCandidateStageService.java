@@ -79,6 +79,9 @@ public class JobCandidateStageService {
 	private TosRepository tosRepository;
 
 	@Autowired
+	private ConditionalOfferService conditionalOfferService;
+
+	@Autowired
 	private DocumentAPIClient documentAPIClient;
 
 	@Autowired
@@ -380,12 +383,22 @@ public class JobCandidateStageService {
 			}
 		}
 
-		// Tos Approval / Rejection
-		System.out.println("Job Type: " + jobCandidateStageRequest.getJobType());
+		if (jobCandidateStageRequest.getJobType() != null) {
+			// If Jobtype is TOS, save into TOS table
+			if (jobCandidateStageRequest.getJobType().equals("tos_approval")) {
+				tosService.createTosEntity(jobCandidateStageRequest, candidateOptional.get(), jobOptional.get());
+			}
 
-		// If Jobtype is TOS, save into TOS table
-		if (jobCandidateStageRequest.getJobType().equals("tos_approval")) {
-			tosService.createTosEntity(jobCandidateStageRequest, candidateOptional.get(), jobOptional.get());
+			if (jobCandidateStageRequest.getJobType().equals("conditional_offer_prepare")) {
+				conditionalOfferService.createConditionalOfferEntity(jobCandidateStageRequest, candidateOptional.get(),
+						jobOptional.get());
+			} else if (jobCandidateStageRequest.getJobType().equals("conditional_offer_edit")) {
+				conditionalOfferService.updateConditionalOfferEntity(jobCandidateStageRequest, candidateOptional.get(),
+						jobOptional.get());
+			} else if (jobCandidateStageRequest.getJobType().equals("conditional_offer_rejected")) {
+				conditionalOfferService.createRejectedConditionalOfferEntityEntityWithForm(jobCandidateStageRequest,
+						candidateOptional.get(), jobOptional.get());
+			}
 		}
 
 		jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
@@ -531,6 +544,14 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setIsDeleted(false);
 		}
 
+		// Conditional Offer Release
+		if (jobCandidateStageWithAttachmentsRequest.getJobType() != null) {
+			if (jobCandidateStageWithAttachmentsRequest.getJobType().equals("conditional_offer_release")) {
+				conditionalOfferService.createReleaseConditionalOfferEntity(jobCandidateStageWithAttachmentsRequest,
+						candidateOptional.get(), jobOptional.get());
+			}
+		}
+
 		jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 
 		if (jobCandidateStageWithAttachmentsRequest.getFormId() != null) {
@@ -557,13 +578,6 @@ public class JobCandidateStageService {
 				jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 			}
 		}
-
-		// Send Email
-//		try {
-//			sendEmail(jobCandidateStageEntity);
-//		} catch (Exception e) {
-//			log.error("Error:", e);
-//		}
 
 		// Send email with content (Submit to sales/submit to client)
 		try {
@@ -676,6 +690,14 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setIsDeleted(false);
 		}
 
+		// Conditional Offer Approval
+		if (jobCandidateStageWithFilesRequest.getJobType() != null) {
+			if (jobCandidateStageWithFilesRequest.getJobType().equals("conditional_offer_approval")) {
+				conditionalOfferService.createConditionalOfferEntityWithFiles(jobCandidateStageWithFilesRequest,
+						candidateOptional.get(), jobOptional.get());
+			}
+		}
+
 		jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 
 		if (jobCandidateStageWithFilesRequest.getFormId() != null) {
@@ -712,79 +734,71 @@ public class JobCandidateStageService {
 			if (tosEntityOptional.isPresent()) {
 				tosService.updateTosEntity(tosEntityOptional.get(), jobCandidateStageWithFilesRequest);
 			} else {
-				tosService.createTosEntityWithFiles(jobCandidateStageWithFilesRequest, candidateOptional.get(), jobOptional.get());
+				tosService.createTosEntityWithFiles(jobCandidateStageWithFilesRequest, candidateOptional.get(),
+						jobOptional.get());
 			}
 		}
 
-	// Send Email
-	// try {
-	// sendEmail(jobCandidateStageEntity);
-	// } catch (Exception e) {
-	// log.error("Error:", e);
-	// }
+		Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository.findByJobAndCandidate(
+				jobCandidateStageWithFilesRequest.getJobId(), jobCandidateStageWithFilesRequest.getCandidateId());
 
-	Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository.findByJobAndCandidate(
-			jobCandidateStageWithFilesRequest.getJobId(), jobCandidateStageWithFilesRequest.getCandidateId());
+		JobTimelineEntity jobTimelineEntity = null;
 
-	JobTimelineEntity jobTimelineEntity = null;
-
-	if(timelineoptional.isPresent())
-	{
-		jobTimelineEntity = timelineoptional.get();
-		jobTimelineEntity.setJob(jobOptional.get());
-		jobTimelineEntity.setCandidate(candidateOptional.get());
-		jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
-	}else
-	{
-		jobTimelineEntity = new JobTimelineEntity();
-		jobTimelineEntity.setJob(jobOptional.get());
-		jobTimelineEntity.setCandidate(candidateOptional.get());
-		jobTimelineEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
-		jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
-	}
-
-	List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository.findByJobAndCandidate(
-			jobCandidateStageWithFilesRequest.getJobId(), jobCandidateStageWithFilesRequest.getCandidateId());
-
-	if(jobCandidateStageEntities.size()>0)
-	{
-		List<JobStageEntity> jobStageEntities = jobStageRepository.findAllAndIsDeleted(false);
-
-		HashMap<Long, JobCandidateStageEntity> candidateJobstages = new HashMap<Long, JobCandidateStageEntity>();
-		jobCandidateStageEntities.forEach(item -> {
-			Long id = item.getJobStage().getOrder();
-			candidateJobstages.put(id, item);
-		});
-
-		HashMap<Long, JobStageEntity> jobStages = new HashMap<Long, JobStageEntity>();
-		jobStageEntities.forEach(item -> {
-			Long id = item.getOrder();
-			jobStages.put(id, item);
-		});
-
-		HashMap<String, JobTimelineTagDTO> timeline = new HashMap<String, JobTimelineTagDTO>();
-
-		for (long i = 1; i <= jobCandidateStageWithFilesRequest.getJobStageId(); i++) {
-			JobCandidateStageEntity ob = candidateJobstages.get(i);
-			JobStageEntity job = jobStages.get(i);
-
-			JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
-			jobTimelineTagDTO.setOrder(job.getOrder());
-
-			if (ob != null) {
-				jobTimelineTagDTO.setDate(Timestamp.valueOf(ob.getUpdatedAt()));
-				jobTimelineTagDTO.setStatus(ob.getStatus());
-			} else {
-				jobTimelineTagDTO.setDate(null);
-				jobTimelineTagDTO.setStatus("SKIPPED");
-			}
-			timeline.put(job.getName(), jobTimelineTagDTO);
+		if (timelineoptional.isPresent()) {
+			jobTimelineEntity = timelineoptional.get();
+			jobTimelineEntity.setJob(jobOptional.get());
+			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
+		} else {
+			jobTimelineEntity = new JobTimelineEntity();
+			jobTimelineEntity.setJob(jobOptional.get());
+			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
+			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
 		}
 
-		JsonNode timelineJson = new ObjectMapper().valueToTree(timeline);
-		jobTimelineEntity.setTimeline(timelineJson);
-		jobTimelineRepository.save(jobTimelineEntity);
-	}return jobCandidateStageEntity;
+		List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository.findByJobAndCandidate(
+				jobCandidateStageWithFilesRequest.getJobId(), jobCandidateStageWithFilesRequest.getCandidateId());
+
+		if (jobCandidateStageEntities.size() > 0) {
+			List<JobStageEntity> jobStageEntities = jobStageRepository.findAllAndIsDeleted(false);
+
+			HashMap<Long, JobCandidateStageEntity> candidateJobstages = new HashMap<Long, JobCandidateStageEntity>();
+			jobCandidateStageEntities.forEach(item -> {
+				Long id = item.getJobStage().getOrder();
+				candidateJobstages.put(id, item);
+			});
+
+			HashMap<Long, JobStageEntity> jobStages = new HashMap<Long, JobStageEntity>();
+			jobStageEntities.forEach(item -> {
+				Long id = item.getOrder();
+				jobStages.put(id, item);
+			});
+
+			HashMap<String, JobTimelineTagDTO> timeline = new HashMap<String, JobTimelineTagDTO>();
+
+			for (long i = 1; i <= jobCandidateStageWithFilesRequest.getJobStageId(); i++) {
+				JobCandidateStageEntity ob = candidateJobstages.get(i);
+				JobStageEntity job = jobStages.get(i);
+
+				JobTimelineTagDTO jobTimelineTagDTO = new JobTimelineTagDTO();
+				jobTimelineTagDTO.setOrder(job.getOrder());
+
+				if (ob != null) {
+					jobTimelineTagDTO.setDate(Timestamp.valueOf(ob.getUpdatedAt()));
+					jobTimelineTagDTO.setStatus(ob.getStatus());
+				} else {
+					jobTimelineTagDTO.setDate(null);
+					jobTimelineTagDTO.setStatus("SKIPPED");
+				}
+				timeline.put(job.getName(), jobTimelineTagDTO);
+			}
+
+			JsonNode timelineJson = new ObjectMapper().valueToTree(timeline);
+			jobTimelineEntity.setTimeline(timelineJson);
+			jobTimelineRepository.save(jobTimelineEntity);
+		}
+		return jobCandidateStageEntity;
 	}
 
 	public void delete(Long id) throws ServiceException {
