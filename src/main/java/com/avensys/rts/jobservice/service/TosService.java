@@ -106,8 +106,8 @@ public class TosService {
 					}
 					if (fileData.getFile() != null) {
 						files[i] = fileData.getFile();
-					}
-					else  {
+					} else  {
+						System.out.println("MOCKING EMPTY FILE");
 						files[i] = new MockMultipartFile("mock_emptyFile", "", "multipart/form-data", new byte[0]);
 					}
 				}
