@@ -24,4 +24,7 @@ public interface TosRepository extends JpaRepository<TosEntity, Long> {
 	@Query(value = "SELECT * FROM tos WHERE job_id = ?1 AND candidate_id = ?2", nativeQuery = true)
 	public Optional<TosEntity> findByJobAndCandidate(Long jobId, Long candidateId);
 
+	@Query(value = "SELECT * FROM tos WHERE job_id = ?1 AND candidate_id = ?2 AND status = ?3", nativeQuery = true)
+	public Optional<TosEntity> findByJobAndCandidateAndStatus(Long jobId, Long candidateId, String status);
+
 }

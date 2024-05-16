@@ -1,5 +1,10 @@
 package com.avensys.rts.jobservice.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.avensys.rts.jobservice.apiclient.DocumentAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.entity.CandidateEntity;
@@ -10,10 +15,6 @@ import com.avensys.rts.jobservice.repository.TosRepository;
 import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.util.MappingUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class TosService {
@@ -27,7 +28,8 @@ public class TosService {
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
 
-	public TosEntity createTosEntity(JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest, CandidateEntity candidateEntity, JobEntity jobEntity) {
+	public TosEntity createTosEntityWithFiles(JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest,
+			CandidateEntity candidateEntity, JobEntity jobEntity) {
 		TosEntity tosEntity = new TosEntity();
 		tosEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
 		tosEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
@@ -48,8 +50,7 @@ public class TosService {
 			formSubmissionsRequestDTO.setEntityId(tosEnitySaved.getId());
 			formSubmissionsRequestDTO.setEntityType(jobCandidateStageWithFilesRequest.getJobType());
 
-			HttpResponse formSubmissionResponse = formSubmissionAPIClient
-					.addFormSubmission(formSubmissionsRequestDTO);
+			HttpResponse formSubmissionResponse = formSubmissionAPIClient.addFormSubmission(formSubmissionsRequestDTO);
 			FormSubmissionsResponseDTO formSubmissionData = MappingUtil
 					.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 			tosEntity.setTosSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
@@ -70,7 +71,43 @@ public class TosService {
 		return tosRepository.save(tosEntity);
 	}
 
-	public TosEntity updateTosEntity(TosEntity tosEntity, JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest) {
+	public TosEntity createTosEntity(JobCandidateStageRequest jobCandidateStageRequest , CandidateEntity candidateEntity, JobEntity jobEntity) {
+		TosEntity tosEntity = new TosEntity();
+		tosEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
+		tosEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+		tosEntity.setIsActive(true);
+		tosEntity.setIsDeleted(false);
+		tosEntity.setCandidate(candidateEntity);
+		tosEntity.setJobEnity(jobEntity);
+		if (jobCandidateStageRequest.getStatus().equals("COMPLETED")) {
+			tosEntity.setStatus("APPROVED");
+		} else if (jobCandidateStageRequest.getStatus().equals("REJECTED")) {
+			tosEntity.setStatus("REJECTED");
+		}
+		TosEntity tosEnitySaved = tosRepository.save(tosEntity);
+
+		// Set Form submission
+		if (jobCandidateStageRequest.getFormId() != null) {
+			FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+			formSubmissionsRequestDTO.setUserId(jobCandidateStageRequest.getCreatedBy());
+			formSubmissionsRequestDTO.setFormId(jobCandidateStageRequest.getFormId());
+			formSubmissionsRequestDTO.setSubmissionData(
+					MappingUtil.convertJSONStringToJsonNode(jobCandidateStageRequest.getFormData()));
+			formSubmissionsRequestDTO.setEntityId(tosEnitySaved.getId());
+			formSubmissionsRequestDTO.setEntityType(jobCandidateStageRequest.getJobType());
+
+			HttpResponse formSubmissionResponse = formSubmissionAPIClient
+					.addFormSubmission(formSubmissionsRequestDTO);
+			FormSubmissionsResponseDTO formSubmissionData = MappingUtil
+					.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
+			tosEntity.setTosSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+			tosEntity.setFormSubmissionId(formSubmissionData.getId());
+		}
+		return tosRepository.save(tosEntity);
+	}
+
+	public TosEntity updateTosEntity(TosEntity tosEntity,
+			JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest) {
 		// Set the form submission update
 		if (jobCandidateStageWithFilesRequest.getFormId() != null) {
 			FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
@@ -93,7 +130,8 @@ public class TosService {
 			updateDocumentListKeyDTO.setEntityId(tosEntity.getId().intValue());
 
 			if (jobCandidateStageWithFilesRequest.getFiles() != null) {
-				System.out.println("jobCandidateStageWithFilesRequest.getFiles().length2: " + jobCandidateStageWithFilesRequest.getFiles().length);
+				System.out.println("jobCandidateStageWithFilesRequest.getFiles().length2: "
+						+ jobCandidateStageWithFilesRequest.getFiles().length);
 				int fileLength = jobCandidateStageWithFilesRequest.getFiles().length;
 				String[] fileKeys = new String[fileLength];
 				MultipartFile[] files = new MultipartFile[fileLength];
@@ -106,8 +144,7 @@ public class TosService {
 					}
 					if (fileData.getFile() != null) {
 						files[i] = fileData.getFile();
-					} else  {
-						System.out.println("MOCKING EMPTY FILE");
+					} else {
 						files[i] = new MockMultipartFile("mock_emptyFile", "", "multipart/form-data", new byte[0]);
 					}
 				}
@@ -121,7 +158,8 @@ public class TosService {
 		}
 		return tosRepository.save(tosEntity);
 	}
-	public TosEntity getTosEntity(Long jobId, Long candidateId) {
-		return tosRepository.findByJobAndCandidate(jobId, candidateId).orElse(null);
+
+	public TosEntity getTosEntity(Long jobId, Long candidateId, String status) {
+		return tosRepository.findByJobAndCandidateAndStatus(jobId, candidateId, status).orElse(null);
 	}
 }

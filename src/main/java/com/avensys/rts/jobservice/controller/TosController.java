@@ -20,9 +20,9 @@ public class TosController {
 	@Autowired
 	private MessageSource messageSource;
 
-	@GetMapping("/jobs/{jobId}/candidates/{candidateId}")
-	public ResponseEntity<?> getTosWithJobIdAndCandidateId(@PathVariable Long jobId, @PathVariable Long candidateId) {
-		return ResponseUtil.generateSuccessResponse(tosService.getTosEntity(jobId, candidateId), HttpStatus.CREATED,
+	@GetMapping("/jobs/{jobId}/candidates/{candidateId}/status/{status}")
+	public ResponseEntity<?> getTosWithJobIdAndCandidateIdAndStatus(@PathVariable Long jobId, @PathVariable Long candidateId, @PathVariable String status) {
+		return ResponseUtil.generateSuccessResponse(tosService.getTosEntity(jobId, candidateId, status), HttpStatus.CREATED,
 				messageSource.getMessage("job.tag.created", null, LocaleContextHolder.getLocale()));
 	}
 

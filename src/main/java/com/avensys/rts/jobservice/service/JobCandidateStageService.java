@@ -380,6 +380,14 @@ public class JobCandidateStageService {
 			}
 		}
 
+		// Tos Approval / Rejection
+		System.out.println("Job Type: " + jobCandidateStageRequest.getJobType());
+
+		// If Jobtype is TOS, save into TOS table
+		if (jobCandidateStageRequest.getJobType().equals("tos_approval")) {
+			tosService.createTosEntity(jobCandidateStageRequest, candidateOptional.get(), jobOptional.get());
+		}
+
 		jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 
 		if (jobCandidateStageRequest.getFormId() != null) {
@@ -697,26 +705,16 @@ public class JobCandidateStageService {
 
 		System.out.println("Job Type: " + jobCandidateStageWithFilesRequest.getJobType());
 
-		// If Jobtype is TOS, save into TOS table
+		// Prepare TOS
 		if (jobCandidateStageWithFilesRequest.getJobType().equals("prepare_tos")) {
 			Optional<TosEntity> tosEntityOptional = tosRepository.findByJobAndCandidate(
 					jobCandidateStageWithFilesRequest.getJobId(), jobCandidateStageWithFilesRequest.getCandidateId());
 			if (tosEntityOptional.isPresent()) {
 				tosService.updateTosEntity(tosEntityOptional.get(), jobCandidateStageWithFilesRequest);
-//				System.out.println("TOS Entity Found");
-//				if (jobCandidateStageWithFilesRequest.getFiles() != null) {
-//					System.out.println("Files Found");
-//					for (FileDataDTO fileData : jobCandidateStageWithFilesRequest.getFiles()) {
-//						System.out.println("File Data: " +  fileData.getFileKey());
-//					}
-//				}
 			} else {
-				tosService.createTosEntity(jobCandidateStageWithFilesRequest, candidateOptional.get(), jobOptional.get());
+				tosService.createTosEntityWithFiles(jobCandidateStageWithFilesRequest, candidateOptional.get(), jobOptional.get());
 			}
 		}
-
-		// Set Files into Document services
-
 
 	// Send Email
 	// try {
