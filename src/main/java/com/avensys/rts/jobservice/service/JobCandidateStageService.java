@@ -7,10 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import com.avensys.rts.jobservice.apiclient.DocumentAPIClient;
-import com.avensys.rts.jobservice.entity.*;
-import com.avensys.rts.jobservice.payload.*;
-import com.avensys.rts.jobservice.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +21,31 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.avensys.rts.jobservice.apiclient.DocumentAPIClient;
 import com.avensys.rts.jobservice.apiclient.EmailAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
+import com.avensys.rts.jobservice.entity.CandidateEntity;
+import com.avensys.rts.jobservice.entity.JobCandidateStageEntity;
+import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.entity.JobStageEntity;
+import com.avensys.rts.jobservice.entity.JobTimelineEntity;
+import com.avensys.rts.jobservice.entity.TosEntity;
+import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.EmailMultiRequestDTO;
+import com.avensys.rts.jobservice.payload.EmailMultiTemplateRequestDTO;
+import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
+import com.avensys.rts.jobservice.payload.JobCandidateStageGetRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageWithAttachmentsRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageWithFilesRequest;
+import com.avensys.rts.jobservice.repository.CandidateRepository;
+import com.avensys.rts.jobservice.repository.JobCandidateStageRepository;
+import com.avensys.rts.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.repository.JobStageRepository;
+import com.avensys.rts.jobservice.repository.JobTimelineRepository;
+import com.avensys.rts.jobservice.repository.TosRepository;
+import com.avensys.rts.jobservice.repository.UserRepository;
 import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobTimelineTagDTO;
@@ -325,6 +343,17 @@ public class JobCandidateStageService {
 				skillsAssessmentEntity.setIsActive(true);
 				skillsAssessmentEntity.setIsDeleted(false);
 				jobCandidateStageRepository.save(skillsAssessmentEntity);
+			} else {
+				JobCandidateStageEntity skillsAssessmentEntity = new JobCandidateStageEntity();
+				skillsAssessmentEntity.setJob(jobOptional.get());
+				skillsAssessmentEntity.setJobStage(skillsAssessmentOptional.get());
+				skillsAssessmentEntity.setCandidate(candidateOptional.get());
+				skillsAssessmentEntity.setStatus(JobCanddateStageUtil.COMPLETED);
+				skillsAssessmentEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
+				skillsAssessmentEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+				skillsAssessmentEntity.setIsActive(true);
+				skillsAssessmentEntity.setIsDeleted(false);
+				jobCandidateStageRepository.save(skillsAssessmentEntity);
 			}
 		} else if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.TECHNICAL_INTERVIEW_ID
 				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.IN_PROGRESS)) {
@@ -342,6 +371,17 @@ public class JobCandidateStageService {
 				codingTestEntity.setIsActive(true);
 				codingTestEntity.setIsDeleted(false);
 				jobCandidateStageRepository.save(codingTestEntity);
+			} else {
+				JobCandidateStageEntity codingTestEntity = new JobCandidateStageEntity();
+				codingTestEntity.setJob(jobOptional.get());
+				codingTestEntity.setJobStage(codingTestOptional.get());
+				codingTestEntity.setCandidate(candidateOptional.get());
+				codingTestEntity.setStatus(JobCanddateStageUtil.COMPLETED);
+				codingTestEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
+				codingTestEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+				codingTestEntity.setIsActive(true);
+				codingTestEntity.setIsDeleted(false);
+				jobCandidateStageRepository.save(codingTestEntity);
 			}
 		} else if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.CULTURAL_FIT_TEST_ID
 				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.IN_PROGRESS)) {
@@ -355,6 +395,17 @@ public class JobCandidateStageService {
 			if (technicalIntrvwStageOptional.isPresent()) {
 				JobCandidateStageEntity technicalIntrvwEntity = technicalIntrvwStageOptional.get();
 				technicalIntrvwEntity.setStatus(JobCanddateStageUtil.COMPLETED);
+				technicalIntrvwEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
+				technicalIntrvwEntity.setIsActive(true);
+				technicalIntrvwEntity.setIsDeleted(false);
+				jobCandidateStageRepository.save(technicalIntrvwEntity);
+			} else {
+				JobCandidateStageEntity technicalIntrvwEntity = new JobCandidateStageEntity();
+				technicalIntrvwEntity.setJob(jobOptional.get());
+				technicalIntrvwEntity.setJobStage(technicalIntrvwOptional.get());
+				technicalIntrvwEntity.setCandidate(candidateOptional.get());
+				technicalIntrvwEntity.setStatus(JobCanddateStageUtil.COMPLETED);
+				technicalIntrvwEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
 				technicalIntrvwEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
 				technicalIntrvwEntity.setIsActive(true);
 				technicalIntrvwEntity.setIsDeleted(false);
