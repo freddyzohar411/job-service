@@ -39,7 +39,7 @@ public class ConditionalOfferEntity extends BaseEntity {
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "job_id", referencedColumnName = "id", unique = false)
 	private JobEntity jobEnity;
-git
+
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "sales_user_id", referencedColumnName = "id", unique = false)
 	private UserEntity seller;
