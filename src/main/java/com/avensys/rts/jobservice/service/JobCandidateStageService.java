@@ -308,6 +308,16 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setIsDeleted(false);
 		}
 
+		// Modify candidate isTagged
+		if (jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)
+				|| jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.WITHDRAWN)) {
+			candidateOptional.get().setTagged(false);
+			candidateRepository.save(candidateOptional.get());
+		} else {
+			candidateOptional.get().setTagged(true);
+			candidateRepository.save(candidateOptional.get());
+		}
+
 		// Coding Test In progress
 		if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.CODING_TEST_ID
 				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.IN_PROGRESS)) {
@@ -544,6 +554,14 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setIsDeleted(false);
 		}
 
+		if (jobCandidateStageWithAttachmentsRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)) {
+			candidateOptional.get().setTagged(false);
+			candidateRepository.save(candidateOptional.get());
+		} else {
+			candidateOptional.get().setTagged(true);
+			candidateRepository.save(candidateOptional.get());
+		}
+
 		// Conditional Offer Release
 		if (jobCandidateStageWithAttachmentsRequest.getJobType() != null) {
 			if (jobCandidateStageWithAttachmentsRequest.getJobType().equals("conditional_offer_release")) {
@@ -688,6 +706,14 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
 			jobCandidateStageEntity.setIsActive(true);
 			jobCandidateStageEntity.setIsDeleted(false);
+		}
+
+		if (jobCandidateStageWithFilesRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)) {
+			candidateOptional.get().setTagged(false);
+			candidateRepository.save(candidateOptional.get());
+		} else {
+			candidateOptional.get().setTagged(true);
+			candidateRepository.save(candidateOptional.get());
 		}
 
 		// Conditional Offer Approval
@@ -852,6 +878,14 @@ public class JobCandidateStageService {
 
 	@Transactional
 	public void untagCandidate(Long jobId, Long candidateId) throws ServiceException {
+		// Untagged candidate
+		Optional<CandidateEntity> candidateOptional = candidateRepository.findById(candidateId);
+		if (candidateOptional.isPresent()) {
+			CandidateEntity candidateEntity = candidateOptional.get();
+			candidateEntity.setTagged(false);
+			candidateRepository.save(candidateEntity);
+		}
+
 		jobCandidateStageRepository.deleteByJobAndCandidate(jobId, candidateId);
 		jobTimelineRepository.deleteByJobAndCandidate(jobId, candidateId);
 	}

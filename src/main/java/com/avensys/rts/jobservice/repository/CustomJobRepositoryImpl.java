@@ -461,7 +461,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("all_jobs")) {
+//		if (!userIds.isEmpty() && !jobType.equals("all_jobs")) {
+		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setFirstResult((int) pageable.getOffset());
@@ -829,18 +830,23 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 	@Override
 	public void insertVector(Long jobId, String columnName, List<Float> vector) {
-		// Convert your List<Float> to the format expected by the database for the vector type
-		String vectorString = vector.stream()
-				.map(Object::toString)
-				.collect(Collectors.joining(",", "[", "]")); // Note the change to square brackets
+		// Convert your List<Float> to the format expected by the database for the
+		// vector type
+		String vectorString = vector.stream().map(Object::toString).collect(Collectors.joining(",", "[", "]")); // Note
+																												// the
+																												// change
+																												// to
+																												// square
+																												// brackets
 
-		// Prepare your SQL query, ensuring the casting and formatting align with your database's requirements
-		String sql = "INSERT INTO job (id, :columnName) VALUES (:id, CAST(:vectorText AS vector))"; // Adjust as necessary
+		// Prepare your SQL query, ensuring the casting and formatting align with your
+		// database's requirements
+		String sql = "INSERT INTO job (id, :columnName) VALUES (:id, CAST(:vectorText AS vector))"; // Adjust as
+																									// necessary
 
-		// Execute the native query with parameters, ensuring the correct format is applied
-		entityManager.createNativeQuery(sql)
-				.setParameter("id", jobId)
-				.setParameter("columnName", columnName)
+		// Execute the native query with parameters, ensuring the correct format is
+		// applied
+		entityManager.createNativeQuery(sql).setParameter("id", jobId).setParameter("columnName", columnName)
 				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
 				.executeUpdate();
 	}
@@ -848,19 +854,28 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 	@Override
 	@Transactional
 	public void updateVector(Long jobId, String columnName, List<Float> vector) {
-		// Convert your List<Float> to the format expected by the database for the vector type
-		String vectorString = vector.stream()
-				.map(Object::toString)
-				.collect(Collectors.joining(",", "[", "]")); // Note the change to square brackets
+		// Convert your List<Float> to the format expected by the database for the
+		// vector type
+		String vectorString = vector.stream().map(Object::toString).collect(Collectors.joining(",", "[", "]")); // Note
+																												// the
+																												// change
+																												// to
+																												// square
+																												// brackets
 
-		// Prepare your SQL query, ensuring the casting and formatting align with your database's requirements
+		// Prepare your SQL query, ensuring the casting and formatting align with your
+		// database's requirements
 		// Note the change to the SQL statement for updating instead of inserting
 		String sql = "UPDATE job SET " + columnName + " = CAST(:vectorText AS vector) WHERE id = :id";
 
-		// Execute the native query with parameters, ensuring the correct format is applied
-		entityManager.createNativeQuery(sql)
-				.setParameter("id", jobId)
-				.setParameter("vectorText", vectorString) // The vector is now correctly formatted
+		// Execute the native query with parameters, ensuring the correct format is
+		// applied
+		entityManager.createNativeQuery(sql).setParameter("id", jobId).setParameter("vectorText", vectorString) // The
+																												// vector
+																												// is
+																												// now
+																												// correctly
+																												// formatted
 				.executeUpdate();
 	}
 
@@ -870,9 +885,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		String sql = "SELECT " + columnName + " FROM job WHERE id = :id";
 
 		// Execute the native query with the job ID parameter
-		Object result = entityManager.createNativeQuery(sql)
-				.setParameter("id", jobId)
-				.getSingleResult();
+		Object result = entityManager.createNativeQuery(sql).setParameter("id", jobId).getSingleResult();
 
 		// If the result is null, return an empty Optional
 		if (result == null) {
@@ -888,8 +901,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Remove the brackets, split by commas, and convert each element to Float
 		List<Float> vector = Arrays.stream(vectorString.replace("[", "").replace("]", "").split(","))
-				.map(Float::valueOf)
-				.collect(Collectors.toList());
+				.map(Float::valueOf).collect(Collectors.toList());
 
 		// Wrap the list in an Optional and return
 		return Optional.of(vector);
