@@ -27,16 +27,16 @@ public interface JobTimelineRepository extends JpaRepository<JobTimelineEntity, 
 			+ "and jcs.status = 'COMPLETED' and js.stage_order <= 5 and jcs.created_by IN (?2) group by js.name,jcs.job_id,jcs.job_stage_id", nativeQuery = true)
 	public List<Map<String, Long>> findJobTimelineCount(Long jobId, List<Long> userIds);
 
-	@Query(value = "select 'Interview Scheduled' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order in(10,11,12)", nativeQuery = true)
+	@Query(value = "select 'Scheduled' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order in(10,11,12)", nativeQuery = true)
 	public Map<String, Long> findInterviewScheduledCount(Long jobId);
 
-	@Query(value = "select 'Interview Happened' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order in(10,11,12) and jcs.status in ('COMPLETED', 'REJECTED')", nativeQuery = true)
+	@Query(value = "select 'Completed' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order in(10,11,12) and jcs.status in ('COMPLETED', 'REJECTED')", nativeQuery = true)
 	public Map<String, Long> findInterviewHappenedCount(Long jobId);
 
-	@Query(value = "select 'Interview Cancelled/Backout' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order in(10,11,12) and jcs.status = 'WITHDRAWN'", nativeQuery = true)
+	@Query(value = "select 'Cancelled/Backout' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order in(10,11,12) and jcs.status = 'WITHDRAWN'", nativeQuery = true)
 	public Map<String, Long> findInterviewCancelledCount(Long jobId);
 
-	@Query(value = "select 'Interview Pending Feedback' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order = 13", nativeQuery = true)
+	@Query(value = "select 'Pending Feedback' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where jcs.job_id = ?1 and js.stage_order = 13", nativeQuery = true)
 	public Map<String, Long> findInterviewFeedbackPendingCount(Long jobId);
 
 	@Modifying
