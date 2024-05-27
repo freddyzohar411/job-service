@@ -2,6 +2,7 @@ package com.avensys.rts.jobservice.service;
 
 import java.util.Optional;
 
+import com.avensys.rts.jobservice.entity.TosEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -225,6 +226,10 @@ public class ConditionalOfferService {
 			conditionalOfferEntitySaved.setFormSubmissionId(formSubmissionData.getId());
 		}
 		return conditionalOfferRepository.save(conditionalOfferEntitySaved);
+	}
+
+	public ConditionalOfferEntity getConditionalOfferByJobAndCandidateAndStatus(Long jobId, Long candidateId, String status) {
+		return conditionalOfferRepository.findByJobAndCandidateAndStatus(jobId, candidateId, status).orElse(null);
 	}
 
 }
