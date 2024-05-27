@@ -2,9 +2,6 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
-import com.avensys.rts.jobservice.payload.JobCandidateStageGetRequest;
-import com.avensys.rts.jobservice.payload.JobCandidateStageWithAttachmentsRequest;
-import com.avensys.rts.jobservice.payload.JobCandidateStageWithFilesRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +29,7 @@ import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.payload.JobCandidateStageGetRequest;
 import com.avensys.rts.jobservice.payload.JobCandidateStageRequest;
 import com.avensys.rts.jobservice.payload.JobCandidateStageWithAttachmentsRequest;
+import com.avensys.rts.jobservice.payload.JobCandidateStageWithFilesRequest;
 import com.avensys.rts.jobservice.service.JobCandidateStageService;
 import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.ResponseUtil;
@@ -85,7 +83,8 @@ public class JobCandidateStageController {
 
 	@RequiresAllPermissions({ Permission.JOB_WRITE })
 	@PostMapping("create-with-attachments")
-	public ResponseEntity<?> createWithAttachments(@ModelAttribute JobCandidateStageWithAttachmentsRequest jobCandidateStageWithAttachmentsRequest,
+	public ResponseEntity<?> createWithAttachments(
+			@ModelAttribute JobCandidateStageWithAttachmentsRequest jobCandidateStageWithAttachmentsRequest,
 			@RequestHeader(name = "Authorization") String token) {
 		LOG.info("create request received");
 		try {
@@ -103,7 +102,8 @@ public class JobCandidateStageController {
 
 	@RequiresAllPermissions({ Permission.JOB_WRITE })
 	@PostMapping("create-with-files")
-	public ResponseEntity<?> createWithFiles(@ModelAttribute JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest,
+	public ResponseEntity<?> createWithFiles(
+			@ModelAttribute JobCandidateStageWithFilesRequest jobCandidateStageWithFilesRequest,
 			@RequestHeader(name = "Authorization") String token) {
 		LOG.info("create request received");
 		try {

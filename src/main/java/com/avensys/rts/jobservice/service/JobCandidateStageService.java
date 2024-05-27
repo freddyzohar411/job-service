@@ -502,11 +502,15 @@ public class JobCandidateStageService {
 			jobTimelineEntity = timelineoptional.get();
 			jobTimelineEntity.setJob(jobOptional.get());
 			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setStepName(jobCandidateStageRequest.getStepName());
+			jobTimelineEntity.setSubStepName(jobCandidateStageRequest.getSubStepName());
 			jobTimelineEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
 		} else {
 			jobTimelineEntity = new JobTimelineEntity();
 			jobTimelineEntity.setJob(jobOptional.get());
 			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setStepName(jobCandidateStageRequest.getStepName());
+			jobTimelineEntity.setSubStepName(jobCandidateStageRequest.getSubStepName());
 			jobTimelineEntity.setCreatedBy(jobCandidateStageRequest.getCreatedBy());
 			jobTimelineEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
 		}
@@ -647,11 +651,15 @@ public class JobCandidateStageService {
 			jobTimelineEntity = timelineoptional.get();
 			jobTimelineEntity.setJob(jobOptional.get());
 			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setStepName(jobCandidateStageWithAttachmentsRequest.getStepName());
+			jobTimelineEntity.setSubStepName(jobCandidateStageWithAttachmentsRequest.getSubStepName());
 			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithAttachmentsRequest.getUpdatedBy());
 		} else {
 			jobTimelineEntity = new JobTimelineEntity();
 			jobTimelineEntity.setJob(jobOptional.get());
 			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setStepName(jobCandidateStageWithAttachmentsRequest.getStepName());
+			jobTimelineEntity.setSubStepName(jobCandidateStageWithAttachmentsRequest.getSubStepName());
 			jobTimelineEntity.setCreatedBy(jobCandidateStageWithAttachmentsRequest.getCreatedBy());
 			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithAttachmentsRequest.getUpdatedBy());
 		}
@@ -799,11 +807,15 @@ public class JobCandidateStageService {
 			jobTimelineEntity = timelineoptional.get();
 			jobTimelineEntity.setJob(jobOptional.get());
 			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setStepName(jobCandidateStageWithFilesRequest.getStepName());
+			jobTimelineEntity.setSubStepName(jobCandidateStageWithFilesRequest.getSubStepName());
 			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
 		} else {
 			jobTimelineEntity = new JobTimelineEntity();
 			jobTimelineEntity.setJob(jobOptional.get());
 			jobTimelineEntity.setCandidate(candidateOptional.get());
+			jobTimelineEntity.setStepName(jobCandidateStageWithFilesRequest.getStepName());
+			jobTimelineEntity.setSubStepName(jobCandidateStageWithFilesRequest.getSubStepName());
 			jobTimelineEntity.setCreatedBy(jobCandidateStageWithFilesRequest.getCreatedBy());
 			jobTimelineEntity.setUpdatedBy(jobCandidateStageWithFilesRequest.getUpdatedBy());
 		}

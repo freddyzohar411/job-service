@@ -15,6 +15,8 @@ public class JobCandidateStageRequest {
 	private Long jobId;
 	private Long jobStageId;
 	private String status;
+	private String stepName;
+	private String subStepName;
 	private Long candidateId;
 	private Long formId;
 	private Long formSubmissionId;
