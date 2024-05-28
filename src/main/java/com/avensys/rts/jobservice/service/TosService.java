@@ -130,8 +130,6 @@ public class TosService {
 			updateDocumentListKeyDTO.setEntityId(tosEntity.getId().intValue());
 
 			if (jobCandidateStageWithFilesRequest.getFiles() != null) {
-				System.out.println("jobCandidateStageWithFilesRequest.getFiles().length2: "
-						+ jobCandidateStageWithFilesRequest.getFiles().length);
 				int fileLength = jobCandidateStageWithFilesRequest.getFiles().length;
 				String[] fileKeys = new String[fileLength];
 				MultipartFile[] files = new MultipartFile[fileLength];

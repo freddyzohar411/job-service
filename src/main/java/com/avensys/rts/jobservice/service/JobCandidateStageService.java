@@ -819,8 +819,6 @@ public class JobCandidateStageService {
 			}
 		}
 
-		System.out.println("Job Type: " + jobCandidateStageWithFilesRequest.getJobType());
-
 		// Prepare TOS
 		if (jobCandidateStageWithFilesRequest.getJobType().equals("prepare_tos")) {
 			Optional<TosEntity> tosEntityOptional = tosRepository.findByJobAndCandidate(

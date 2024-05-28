@@ -214,7 +214,6 @@ public class JobCandidateStageController {
 		LOG.info("getStage request received");
 		try {
 			JobCandidateStageEntity jobEntity = jobCandidateStageService.getStage(jobCandidateStageGetRequest);
-			System.out.println(jobEntity);
 			return ResponseUtil.generateSuccessResponse(jobEntity, HttpStatus.OK,
 					messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 		} catch (ServiceException e) {
