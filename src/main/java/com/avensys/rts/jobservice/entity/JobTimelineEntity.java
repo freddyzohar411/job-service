@@ -46,6 +46,12 @@ public class JobTimelineEntity extends BaseEntity {
 	@Column(name = "timeline", columnDefinition = "jsonb")
 	private JsonNode timeline;
 
+	@Column(name = "stepName")
+	private String stepName;
+
+	@Column(name = "subStepName")
+	private String subStepName;
+
 	@Transient
 	private String createdByName;
 

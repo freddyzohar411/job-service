@@ -57,4 +57,5 @@ public class JobCandidateStageEntity extends BaseEntity {
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "submission_data", columnDefinition = "jsonb")
 	private JsonNode submissionData;
+	
 }

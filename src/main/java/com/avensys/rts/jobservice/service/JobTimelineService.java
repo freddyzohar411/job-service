@@ -136,7 +136,6 @@ public class JobTimelineService {
 				Map<String, Long> interviewCancelledCount = jobTimelineRepository.findInterviewCancelledCount(jobId);
 				Map<String, Long> interviewFeedbackPendingCount = jobTimelineRepository
 						.findInterviewFeedbackPendingCount(jobId);
-
 				data.add(interviewScheduledCount);
 				data.add(interviewHappenedCount);
 				data.add(interviewCancelledCount);
