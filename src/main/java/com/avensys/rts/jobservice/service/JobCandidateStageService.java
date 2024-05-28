@@ -496,6 +496,15 @@ public class JobCandidateStageService {
 			}
 		}
 
+		// Save the profile withdrawn or rejected status
+		if (jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.WITHDRAWN)
+				|| jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)) {
+			// Set the form submission to action_form_submission_id
+			jobCandidateStageEntity.setActionFormSubmissionId(jobCandidateStageRequest.getFormId());
+			jobCandidateStageEntity.setActionSubmissionData(
+					MappingUtil.convertJSONStringToJsonNode(jobCandidateStageRequest.getFormData()));
+		}
+
 		// Send Email
 		try {
 			sendEmail(jobCandidateStageEntity);
