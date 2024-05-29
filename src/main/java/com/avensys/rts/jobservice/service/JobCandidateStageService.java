@@ -326,6 +326,16 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setIsDeleted(false);
 		}
 
+		// Modify candidate isTagged
+		if (jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)
+				|| jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.WITHDRAWN)) {
+			candidateOptional.get().setTagged(false);
+			candidateRepository.save(candidateOptional.get());
+		} else {
+			candidateOptional.get().setTagged(true);
+			candidateRepository.save(candidateOptional.get());
+		}
+
 		// Coding Test In progress
 		if (jobCandidateStageRequest.getJobStageId() == JobCanddateStageUtil.CODING_TEST_ID
 				&& jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.IN_PROGRESS)) {
@@ -486,6 +496,15 @@ public class JobCandidateStageService {
 			}
 		}
 
+		// Save the profile withdrawn or rejected status
+		if (jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.WITHDRAWN)
+				|| jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)) {
+			// Set the form submission to action_form_submission_id
+			jobCandidateStageEntity.setActionFormSubmissionId(jobCandidateStageRequest.getFormId());
+			jobCandidateStageEntity.setActionSubmissionData(
+					MappingUtil.convertJSONStringToJsonNode(jobCandidateStageRequest.getFormData()));
+		}
+
 		// Send Email
 		try {
 			sendEmail(jobCandidateStageEntity);
@@ -597,6 +616,14 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setUpdatedBy(jobCandidateStageWithAttachmentsRequest.getUpdatedBy());
 			jobCandidateStageEntity.setIsActive(true);
 			jobCandidateStageEntity.setIsDeleted(false);
+		}
+
+		if (jobCandidateStageWithAttachmentsRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)) {
+			candidateOptional.get().setTagged(false);
+			candidateRepository.save(candidateOptional.get());
+		} else {
+			candidateOptional.get().setTagged(true);
+			candidateRepository.save(candidateOptional.get());
 		}
 
 		// Conditional Offer Release
@@ -749,6 +776,14 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setIsDeleted(false);
 		}
 
+		if (jobCandidateStageWithFilesRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)) {
+			candidateOptional.get().setTagged(false);
+			candidateRepository.save(candidateOptional.get());
+		} else {
+			candidateOptional.get().setTagged(true);
+			candidateRepository.save(candidateOptional.get());
+		}
+
 		// Conditional Offer Approval
 		if (jobCandidateStageWithFilesRequest.getJobType() != null) {
 			if (jobCandidateStageWithFilesRequest.getJobType().equals("conditional_offer_approval")) {
@@ -783,8 +818,6 @@ public class JobCandidateStageService {
 				jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 			}
 		}
-
-		System.out.println("Job Type: " + jobCandidateStageWithFilesRequest.getJobType());
 
 		// Prepare TOS
 		if (jobCandidateStageWithFilesRequest.getJobType().equals("prepare_tos")) {
@@ -915,6 +948,14 @@ public class JobCandidateStageService {
 
 	@Transactional
 	public void untagCandidate(Long jobId, Long candidateId) throws ServiceException {
+		// Untagged candidate
+		Optional<CandidateEntity> candidateOptional = candidateRepository.findById(candidateId);
+		if (candidateOptional.isPresent()) {
+			CandidateEntity candidateEntity = candidateOptional.get();
+			candidateEntity.setTagged(false);
+			candidateRepository.save(candidateEntity);
+		}
+
 		jobCandidateStageRepository.deleteByJobAndCandidate(jobId, candidateId);
 		jobTimelineRepository.deleteByJobAndCandidate(jobId, candidateId);
 	}

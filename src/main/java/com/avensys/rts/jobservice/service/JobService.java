@@ -427,7 +427,7 @@ public class JobService {
 		if (!getAll) {
 			userIds = userUtil.getUsersIdUnderManager();
 		}
-
+		System.out.println("userIds: " + userIds);
 		// Find user id
 		// Try with numeric first else try with string (jsonb)
 		try {

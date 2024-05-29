@@ -55,4 +55,7 @@ public class CandidateEntity extends BaseEntity {
 	@Column(name = "created_by_user_groups_id", columnDefinition = "TEXT")
 	private String createdByUserGroupsId;
 
+	@Column(name = "is_tagged", columnDefinition = "boolean default false")
+	private boolean isTagged = false;
+
 }

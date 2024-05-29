@@ -50,5 +50,4 @@ public class TosEntity extends BaseEntity{
 	@Column(name = "tos_submission_data", columnDefinition = "jsonb")
 	private JsonNode tosSubmissionData;
 
-
 }
