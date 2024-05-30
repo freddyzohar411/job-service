@@ -85,18 +85,19 @@ public class JobCandidateStageServiceTest {
 	@BeforeEach
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
-		candidateEntity = new CandidateEntity(1L, "kotaiah", "nalleboina", true, 1, 1, candidateSubmissionData, "123");
+		candidateEntity = new CandidateEntity(1L, "kotaiah", "nalleboina", true, 1, 1, candidateSubmissionData, "123",
+				false);
 		candidateOptional = Optional.of(candidateEntity);
 		jobStageEntity = new JobStageEntity(1L, "Stage name", 1L, "Stage type");
 		jobStageOptional = Optional.of(jobStageEntity);
 		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
 		jobOptional = Optional.of(jobEntity);
 		jobCandidateStageEntity = new JobCandidateStageEntity(1L, jobEntity, jobStageEntity, "Active", candidateEntity,
-				1L, 1L, jobSubmissionData);
+				1L, 1L, jobSubmissionData, null, candidateSubmissionData);
 		jobCandidateStageEntity1 = new JobCandidateStageEntity(1L, jobEntity, jobStageEntity, "Active", candidateEntity,
-				1L, 1L, jobSubmissionData);
-		jobCandidateStageRequest = new JobCandidateStageRequest(1L, 1L, 1L, "Active", 1L, 1L, 1L, "full time", formData,
-				1L, 1L);
+				1L, 1L, jobSubmissionData, null, candidateSubmissionData);
+		jobCandidateStageRequest = new JobCandidateStageRequest(1L, 1L, 1L, "Active", formData, formData, 1L, 1L, 1L,
+				"full time", formData, 1L, 1L);
 		jobStageList = Arrays.asList(jobCandidateStageEntity, jobCandidateStageEntity1);
 		sortDec = Sort.by(Sort.Direction.DESC, "updatedAt");
 		pageable = PageRequest.of(1, 2, sortDec);
@@ -150,7 +151,7 @@ public class JobCandidateStageServiceTest {
 		when(candidateRepository
 				.findById(jobCandidateStageRequest.getCandidateId())).thenReturn(candidateOptional);
 		jobCandidateStageEntity = new JobCandidateStageEntity(1L, jobEntity, jobStageEntity, "Active", candidateEntity,
-				1L, 1L, jobSubmissionData);
+				1L, 1L, jobSubmissionData, null, candidateSubmissionData);
 		when(jobCandidateStageRepository.save(jobCandidateStageEntity)).thenReturn(jobCandidateStageEntity);
 		//jobCandidateStageEntity = jobCandidateStageRepository.save(jobCandidateStageEntity);
 		assertNotNull(optionalJobCandidate);
