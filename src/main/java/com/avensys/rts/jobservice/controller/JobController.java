@@ -226,7 +226,11 @@ public class JobController {
 		Boolean isAdmin = userUtil.checkIsAdmin();
 		jobListingRequestDTO.setUserId(userId);
 		jobListingRequestDTO.setEmail(email);
-		jobListingRequestDTO.setGetAll(isAdmin);
+		if (jobListingRequestDTO.getJobType() != null && jobListingRequestDTO.getJobType().equals("active_jobs")) {
+			jobListingRequestDTO.setGetAll(true);
+		} else {
+			jobListingRequestDTO.setGetAll(isAdmin);
+		}
 
 		if (jobListingRequestDTO.getSearchTerm() == null || jobListingRequestDTO.getSearchTerm().isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(jobService.getJobListingPage(jobListingRequestDTO),
