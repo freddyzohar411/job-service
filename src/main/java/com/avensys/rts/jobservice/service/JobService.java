@@ -821,12 +821,28 @@ public class JobService {
 		EmailMultiTemplateRequestDTO dto = new EmailMultiTemplateRequestDTO();
 		dto.setCategory(JobUtil.EMAIL_TEMPLATE);
 
+		//Get a list of all the key in the job submission data
+		List<String> jobSubmissionDataKeys = new ArrayList<>();
+		if (jobEntity.getJobSubmissionData() != null) {
+			Iterator<String> jobFieldNames = jobEntity.getJobSubmissionData().fieldNames();
+			while (jobFieldNames.hasNext()) {
+				String fieldName = jobFieldNames.next();
+				jobSubmissionDataKeys.add(fieldName);
+			}
+		}
+
+		// Set Subject Line
+		String jobTitle = JobUtil.getValue(jobEntity, "jobTitle");
+		String clientName = JobUtil.getValue(jobEntity, "accountName");
+		String newJobSubject = "New Job Notification | " + jobTitle + " | " + clientName;
+
 		Map<String, String> params = new HashMap<>();
-		params.put("Jobs.jobInfo.jobTitle", JobUtil.getValue(jobEntity, "jobTitle"));
-		params.put("Jobs.jobInfo.clientName", JobUtil.getValue(jobEntity, "clientName"));
-		params.put("Jobs.jobInfo.noofheadcounts", JobUtil.getValue(jobEntity, "noofheadcounts"));
-		params.put("Jobs.jobInfo.targetClosingDate", JobUtil.getValue(jobEntity, "targetClosingDate"));
-		params.put("Jobs.jobInfo.Jobdescription", JobUtil.getValue(jobEntity, "Jobdescription"));
+
+		// loop and add the job submission data to the params
+		for (String key : jobSubmissionDataKeys) {
+			params.put("Jobs.jobInfo." + key, JobUtil.getValue(jobEntity, key));
+		}
+
 		// Get AccountOwner Name if exists
 		String accountOwner = JobUtil.getValue(jobEntity, "accountOwner");
 		HashMap<String, String> accountOwnerData = new HashMap<>();
@@ -846,7 +862,7 @@ public class JobService {
 		}
 
 		// Set the subject
-		dto.setSubject("New Job Created");
+		dto.setSubject(newJobSubject);
 
 		dto.setTemplateMap(params);
 		emailAPIClient.sendEmailServiceTemplate(dto);
