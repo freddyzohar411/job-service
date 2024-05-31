@@ -20,4 +20,5 @@ public class JobRequest {
 	private Long createdBy;
 	private Long updatedBy;
 	private boolean clone = false;
+	private String cloneJobId;
 }
