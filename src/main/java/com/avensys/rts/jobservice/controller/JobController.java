@@ -2,6 +2,9 @@ package com.avensys.rts.jobservice.controller;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.util.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +41,6 @@ import com.avensys.rts.jobservice.payload.TosRequestDTO;
 import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
 import com.avensys.rts.jobservice.service.JobRecruiterFODService;
 import com.avensys.rts.jobservice.service.JobService;
-import com.avensys.rts.jobservice.util.JwtUtil;
-import com.avensys.rts.jobservice.util.ResponseUtil;
-import com.avensys.rts.jobservice.util.UserUtil;
 
 import jakarta.validation.Valid;
 
@@ -112,7 +112,13 @@ public class JobController {
 			Long id = jobRequest.getId();
 			JobEntity jobEntity = jobService.getById(id);
 			JobRequest cloneJobRequest = jobEntityToJobRequest(jobEntity);
-			// jobRequest.setId(null);
+			String jobDataClone = cloneJobRequest.getFormData();
+			JsonNode jobDataNodeClone = MappingUtil.convertJSONStringToJsonNode(jobDataClone);
+			ObjectNode objectNodeClone = (ObjectNode) jobDataNodeClone;
+			if (jobDataNodeClone.isObject()) {
+				objectNodeClone.put("jobId", jobRequest.getCloneJobId());
+			}
+			cloneJobRequest.setFormData(MappingUtil.convertJsonNodeToJSONString(objectNodeClone));
 			JobEntity cloneJobEntity = jobService.save(cloneJobRequest);
 			return ResponseUtil.generateSuccessResponse(cloneJobEntity, HttpStatus.CREATED,
 					messageSource.getMessage(MessageConstants.MESSAGE_CREATED, null, LocaleContextHolder.getLocale()));
