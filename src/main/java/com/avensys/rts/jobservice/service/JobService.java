@@ -716,8 +716,6 @@ public class JobService {
 			}
 
 		}
-		System.out.println(" Save Job customFields : Service");
-		System.out.println(customFieldsRequestDTO);
 		CustomFieldsEntity jobCustomFieldsEntity = customFieldsRequestDTOToCustomFieldsEntity(customFieldsRequestDTO);
 		return customFieldsEntityToCustomFieldsResponseDTO(jobCustomFieldsEntity);
 	}
