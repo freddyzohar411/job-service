@@ -3,7 +3,9 @@ package com.avensys.rts.jobservice.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +52,7 @@ import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobTimelineTagDTO;
 import com.avensys.rts.jobservice.util.JobCanddateStageUtil;
+import com.avensys.rts.jobservice.util.JobUtil;
 import com.avensys.rts.jobservice.util.MappingUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -274,8 +277,42 @@ public class JobCandidateStageService {
 			dto.setSubject("Avensys Notification | Job Offer Acceptance");
 		}
 
+		// Get a list of all the key in the job submission data
+				List<String> jobSubmissionDataKeys = new ArrayList<>();
+				if (jobEntity.getJobSubmissionData() != null) {
+					Iterator<String> jobFieldNames = jobEntity.getJobSubmissionData().fieldNames();
+					while (jobFieldNames.hasNext()) {
+						String fieldName = jobFieldNames.next();
+						jobSubmissionDataKeys.add(fieldName);
+					}
+				}
+
+				// loop and add the job submission data to the params
+				for (String key : jobSubmissionDataKeys) {
+					params.put("Jobs.jobInfo." + key, JobUtil.getValue(jobEntity, key));
+				}
+
+				// Get AccountOwner Name if exists
+				String accountOwner = JobUtil.getValue(jobEntity, "accountOwner");
+				HashMap<String, String> accountOwnerData = new HashMap<>();
+				if (accountOwner != null) {
+					accountOwnerData = extractAccountOwnerDetails(accountOwner);
+					params.put("Jobs.jobInfo.accountOwner", accountOwnerData.get("accountName"));
+				}
+				
 		dto.setTemplateMap(params);
 		emailAPIClient.sendEmailServiceTemplate(dto);
+	}
+	private HashMap<String, String> extractAccountOwnerDetails(String accountOwner) {
+		HashMap<String, String> accountOwnerDetails = new HashMap<>();
+		try {
+			String[] accountOwnerArray = accountOwner.split("\\(");
+			accountOwnerDetails.put("accountName", accountOwnerArray[0].trim());
+			accountOwnerDetails.put("email", accountOwnerArray[1].replace(")", "").trim());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+		return accountOwnerDetails;
 	}
 
 	private void sendEmailWithAttachment(EmailMultiRequestDTO emailRequest) {
