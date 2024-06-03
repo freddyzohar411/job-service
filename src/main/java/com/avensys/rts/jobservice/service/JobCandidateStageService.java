@@ -156,6 +156,21 @@ public class JobCandidateStageService {
 			params.put("Candidates.basicInfo." + key, JobUtil.getValue(candidateEntity, key));
 		}
 
+		if (!JobCanddateStageUtil.getValue(candidateEntity, "candidateOwnerId").equals("N/A")) {
+			Long candidateOwnerId = Long.parseLong(JobCanddateStageUtil.getValue(candidateEntity, "candidateOwnerId"));
+			Optional<UserEntity> candidateOwnerEntityOpt = userRepository.findById(candidateOwnerId);
+			if (candidateOwnerEntityOpt.isPresent()) {
+				UserEntity candidateOwnerEntity = candidateOwnerEntityOpt.get();
+
+				params.put("Candidates.basicInfo.candidateOwner", JobCanddateStageUtil
+						.validateValue(candidateOwnerEntity.getFirstName() + " " + candidateOwnerEntity.getLastName()));
+				params.put("Candidates.basicInfo.candidateOwnerEmail",
+						JobCanddateStageUtil.validateValue(candidateOwnerEntity.getEmail()));
+				params.put("Candidates.basicInfo.candidateOwnerMobile",
+						JobCanddateStageUtil.validateValue(candidateOwnerEntity.getMobile()));
+			}
+		}
+
 		// Candidate params
 		UserEntity client = null;
 		String clientName = null;
@@ -165,12 +180,6 @@ public class JobCandidateStageService {
 			clientName = client.getFirstName() + " " + client.getLastName();
 
 			params.put("Jobs.jobInfo.accountOwner", JobCanddateStageUtil.validateValue(clientName));
-
-			params.put("Candidates.basicInfo.accountOwner", JobCanddateStageUtil.validateValue(clientName));
-			params.put("Candidates.basicInfo.accountOwnerEmail", JobCanddateStageUtil.validateValue(client.getEmail()));
-			params.put("Candidates.basicInfo.accountOwnerMobile",
-					JobCanddateStageUtil.validateValue(client.getMobile()));
-
 		} catch (Exception e) {
 			log.error("Error:", e);
 		}

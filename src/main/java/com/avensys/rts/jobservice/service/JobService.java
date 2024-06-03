@@ -863,12 +863,26 @@ public class JobService {
 		// Set template Name
 		dto.setTemplateName(JobUtil.NEW_JOB_NOTIFICATION);
 
+		Optional<UserEntity> createdBy = userRepository.findById(jobEntity.getCreatedBy());
+
+		List<String> emailsList = new ArrayList<String>();
+		emailsList.add("delivery@aven-sys.com");
+		emailsList.add("SGTAG@aven-sys.com");
+		emailsList.add("avensys.itag@aven-sys.com");
+		emailsList.add("avensys.mtag@aven-sys.com");
+
+		if (createdBy.isPresent()) {
+			String createdByEmail = createdBy.get().getEmail();
+			emailsList.add(createdByEmail);
+		}
+
 		// Set the email to send
 		if (accountOwnerData.get("email") != null) {
-			dto.setTo(new String[] { accountOwnerData.get("email"), "delivery@aven-sys.com" });
-		} else {
-			dto.setTo(new String[] { "delivery@aven-sys.com" });
+			emailsList.add(accountOwnerData.get("email"));
 		}
+
+		String[] to = emailsList.stream().toArray(String[]::new);
+		dto.setTo(to);
 
 		// Set the subject
 		dto.setSubject(newJobSubject);
