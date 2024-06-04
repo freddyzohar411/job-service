@@ -71,8 +71,8 @@ public class JobRecruiterFODService {
 
 		dto.setCategory(JobFODUtil.JOB_TEMPLATE_CATEGORY);
 		if (isAssign) {
-			dto.setSubject("FOD | " + JobUtil.getValue(jobEntity, "Jobs.jobInfo.accountName") + " | "
-					+ JobUtil.getValue(jobEntity, "Jobs.jobInfo.jobTitle"));
+			dto.setSubject("FOD | " + JobUtil.getValue(jobEntity, "accountName") + " | "
+					+ JobUtil.getValue(jobEntity, "jobTitle"));
 			dto.setTemplateName(JobFODUtil.FOD_ASSIGN);
 		} else {
 			dto.setSubject("FOD has been unassigned");
