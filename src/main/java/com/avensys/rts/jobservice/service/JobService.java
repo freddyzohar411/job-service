@@ -195,6 +195,7 @@ public class JobService {
 		JobEntity savedJob = jobRepository.save(jobEntity);
 
 		sendEmail(savedJob);
+
 		return jobEntity;
 	}
 
@@ -819,7 +820,7 @@ public class JobService {
 		EmailMultiTemplateRequestDTO dto = new EmailMultiTemplateRequestDTO();
 		dto.setCategory(JobUtil.EMAIL_TEMPLATE);
 
-		//Get a list of all the key in the job submission data
+		// Get a list of all the key in the job submission data
 		List<String> jobSubmissionDataKeys = new ArrayList<>();
 		if (jobEntity.getJobSubmissionData() != null) {
 			Iterator<String> jobFieldNames = jobEntity.getJobSubmissionData().fieldNames();
