@@ -391,4 +391,35 @@ public class JobControllerTest {
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/job/customView/delete/{id}", 1)).andExpect(status().isOk())
 		.andReturn();
 	}
+	
+	@Test
+	void testGetAllJobsFieldsAll() throws Exception{
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/job/fields/all")).andExpect(status().isOk())
+		.andReturn();
+	}
+	
+	@Test
+	void testGetJobByIdDataAll() throws Exception{
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/job/{jobId}/data/all",1)).andExpect(status().isOk())
+		.andReturn();
+	}
+	
+	@Test
+	void testGetEmbeddingsById()throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/job/{jobId}/embeddings/get/{type}",1,"type")).andExpect(status().isOk())
+		.andReturn();
+	}
+	
+	@Test
+	void testUpdateEmbeddingsById()throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/job/{jobId}/embeddings/create",1)).andExpect(status().isOk())
+		.andReturn();
+	}
+	
+	@Test
+	void testUpdateAllEmbeddings()throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/job/create-embeddings/all")).andExpect(status().isOk())
+		.andReturn();
+	}
+	
 }
