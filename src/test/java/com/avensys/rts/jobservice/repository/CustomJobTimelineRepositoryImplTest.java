@@ -63,9 +63,12 @@ public class CustomJobTimelineRepositoryImplTest {
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
-		candidateEntity = new CandidateEntity(1L, "kotaiah", "nalleboina", true, 1, 1, candidateSubmissionData, "123");
-		jobTimelineEntity = new JobTimelineEntity(1L, jobEntity, candidateEntity, timeline, "123", "123");
-		jobTimelineEntity1 = new JobTimelineEntity(1L, jobEntity, candidateEntity, timeline, "123", "123");
+		candidateEntity = new CandidateEntity(1L, "kotaiah", "nalleboina", true, 1, 1, candidateSubmissionData, "123",
+				false);
+		jobTimelineEntity = new JobTimelineEntity(1L, jobEntity, candidateEntity, timeline, "123", "123", searchTerm,
+				searchTerm);
+		jobTimelineEntity1 = new JobTimelineEntity(1L, jobEntity, candidateEntity, timeline, "123", "123", searchTerm,
+				searchTerm);
 		jobTimelineList = Arrays.asList(jobTimelineEntity, jobTimelineEntity1);
 		sortDec = Sort.by(Sort.Direction.DESC, "updatedAt");
 		userIds = Arrays.asList(1L, 2L);

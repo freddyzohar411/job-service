@@ -1,34 +1,48 @@
 package com.avensys.rts.jobservice.service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.avensys.rts.jobservice.apiclient.EmailAPIClient;
-import com.avensys.rts.jobservice.entity.*;
-import com.avensys.rts.jobservice.payload.*;
-import com.avensys.rts.jobservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 
+import com.avensys.rts.jobservice.apiclient.EmailAPIClient;
 import com.avensys.rts.jobservice.apiclient.EmbeddingAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.apiclient.UserAPIClient;
+import com.avensys.rts.jobservice.entity.CandidateEntity;
+import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
+import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.entity.TosEntity;
+import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.model.FieldInformation;
 import com.avensys.rts.jobservice.model.JobExtraData;
+import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
+import com.avensys.rts.jobservice.payload.EmailMultiTemplateRequestDTO;
+import com.avensys.rts.jobservice.payload.EmbeddingRequestDTO;
+import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingDeleteRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
+import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.payload.TosRequestDTO;
 import com.avensys.rts.jobservice.repository.CandidateRepository;
 import com.avensys.rts.jobservice.repository.JobCustomFieldsRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
@@ -42,12 +56,17 @@ import com.avensys.rts.jobservice.response.JobListingDataDTO;
 import com.avensys.rts.jobservice.response.JobListingResponseDTO;
 import com.avensys.rts.jobservice.response.UserResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
+import com.avensys.rts.jobservice.util.JobDataExtractionUtil;
+import com.avensys.rts.jobservice.util.JobUtil;
+import com.avensys.rts.jobservice.util.MappingUtil;
+import com.avensys.rts.jobservice.util.StringUtil;
+import com.avensys.rts.jobservice.util.TextProcessingUtil;
+import com.avensys.rts.jobservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Rahul Sahu
@@ -68,9 +87,6 @@ public class JobService {
 
 	@Autowired
 	private CandidateRepository candidateRepository;
-
-	// @Autowired
-	// private AccountRepository accountRepository;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -163,13 +179,6 @@ public class JobService {
 	@Transactional
 	public JobEntity save(JobRequest jobRequest) throws ServiceException {
 		// add check for title exists in a DB
-
-//		if (!jobRequest.isClone()) {
-//			if (jobRepository.existsByTitle(jobRequest.getTitle())) {
-//				throw new ServiceException(
-//						messageSource.getMessage("error.jobtitletaken", null, LocaleContextHolder.getLocale()));
-//			}
-//		}
 
 		JobEntity jobEntity = mapRequestToEntity(jobRequest);
 
@@ -853,12 +862,26 @@ public class JobService {
 		// Set template Name
 		dto.setTemplateName(JobUtil.NEW_JOB_NOTIFICATION);
 
+		Optional<UserEntity> createdBy = userRepository.findById(jobEntity.getCreatedBy());
+
+		List<String> emailsList = new ArrayList<String>();
+		emailsList.add("delivery@aven-sys.com");
+		emailsList.add("SGTAG@aven-sys.com");
+		emailsList.add("avensys.itag@aven-sys.com");
+		emailsList.add("avensys.mtag@aven-sys.com");
+
+		if (createdBy.isPresent()) {
+			String createdByEmail = createdBy.get().getEmail();
+			emailsList.add(createdByEmail);
+		}
+
 		// Set the email to send
 		if (accountOwnerData.get("email") != null) {
-			dto.setTo(new String[] { accountOwnerData.get("email"), "delivery@aven-sys.com" });
-		} else {
-			dto.setTo(new String[] { "delivery@aven-sys.com" });
+			emailsList.add(accountOwnerData.get("email"));
 		}
+
+		String[] to = emailsList.stream().toArray(String[]::new);
+		dto.setTo(to);
 
 		// Set the subject
 		dto.setSubject(newJobSubject);

@@ -3,7 +3,9 @@ package com.avensys.rts.jobservice.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +52,7 @@ import com.avensys.rts.jobservice.response.FormSubmissionsResponseDTO;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobTimelineTagDTO;
 import com.avensys.rts.jobservice.util.JobCanddateStageUtil;
+import com.avensys.rts.jobservice.util.JobUtil;
 import com.avensys.rts.jobservice.util.MappingUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -123,6 +126,51 @@ public class JobCandidateStageService {
 
 		HashMap<String, String> params = new HashMap<String, String>();
 
+		// Get a list of all the key in the job submission data
+		List<String> jobSubmissionDataKeys = new ArrayList<>();
+		if (jobEntity.getJobSubmissionData() != null) {
+			Iterator<String> jobFieldNames = jobEntity.getJobSubmissionData().fieldNames();
+			while (jobFieldNames.hasNext()) {
+				String fieldName = jobFieldNames.next();
+				jobSubmissionDataKeys.add(fieldName);
+			}
+		}
+
+		// Get a list of all the key in the candidate submission data
+		List<String> candidateSubmissionDataKeys = new ArrayList<>();
+		if (jobEntity.getJobSubmissionData() != null) {
+			Iterator<String> jobFieldNames = candidateEntity.getCandidateSubmissionData().fieldNames();
+			while (jobFieldNames.hasNext()) {
+				String fieldName = jobFieldNames.next();
+				candidateSubmissionDataKeys.add(fieldName);
+			}
+		}
+
+		// loop and add the job submission data to the params
+		for (String key : jobSubmissionDataKeys) {
+			params.put("Jobs.jobInfo." + key, JobUtil.getValue(jobEntity, key));
+		}
+
+		// loop and add the candidate submission data to the params
+		for (String key : candidateSubmissionDataKeys) {
+			params.put("Candidates.basicInfo." + key, JobUtil.getValue(candidateEntity, key));
+		}
+
+		if (!JobCanddateStageUtil.getValue(candidateEntity, "candidateOwnerId").equals("N/A")) {
+			Long candidateOwnerId = Long.parseLong(JobCanddateStageUtil.getValue(candidateEntity, "candidateOwnerId"));
+			Optional<UserEntity> candidateOwnerEntityOpt = userRepository.findById(candidateOwnerId);
+			if (candidateOwnerEntityOpt.isPresent()) {
+				UserEntity candidateOwnerEntity = candidateOwnerEntityOpt.get();
+
+				params.put("Candidates.basicInfo.candidateOwner", JobCanddateStageUtil
+						.validateValue(candidateOwnerEntity.getFirstName() + " " + candidateOwnerEntity.getLastName()));
+				params.put("Candidates.basicInfo.candidateOwnerEmail",
+						JobCanddateStageUtil.validateValue(candidateOwnerEntity.getEmail()));
+				params.put("Candidates.basicInfo.candidateOwnerMobile",
+						JobCanddateStageUtil.validateValue(candidateOwnerEntity.getMobile()));
+			}
+		}
+
 		// Candidate params
 		UserEntity client = null;
 		String clientName = null;
@@ -131,46 +179,10 @@ public class JobCandidateStageService {
 			client = userRepository.findById(ownerId).get();
 			clientName = client.getFirstName() + " " + client.getLastName();
 
-			params.put("candidate.accountOwner", JobCanddateStageUtil.validateValue(clientName));
-			params.put("candidate.accountOwnerEmail", JobCanddateStageUtil.validateValue(client.getEmail()));
-			params.put("candidate.accountOwnerMobile", JobCanddateStageUtil.validateValue(client.getMobile()));
+			params.put("Jobs.jobInfo.accountOwner", JobCanddateStageUtil.validateValue(clientName));
 		} catch (Exception e) {
 			log.error("Error:", e);
 		}
-		params.put("candidate.firstName", JobCanddateStageUtil.getValue(candidateEntity, "firstName"));
-		params.put("candidate.lastName", JobCanddateStageUtil.getValue(candidateEntity, "lastName"));
-		params.put("candidate.gender", JobCanddateStageUtil.getValue(candidateEntity, "gender"));
-		params.put("candidate.phoneCode", JobCanddateStageUtil.getValue(candidateEntity, "phoneCode"));
-		params.put("candidate.phone", JobCanddateStageUtil.getValue(candidateEntity, "phone"));
-		params.put("candidate.email", JobCanddateStageUtil.getValue(candidateEntity, "email"));
-		params.put("candidate.candidateNationality",
-				JobCanddateStageUtil.getValue(candidateEntity, "candidateNationality"));
-		params.put("candidate.visaStatus", JobCanddateStageUtil.getValue(candidateEntity, "visaStatus"));
-		params.put("candidate.currentLocation", JobCanddateStageUtil.getValue(candidateEntity, "currentLocation"));
-
-		params.put("candidate.profileSummary", JobCanddateStageUtil.getValue(candidateEntity, "profileSummary"));
-		params.put("candidate.currentPositionTitle",
-				JobCanddateStageUtil.getValue(candidateEntity, "currentPositionTitle"));
-		params.put("candidate.totalExperience", JobCanddateStageUtil.getValue(candidateEntity, "totalExperience"));
-		params.put("candidate.relevantExperience",
-				JobCanddateStageUtil.getValue(candidateEntity, "relevantExperience"));
-		params.put("candidate.currentPositionTitle",
-				JobCanddateStageUtil.getValue(candidateEntity, "currentPositionTitle"));
-		params.put("candidate.currentEmployer", JobCanddateStageUtil.getValue(candidateEntity, "currentEmployer"));
-		params.put("candidate.primarySkill", JobCanddateStageUtil.getValue(candidateEntity, "primarySkill"));
-
-		params.put("candidate.reasonForChange", JobCanddateStageUtil.getValue(candidateEntity, "reasonForChange"));
-		params.put("candidate.currentSalary", JobCanddateStageUtil.getValue(candidateEntity, "candidateCurrentSalary"));
-		params.put("candidate.expectedSalary",
-				JobCanddateStageUtil.getValue(candidateEntity, "candidateExpectedSalary"));
-		params.put("candidate.noticePeriod", JobCanddateStageUtil.getValue(candidateEntity, "noticePeriod"));
-
-		// Job Params
-		params.put("job.clientName", JobCanddateStageUtil.getValue(jobEntity, "clientName"));
-		params.put("job.jobTitle", JobCanddateStageUtil.getValue(jobEntity, "jobTitle"));
-		params.put("job.jobType", JobCanddateStageUtil.getValue(jobEntity, "jobType"));
-		params.put("job.durationOfContract", JobCanddateStageUtil.getValue(jobEntity, "duration"));
-		params.put("job.jobDescription", JobCanddateStageUtil.getValue(jobEntity, "jobDescription"));
 
 		try {
 			if (submissionData != null

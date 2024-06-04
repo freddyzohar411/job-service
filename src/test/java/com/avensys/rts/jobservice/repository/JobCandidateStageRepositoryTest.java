@@ -42,9 +42,9 @@ public class JobCandidateStageRepositoryTest {
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 		jobCandidateStageEntity = new JobCandidateStageEntity(1L, jobEntity, jobStageEntity, "Active", candidateEntity,
-				1L, 1L, submissionData);
+				1L, 1L, submissionData, null, submissionData);
 		jobCandidateStageEntity1 = new JobCandidateStageEntity(1L, jobEntity, jobStageEntity, "Active", candidateEntity,
-				1L, 1L, submissionData);
+				1L, 1L, submissionData, null, submissionData);
 		jobList = Arrays.asList(jobCandidateStageEntity, jobCandidateStageEntity1);
 		optionalJob = Optional.of(jobCandidateStageEntity);
 		optionalJob = Optional.of(jobCandidateStageEntity1);

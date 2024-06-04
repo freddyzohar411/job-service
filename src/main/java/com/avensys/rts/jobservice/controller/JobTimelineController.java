@@ -60,7 +60,8 @@ public class JobTimelineController {
 		String sortBy = jobListingRequestDTO.getSortBy();
 		String sortDirection = jobListingRequestDTO.getSortDirection();
 		String searchTerm = jobListingRequestDTO.getSearchTerm();
-		Boolean isAdmin = userUtil.checkIsAdmin();
+		Boolean isAdmin = jobListingRequestDTO.getAllActive() ? jobListingRequestDTO.getAllActive()
+				: userUtil.checkIsAdmin();
 		List<String> searchFields = jobListingRequestDTO.getSearchFields();
 		if (searchTerm == null || searchTerm.isEmpty()) {
 			return ResponseUtil.generateSuccessResponse(
@@ -80,7 +81,7 @@ public class JobTimelineController {
 	@GetMapping("/jobtimelinecount/{jobId}")
 	public ResponseEntity<?> jobTimelineCount(@PathVariable Long jobId) {
 		try {
-			Boolean isAdmin = userUtil.checkIsAdmin();
+			Boolean isAdmin = true;
 			List<Map<String, Long>> response = jobTimelineService.getJobTimelineCount(jobId, isAdmin);
 			return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK, null);
 		} catch (ServiceException e) {

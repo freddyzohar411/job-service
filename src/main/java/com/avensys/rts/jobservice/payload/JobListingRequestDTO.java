@@ -27,4 +27,5 @@ public class JobListingRequestDTO {
 	private String email;
 	private List<String> searchFields;
 	private Long jobId;
+	private Boolean allActive = false;
 }
