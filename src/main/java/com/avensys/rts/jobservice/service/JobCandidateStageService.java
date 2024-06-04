@@ -115,7 +115,7 @@ public class JobCandidateStageService {
 	 * @param jobCandidateStageEntity
 	 * @description TO send an email on one step completion of job time-line.
 	 */
-	private void sendEmail(JobCandidateStageEntity jobCandidateStageEntity) {
+	private void sendEmail(JobCandidateStageEntity jobCandidateStageEntity, String recruiterEmail) {
 		EmailMultiTemplateRequestDTO dto = new EmailMultiTemplateRequestDTO();
 		dto.setCategory(JobCanddateStageUtil.JOB_TEMPLATE_CATEGORY);
 
@@ -174,14 +174,16 @@ public class JobCandidateStageService {
 		// Candidate params
 		UserEntity client = null;
 		String clientName = null;
-		try {
-			Long ownerId = Long.parseLong(JobCanddateStageUtil.getValue(jobEntity, "accountOwnerId"));
-			client = userRepository.findById(ownerId).get();
-			clientName = client.getFirstName() + " " + client.getLastName();
+		if (!JobCanddateStageUtil.getValue(jobEntity, "accountOwnerId").equals("N/A")) {
+			try {
+				Long ownerId = Long.parseLong(JobCanddateStageUtil.getValue(jobEntity, "accountOwnerId"));
+				client = userRepository.findById(ownerId).get();
+				clientName = client.getFirstName() + " " + client.getLastName();
 
-			params.put("Jobs.jobInfo.accountOwner", JobCanddateStageUtil.validateValue(clientName));
-		} catch (Exception e) {
-			log.error("Error:", e);
+				params.put("Jobs.jobInfo.accountOwner", JobCanddateStageUtil.validateValue(clientName));
+			} catch (Exception e) {
+				log.error("Error:", e);
+			}
 		}
 
 		try {
@@ -221,8 +223,15 @@ public class JobCandidateStageService {
 		} else if (jobStageEntity.getName().equals(JobCanddateStageUtil.ASSOCIATE_TEMPLATE)
 				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)) {
 			// Associate
+			List<String> emails = new ArrayList<String>();
+
+			if (recruiterEmail != null) {
+				emails.add(recruiterEmail);
+			}
+			emails.add(candidateEntity.getCandidateSubmissionData().get("email").asText());
+
 			dto.setTemplateName(JobCanddateStageUtil.ASSOCIATE_TEMPLATE);
-			dto.setTo(new String[] { candidateEntity.getCandidateSubmissionData().get("email").asText() });
+			dto.setTo(emails.toArray(String[]::new));
 			dto.setSubject("Avensys | Job Application for " + JobCanddateStageUtil.getValue(jobEntity, "jobTitle"));
 		} else if (jobStageEntity.getName().equals(JobCanddateStageUtil.SUBMIT_TO_SALES_TEMPLATE)
 				&& jobCandidateStageEntity.getStatus().equals(JobCanddateStageUtil.COMPLETED)
@@ -317,6 +326,8 @@ public class JobCandidateStageService {
 
 		JobCandidateStageEntity jobCandidateStageEntity = null;
 
+		String recruiterEmail = null;
+
 		if (jobCandidateStageOptional.isPresent()) {
 			jobCandidateStageEntity = jobCandidateStageOptional.get();
 			jobCandidateStageEntity.setJob(jobOptional.get());
@@ -337,6 +348,14 @@ public class JobCandidateStageService {
 			jobCandidateStageEntity.setIsActive(true);
 			jobCandidateStageEntity.setIsDeleted(false);
 		}
+
+		// Get Recruiter email start
+		Optional<UserEntity> recruiterOpt = userRepository.findById(jobCandidateStageEntity.getCreatedBy());
+
+		if (recruiterOpt.isPresent()) {
+			recruiterEmail = recruiterOpt.get().getEmail();
+		}
+		// Get Recruiter email end
 
 		// Modify candidate isTagged
 		if (jobCandidateStageRequest.getStatus().equals(JobCanddateStageUtil.REJECTED)
@@ -519,7 +538,7 @@ public class JobCandidateStageService {
 
 		// Send Email
 		try {
-			sendEmail(jobCandidateStageEntity);
+			sendEmail(jobCandidateStageEntity, recruiterEmail);
 		} catch (Exception e) {
 			log.error("Error:", e);
 		}
