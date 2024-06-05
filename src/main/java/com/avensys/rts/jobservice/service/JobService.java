@@ -63,6 +63,7 @@ import com.avensys.rts.jobservice.util.StringUtil;
 import com.avensys.rts.jobservice.util.TextProcessingUtil;
 import com.avensys.rts.jobservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -195,7 +196,17 @@ public class JobService {
 		FormSubmissionsResponseDTO formSubmissionData = MappingUtil
 				.mapClientBodyToClass(formSubmissionResponse.getData(), FormSubmissionsResponseDTO.class);
 
-		jobEntity.setJobSubmissionData(formSubmissionsRequestDTO.getSubmissionData());
+		JsonNode submittedData = formSubmissionsRequestDTO.getSubmissionData();
+
+		if (submittedData.get("accountOwner").asText() != null) {
+			String accountOwnerEmail = submittedData.get("accountOwner").asText();
+			accountOwnerEmail = accountOwnerEmail.substring(accountOwnerEmail.lastIndexOf("(")).replace("(", "")
+					.replace(")", "");
+			userRepository.findByEmail(accountOwnerEmail)
+					.ifPresent(usr -> ((ObjectNode) submittedData).put("accountOwnerId", usr.getId()));
+		}
+
+		jobEntity.setJobSubmissionData(submittedData);
 		jobEntity.setFormSubmissionId(formSubmissionData.getId());
 
 		jobRepository.updateDocumentEntityId(jobRequest.getTempDocId(), jobEntity.getId(), jobRequest.getCreatedBy(),
@@ -257,7 +268,18 @@ public class JobService {
 		jobEntity.setUpdatedBy(jobRequest.getUpdatedBy());
 		jobEntity.setIsActive(true);
 		jobEntity.setIsDeleted(false);
-		jobEntity.setJobSubmissionData(MappingUtil.convertJSONStringToJsonNode(jobRequest.getFormData()));
+
+		JsonNode submittedData = MappingUtil.convertJSONStringToJsonNode(jobRequest.getFormData());
+
+		if (submittedData.get("accountOwner").asText() != null) {
+			String accountOwnerEmail = submittedData.get("accountOwner").asText();
+			accountOwnerEmail = accountOwnerEmail.substring(accountOwnerEmail.lastIndexOf("(")).replace("(", "")
+					.replace(")", "");
+			userRepository.findByEmail(accountOwnerEmail)
+					.ifPresent(usr -> ((ObjectNode) submittedData).put("accountOwnerId", usr.getId()));
+		}
+
+		jobEntity.setJobSubmissionData(submittedData);
 		jobEntity.setIsDraft(jobRequest.getIsDraft());
 		jobRepository.save(jobEntity);
 
