@@ -52,6 +52,12 @@ public class JobTimelineEntity extends BaseEntity {
 	@Column(name = "subStepName")
 	private String subStepName;
 
+	@Column(name = "bill_rate")
+	private Long billRate = 0L;
+
+	@Column(name = "expected_salary")
+	private Long expectedSalary = 0L;
+
 	@Transient
 	private String createdByName;
 

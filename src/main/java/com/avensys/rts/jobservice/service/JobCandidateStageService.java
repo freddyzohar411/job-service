@@ -565,6 +565,14 @@ public class JobCandidateStageService {
 			jobTimelineEntity.setUpdatedBy(jobCandidateStageRequest.getUpdatedBy());
 		}
 
+		if (jobCandidateStageRequest.getBillRate() != null) {
+			jobTimelineEntity.setBillRate(jobCandidateStageRequest.getBillRate());
+		}
+
+		if (jobCandidateStageRequest.getExpectedSalary() != null) {
+			jobTimelineEntity.setExpectedSalary(jobCandidateStageRequest.getExpectedSalary());
+		}
+
 		List<JobCandidateStageEntity> jobCandidateStageEntities = jobCandidateStageRepository
 				.findByJobAndCandidate(jobCandidateStageRequest.getJobId(), jobCandidateStageRequest.getCandidateId());
 

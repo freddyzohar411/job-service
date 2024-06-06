@@ -22,6 +22,7 @@ import com.avensys.rts.jobservice.constant.MessageConstants;
 import com.avensys.rts.jobservice.enums.Permission;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
+import com.avensys.rts.jobservice.payload.JobTimelineRequest;
 import com.avensys.rts.jobservice.service.JobTimelineService;
 import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.ResponseUtil;
@@ -86,6 +87,22 @@ public class JobTimelineController {
 			return ResponseUtil.generateSuccessResponse(response, HttpStatus.OK, null);
 		} catch (ServiceException e) {
 			return ResponseUtil.generateSuccessResponse(null, HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	@PostMapping("/updateBillRate")
+	public ResponseEntity<?> updateBillRate(@RequestBody JobTimelineRequest jobTimelineRequest,
+			@RequestHeader(name = "Authorization") String token) {
+		try {
+			Long userId = jwtUtil.getUserId(token);
+			jobTimelineRequest.setCreatedBy(userId);
+			jobTimelineRequest.setUpdatedBy(userId);
+
+			jobTimelineService.updateBillRate(jobTimelineRequest);
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.CREATED,
+					messageSource.getMessage("job.tag.created", null, LocaleContextHolder.getLocale()));
+		} catch (Exception e) {
+			return ResponseUtil.generateSuccessResponse(null, HttpStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
 

@@ -3,6 +3,7 @@ package com.avensys.rts.jobservice.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.avensys.rts.jobservice.apiclient.UserAPIClient;
 import com.avensys.rts.jobservice.entity.JobTimelineEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
+import com.avensys.rts.jobservice.payload.JobTimelineRequest;
 import com.avensys.rts.jobservice.repository.JobTimelineRepository;
 import com.avensys.rts.jobservice.response.HttpResponse;
 import com.avensys.rts.jobservice.response.JobTimelineResponseDTO;
@@ -174,6 +176,23 @@ public class JobTimelineService {
 		}).toList();
 		jobListingNewResponseDTO.setJobs(list);
 		return jobListingNewResponseDTO;
+	}
+
+	public void updateBillRate(JobTimelineRequest jobTimelineRequest) {
+		Optional<JobTimelineEntity> timelineoptional = jobTimelineRepository
+				.findByJobAndCandidate(jobTimelineRequest.getJobId(), jobTimelineRequest.getCandidateId());
+
+		if (timelineoptional.isPresent()) {
+			JobTimelineEntity jobTimelineEntity = timelineoptional.get();
+			if (jobTimelineRequest.getBillRate() != null) {
+				jobTimelineEntity.setBillRate(jobTimelineRequest.getBillRate());
+			}
+			if (jobTimelineRequest.getExpectedSalary() != null) {
+				jobTimelineEntity.setExpectedSalary(jobTimelineRequest.getExpectedSalary());
+			}
+			jobTimelineEntity.setUpdatedBy(jobTimelineRequest.getUpdatedBy());
+			jobTimelineRepository.save(jobTimelineEntity);
+		}
 	}
 
 }
