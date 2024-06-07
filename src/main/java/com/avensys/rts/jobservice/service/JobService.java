@@ -214,7 +214,7 @@ public class JobService {
 
 		JobEntity savedJob = jobRepository.save(jobEntity);
 
-		if (!jobRequest.isClone()) {
+		if (!jobRequest.isClone() && !savedJob.getIsDraft()) {
 			sendEmail(savedJob);
 			savedJob.setIsEmailSent(true);
 			jobRepository.save(savedJob);
