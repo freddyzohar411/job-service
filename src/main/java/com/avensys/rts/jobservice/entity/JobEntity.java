@@ -46,4 +46,7 @@ public class JobEntity extends BaseEntity {
 	@Column(name = "job_submission_data", columnDefinition = "jsonb")
 	private JsonNode jobSubmissionData;
 
+	@Column(name = "is_email_sent")
+	private Boolean isEmailSent = false;
+
 }

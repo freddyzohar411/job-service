@@ -214,9 +214,13 @@ public class JobService {
 
 		JobEntity savedJob = jobRepository.save(jobEntity);
 
-		sendEmail(savedJob);
+		if (!jobRequest.isClone()) {
+			sendEmail(savedJob);
+			savedJob.setIsEmailSent(true);
+			jobRepository.save(savedJob);
+		}
 
-		return jobEntity;
+		return savedJob;
 	}
 
 	/**
@@ -282,7 +286,7 @@ public class JobService {
 
 		jobEntity.setJobSubmissionData(submittedData);
 		jobEntity.setIsDraft(jobRequest.getIsDraft());
-		jobRepository.save(jobEntity);
+		JobEntity updatedJob = jobRepository.save(jobEntity);
 
 		FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
 		formSubmissionsRequestDTO.setUserId(jobRequest.getUpdatedBy());
@@ -293,6 +297,12 @@ public class JobService {
 
 		formSubmissionAPIClient.updateFormSubmission(jobEntity.getFormSubmissionId().intValue(),
 				formSubmissionsRequestDTO);
+
+		if (!updatedJob.getIsDraft() && !updatedJob.getIsEmailSent()) {
+			sendEmail(updatedJob);
+			updatedJob.setIsEmailSent(true);
+			jobRepository.save(updatedJob);
+		}
 	}
 
 	/**
