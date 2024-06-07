@@ -848,7 +848,14 @@ public class JobService {
 
 		// loop and add the job submission data to the params
 		for (String key : jobSubmissionDataKeys) {
-			params.put("Jobs.jobInfo." + key, JobUtil.getValue(jobEntity, key));
+			// Check if JobUtil.getValue(jobEntity, key) is not null or empty
+			String value;
+			if (JobUtil.getValue(jobEntity, key) != null && !JobUtil.getValue(jobEntity, key).isEmpty()) {
+				value = JobUtil.getValue(jobEntity, key);
+			} else {
+				value = "-";
+			}
+			params.put("Jobs.jobInfo." + key, value);
 		}
 
 		// Get AccountOwner Name if exists
@@ -856,7 +863,11 @@ public class JobService {
 		HashMap<String, String> accountOwnerData = new HashMap<>();
 		if (accountOwner != null) {
 			accountOwnerData = extractAccountOwnerDetails(accountOwner);
-			params.put("Jobs.jobInfo.accountOwner", accountOwnerData.get("accountName"));
+			if (!accountOwnerData.get("accountName").isEmpty()) {
+				params.put("Jobs.jobInfo.accountOwner", accountOwnerData.get("accountName"));
+			} else {
+				params.put("Jobs.jobInfo.accountOwner", "-");
+			}
 		}
 
 		// Set template Name
@@ -892,9 +903,14 @@ public class JobService {
 
 	private HashMap<String, String> extractAccountOwnerDetails(String accountOwner) {
 		HashMap<String, String> accountOwnerDetails = new HashMap<>();
-		String[] accountOwnerArray = accountOwner.split("\\(");
-		accountOwnerDetails.put("accountName", accountOwnerArray[0].trim());
-		accountOwnerDetails.put("email", accountOwnerArray[1].replace(")", "").trim());
+		try {
+			String[] accountOwnerArray = accountOwner.split("\\(");
+			accountOwnerDetails.put("accountName", accountOwnerArray[0].trim());
+			accountOwnerDetails.put("email", accountOwnerArray[1].replace(")", "").trim());
+		} catch (Exception e) {
+			accountOwnerDetails.put("accountName", accountOwner);
+			accountOwnerDetails.put("email", "");
+		}
 		return accountOwnerDetails;
 	}
 
