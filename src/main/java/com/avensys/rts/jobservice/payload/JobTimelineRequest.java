@@ -9,19 +9,11 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class JobCandidateStageRequest {
+public class JobTimelineRequest {
 
 	private Long id;
 	private Long jobId;
-	private Long jobStageId;
-	private String status;
-	private String stepName;
-	private String subStepName;
 	private Long candidateId;
-	private Long formId;
-	private Long formSubmissionId;
-	private String jobType;
-	private String formData;
 	private Long billRate;
 	private Long expectedSalary;
 	private Long createdBy;
