@@ -147,7 +147,6 @@ public class JobCandidateStageController {
 	 * @param id
 	 * @return
 	 */
-	@RequiresAllPermissions({ Permission.JOB_DELETE })
 	@DeleteMapping("/untag/{jobId}/{candidateId}")
 	public ResponseEntity<?> untagCandidate(@PathVariable Long jobId, @PathVariable Long candidateId) {
 		try {
