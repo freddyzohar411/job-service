@@ -68,7 +68,7 @@ public class JobRecruiterFODServiceTest {
 				"$2a$10$pxSQVx/EqvfrehZDdN6Q3.Qg3Agm2S/d60xYqy0rFpuNSgt1DcpvO", "+91-9381515362", "852", false, true,
 				groupEntities);
 		recruiterOptional = Optional.of(userEntity);
-		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
+		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData,false);
 		jobOptional = Optional.of(jobEntity);
 		jobRecruiterFODEntity = new JobRecruiterFODEntity(1L, job, recruiter, seller, "Status");
 		jobFODOptional = Optional.of(jobRecruiterFODEntity);

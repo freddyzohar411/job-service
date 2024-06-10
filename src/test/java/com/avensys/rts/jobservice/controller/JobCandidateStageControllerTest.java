@@ -73,15 +73,15 @@ public class JobCandidateStageControllerTest {
 	@BeforeEach
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
-		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
+		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData,false);
 		jobCandidateStageEntity = new JobCandidateStageEntity(1L, jobEntity, jobStageEntity, "Active", candidateEntity,
 				1L, 1L, jobSubmissionData, null, jobSubmissionData);
 		jobCandidateStageEntity1 = new JobCandidateStageEntity(2L, jobEntity, jobStageEntity, "Active", candidateEntity,
 				1L, 1L, jobSubmissionData, null, jobSubmissionData);
-		jobCandidateStageRequest = new JobCandidateStageRequest(1L, 1L, 1L, "Active", null, null, 1L, 1L, 1L,
-				"full time", "form data", 1L, 1L);
-		jobCandidateStageRequest1 = new JobCandidateStageRequest(2L, 1L, 1L, "Active", null, null, 1L, 1L, 1L,
-				"part time", "form data", 1L, 1L);
+		jobCandidateStageRequest = new JobCandidateStageRequest(1L, 1L, 1L, "Active", "stepName", "subStepName", 1L, 1L, 1L,
+				"full time", "form data",1L,1L, 1L, 1L);
+		jobCandidateStageRequest1 = new JobCandidateStageRequest(2L, 1L, 1L, "Active", "stepName", "subStepName", 1L, 1L, 1L,
+				"part time", "form data",1L,1L, 1L, 1L);
 		jobCandidateStageRequests = new JobCandidateStageRequest[2];
 		jobCandidateStageRequests[0] = jobCandidateStageRequest;
 		jobCandidateStageRequests[1] = jobCandidateStageRequest1;
