@@ -59,8 +59,8 @@ public class CustomJobRepositoryImplTest {
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 		customJobRepositoryImpl = new CustomJobRepositoryImpl();
-		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
-		jobEntity1 = new JobEntity(2L, "Full Stack Developer", 1L, 1L, false, jobSubmissionData);
+		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData,false);
+		jobEntity1 = new JobEntity(2L, "Full Stack Developer", 1L, 1L, false, jobSubmissionData,false);
 		sortDec = Sort.by(Sort.Direction.DESC, "updatedAt");
 		pageable = PageRequest.of(1, 2, sortDec);
 		jobList = Arrays.asList(jobEntity, jobEntity1);

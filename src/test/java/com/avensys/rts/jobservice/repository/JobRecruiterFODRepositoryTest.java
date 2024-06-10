@@ -46,7 +46,7 @@ public class JobRecruiterFODRepositoryTest {
 				"kittu1@aven-sys.com", "kittu1@aven-sys.com",
 				"$2a$10$pxSQVx/EqvfrehZDdN6Q3.Qg3Agm2S/d60xYqy0rFpuNSgt1DcpvO", "+91-9381515362", "852", false, true,
 				groupEntities);
-		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
+		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData,false);
 		jobRecruiterFODEntity = new JobRecruiterFODEntity(1L, jobEntity, userEntityRecruiter, userEntitySeller,
 				"Active");
 		optionalJob = Optional.of(jobRecruiterFODEntity);

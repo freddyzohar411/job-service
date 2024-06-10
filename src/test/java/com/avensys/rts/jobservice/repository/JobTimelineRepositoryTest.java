@@ -39,7 +39,7 @@ public class JobTimelineRepositoryTest {
 	@BeforeEach
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
-		jobTimelineEntity = new JobTimelineEntity(1L, jobEntity, candidateEntity, timeline, "123", "123", null, null);
+		jobTimelineEntity = new JobTimelineEntity(1L, jobEntity, candidateEntity, timeline, "stepName", "subStepName",0L,0L,"123","123");
 		optionalJob = Optional.of(jobTimelineEntity);
 	}
 

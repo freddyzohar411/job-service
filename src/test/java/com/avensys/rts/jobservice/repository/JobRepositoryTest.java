@@ -46,8 +46,8 @@ public class JobRepositoryTest {
 	void setUp() {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 
-		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
-		jobEntity1 = new JobEntity(2L, "Full Stack Developer", 1L, 1L, false, jobSubmissionData);
+		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData,false);
+		jobEntity1 = new JobEntity(2L, "Full Stack Developer", 1L, 1L, false, jobSubmissionData,false);
 		jobList.add(jobEntity);
 		jobList.add(jobEntity1);
 		createdByList.add(1L);

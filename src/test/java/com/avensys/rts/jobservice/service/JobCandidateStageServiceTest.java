@@ -90,14 +90,14 @@ public class JobCandidateStageServiceTest {
 		candidateOptional = Optional.of(candidateEntity);
 		jobStageEntity = new JobStageEntity(1L, "Stage name", 1L, "Stage type");
 		jobStageOptional = Optional.of(jobStageEntity);
-		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
+		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData,false);
 		jobOptional = Optional.of(jobEntity);
 		jobCandidateStageEntity = new JobCandidateStageEntity(1L, jobEntity, jobStageEntity, "Active", candidateEntity,
 				1L, 1L, jobSubmissionData, null, candidateSubmissionData);
 		jobCandidateStageEntity1 = new JobCandidateStageEntity(1L, jobEntity, jobStageEntity, "Active", candidateEntity,
 				1L, 1L, jobSubmissionData, null, candidateSubmissionData);
-		jobCandidateStageRequest = new JobCandidateStageRequest(1L, 1L, 1L, "Active", formData, formData, 1L, 1L, 1L,
-				"full time", formData, 1L, 1L);
+		jobCandidateStageRequest = new JobCandidateStageRequest(1L, 1L, 1L, "Active","stepName","subStepName", 1L, 1L, 1L,
+				"full time", formData,1L,1L, 1L, 1L);
 		jobStageList = Arrays.asList(jobCandidateStageEntity, jobCandidateStageEntity1);
 		sortDec = Sort.by(Sort.Direction.DESC, "updatedAt");
 		pageable = PageRequest.of(1, 2, sortDec);

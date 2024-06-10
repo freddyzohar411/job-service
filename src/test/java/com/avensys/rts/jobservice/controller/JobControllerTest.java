@@ -108,8 +108,8 @@ public class JobControllerTest {
 		autoCloseable = MockitoAnnotations.openMocks(this);
 		customFieldsRequestDTO = new CustomFieldsRequestDTO(1L, "JobCustomView", "Job", columnName, 1L, 1L);
 		jobRequest = new JobRequest(1L, "Java Developer", 1L, 1L, formData, false, 1L, 1L, false, formData);
-		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData);
-		jobEntity1 = new JobEntity(2L, "Full Stack Developer", 1L, 1L, false, jobSubmissionData);
+		jobEntity = new JobEntity(1L, "Java Developer", 1L, 1L, false, jobSubmissionData,false);
+		jobEntity1 = new JobEntity(2L, "Full Stack Developer", 1L, 1L, false, jobSubmissionData,false);
 		optionalJobEntity = Optional.of(jobEntity);
 		jobListingDataDTO = new JobListingDataDTO(1L, "Java Developer", jobSubmissionData, CURRENT_TIMESTAMP,
 				CURRENT_TIMESTAMP, "Kotaiah", "Kotaiah", 1l, 1l);
