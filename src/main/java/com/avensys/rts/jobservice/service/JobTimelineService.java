@@ -46,7 +46,7 @@ public class JobTimelineService {
 	private MessageSource messageSource;
 
 	public JobTimelineResponseDTO getJobTimelineListingPage(Integer page, Integer size, String sortBy,
-			String sortDirection, Long userId, Long jobId, Boolean isAdmin) {
+			String sortDirection, Long userId, Long jobId, Boolean isAdmin, Integer stageType) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null && !sortDirection.isEmpty()) {
@@ -69,11 +69,11 @@ public class JobTimelineService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			jobEntitiesPage = jobTimelineRepository.findAllByOrderByNumericWithUserIds(userIds, false, true,
-					pageRequest, userId, jobId);
+					pageRequest, userId, jobId, stageType);
 		} catch (Exception e) {
 			e.printStackTrace();
 			jobEntitiesPage = jobTimelineRepository.findAllByOrderByStringWithUserIds(userIds, false, true, pageRequest,
-					userId, jobId);
+					userId, jobId, stageType);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
@@ -81,7 +81,7 @@ public class JobTimelineService {
 
 	public JobTimelineResponseDTO getJobTimelineListingPageWithSearch(Integer page, Integer size, String sortBy,
 			String sortDirection, String searchTerm, List<String> searchFields, Long userId, Long jobId,
-			Boolean isAdmin) {
+			Boolean isAdmin, Integer stageType) {
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
 		if (sortDirection != null) {
@@ -104,10 +104,10 @@ public class JobTimelineService {
 
 		try {
 			JobTimelineEntityPage = jobTimelineRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false,
-					true, pageRequest, searchFields, searchTerm, userId, jobId);
+					true, pageRequest, searchFields, searchTerm, userId, jobId, stageType);
 		} catch (Exception e) {
 			JobTimelineEntityPage = jobTimelineRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false,
-					true, pageRequest, searchFields, searchTerm, userId, jobId);
+					true, pageRequest, searchFields, searchTerm, userId, jobId, stageType);
 		}
 
 		return pageJobListingToJobListingResponseDTO(JobTimelineEntityPage);

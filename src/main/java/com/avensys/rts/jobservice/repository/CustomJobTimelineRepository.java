@@ -11,14 +11,16 @@ public interface CustomJobTimelineRepository {
 
 	// Check only user id
 	Page<JobTimelineEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable, Long userId, Long jobId);
+			Pageable pageable, Long userId, Long jobId, Integer stageType);
 
 	Page<JobTimelineEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable, Long userId, Long jobId);
+			Pageable pageable, Long userId, Long jobId, Integer stageType);
 
 	Page<JobTimelineEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId, Long jobId);
+			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId, Long jobId,
+			Integer stageType);
 
 	Page<JobTimelineEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId, Long jobId);
+			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId, Long jobId,
+			Integer stageType);
 }

@@ -22,7 +22,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 	// With user ids
 	@Override
 	public Page<JobTimelineEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isActive, Pageable pageable, Long userId, Long jobId) {
+			Boolean isActive, Pageable pageable, Long userId, Long jobId, Integer stageType) {
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -47,10 +47,16 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			userCondition = "AND job_timeline.created_by IN (:userIds)";
 		}
 
+		// Stage Type Condition
+		String stageTypeCondition = "";
+		if (stageType != null) {
+			stageTypeCondition = "and jcs.job_stage_id = (select id from job_stage js where js.stage_order = :stageTypeId)";
+		}
+
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId ORDER BY %s %s NULLS LAST",
-				userCondition, orderByClause, sortDirection);
+				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id inner join job_candidate_stage jcs on job_timeline.job_id = jcs.job_id and job_timeline.candidate_id = jcs.candidate_id and jcs.job_id = :jobId WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId %s group by candidate.first_name,job_timeline.id,jcs.job_id,jcs.candidate_id ORDER BY %s %s NULLS LAST",
+				userCondition, stageTypeCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
@@ -58,6 +64,9 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		query.setParameter("isActive", isActive);
 		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
+		}
+		if (stageType != null) {
+			query.setParameter("stageTypeId", stageType);
 		}
 		query.setParameter("jobId", jobId);
 		query.setFirstResult((int) pageable.getOffset());
@@ -87,7 +96,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 	@Override
 	public Page<JobTimelineEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isActive, Pageable pageable, Long userId, Long jobId) {
+			Boolean isActive, Pageable pageable, Long userId, Long jobId, Integer stageType) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "job_timeline.updated_at";
@@ -106,6 +115,12 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			userCondition = "AND job_timeline.created_by IN (:userIds)";
 		}
 
+		// Stage Type Condition
+		String stageTypeCondition = "";
+		if (stageType != null) {
+			stageTypeCondition = "and jcs.job_stage_id = (select id from job_stage js where js.stage_order = :stageTypeId)";
+		}
+
 		// Extract sort direction from pageable
 		String sortDirection = pageable.getSort().isSorted()
 				? pageable.getSort().get().findFirst().get().getDirection().name()
@@ -113,8 +128,8 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId ORDER BY %s %s NULLS LAST",
-				userCondition, orderByClause, sortDirection);
+				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id inner join job_candidate_stage jcs on job_timeline.job_id = jcs.job_id and job_timeline.candidate_id = jcs.candidate_id and jcs.job_id = :jobId WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId %s group by job_timeline.id,jcs.job_id,jcs.candidate_id ORDER BY %s %s NULLS LAST",
+				userCondition, stageTypeCondition, orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
@@ -122,6 +137,9 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		query.setParameter("isActive", isActive);
 		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
+		}
+		if (stageType != null) {
+			query.setParameter("stageTypeId", stageType);
 		}
 		query.setParameter("jobId", jobId);
 		query.setFirstResult((int) pageable.getOffset());
@@ -151,8 +169,8 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 	@Override
 	public Page<JobTimelineEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId,
-			Long jobId) {
+			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId, Long jobId,
+			Integer stageType) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "job_timeline.updated_at";
@@ -188,10 +206,16 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			userCondition = "AND job_timeline.created_by IN (:userIds)";
 		}
 
+		// Stage Type Condition
+		String stageTypeCondition = "";
+		if (stageType != null) {
+			stageTypeCondition = "and jcs.job_stage_id = (select id from job_stage js where js.stage_order = :stageTypeId)";
+		}
+
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId AND (%s) ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id inner join job_candidate_stage jcs on job_timeline.job_id = jcs.job_id and job_timeline.candidate_id = jcs.candidate_id and jcs.job_id = :jobId WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId %s AND (%s) group by job_timeline.id,jcs.job_id,jcs.candidate_id ORDER BY %s %s NULLS LAST",
+				userCondition, stageTypeCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
@@ -199,6 +223,9 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		query.setParameter("isActive", isActive);
 		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
+		}
+		if (stageType != null) {
+			query.setParameter("stageTypeId", stageType);
 		}
 		query.setParameter("jobId", jobId);
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -230,8 +257,8 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 
 	@Override
 	public Page<JobTimelineEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
-			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId,
-			Long jobId) {
+			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId, Long jobId,
+			Integer stageType) {
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "job_timeline.updated_at";
@@ -275,10 +302,16 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 			userCondition = "AND job_timeline.created_by IN (:userIds)";
 		}
 
+		// Stage Type Condition
+		String stageTypeCondition = "";
+		if (stageType != null) {
+			stageTypeCondition = "and jcs.job_stage_id = (select id from job_stage js where js.stage_order = :stageTypeId)";
+		}
+
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId AND (%s) ORDER BY %s %s NULLS LAST",
-				userCondition, searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT job_timeline.* FROM job_timeline inner join candidate on job_timeline.candidate_id = candidate.id inner join users on job_timeline.created_by = users.id inner join job_candidate_stage jcs on job_timeline.job_id = jcs.job_id and job_timeline.candidate_id = jcs.candidate_id and jcs.job_id = :jobId WHERE job_timeline.is_deleted = :isDeleted AND job_timeline.is_active = :isActive %s AND job_timeline.job_id = :jobId %s AND (%s) group by job_timeline.id,jcs.job_id,jcs.candidate_id ORDER BY %s %s NULLS LAST",
+				userCondition, stageTypeCondition, searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
 		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
@@ -286,6 +319,9 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		query.setParameter("isActive", isActive);
 		if (!userIds.isEmpty()) {
 			query.setParameter("userIds", userIds);
+		}
+		if (stageType != null) {
+			query.setParameter("stageTypeId", stageType);
 		}
 		query.setParameter("jobId", jobId);
 		query.setParameter("searchTerm", "%" + searchTerm + "%");

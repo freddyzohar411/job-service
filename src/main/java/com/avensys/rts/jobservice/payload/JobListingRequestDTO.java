@@ -28,4 +28,5 @@ public class JobListingRequestDTO {
 	private List<String> searchFields;
 	private Long jobId;
 	private Boolean allActive = false;
+	private Integer stageType = null;
 }
