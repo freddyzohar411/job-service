@@ -45,6 +45,8 @@ public class JobCanddateStageUtil {
 	public static String INTERVIEW_SCHEDULED_TEMPLATE = "Interview Scheduled";
 	public static String CONDITIONAL_OFFER_TEMPLATE = "Conditional Offer";
 	public static String OFFER_ACCEPTED_TEMPLATE = "Offer Accepted";
+	public static String PROFILE_REJECTED_BY_CLIENT = "Profile Rejected by Client";
+	public static String PROFILE_REJECTED_BY_SALES = "Profile Rejected by Sales";
 
 	// Job status
 	public static String COMPLETED = "COMPLETED";
