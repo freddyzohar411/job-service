@@ -41,6 +41,10 @@ public interface JobRepository
 	List<JobEntity> findAllByIsDraftAndIsDeletedAndIsActive(boolean isDraft, boolean isDeleted, boolean isActive);
 
 	@Query(value = "SELECT j FROM job j WHERE j.id IN (?1) AND j.isDraft = ?2 AND j.isDeleted = ?3 AND j.isActive = ?4")
-	List<JobEntity> findAllByIdsAndDraftAndDeleted(List<Long> jobIds, boolean draft, boolean isDeleted, boolean isActive);
+	List<JobEntity> findAllByIdsAndDraftAndDeleted(List<Long> jobIds, boolean draft, boolean isDeleted,
+			boolean isActive);
+
+	@Query(value = "select STRING_AGG(CONCAT(u.first_name,' ',u.last_name), ', ') from users u inner join job_recruiter_fod jrf on jrf.recruiter_id = u.id where jrf.job_id = ?1", nativeQuery = true)
+	String getRecruiters(Long jobId);
 
 }

@@ -342,9 +342,17 @@ public class JobService {
 					messageSource.getMessage("error.provide.id", new Object[] { id }, LocaleContextHolder.getLocale()));
 		}
 
-		Optional<JobEntity> permission = jobRepository.findById(id);
-		if (permission.isPresent() && !permission.get().getIsDeleted()) {
-			return permission.get();
+		Optional<JobEntity> jobOpt = jobRepository.findById(id);
+		if (jobOpt.isPresent() && !jobOpt.get().getIsDeleted()) {
+			String fodRecruiters = jobRepository.getRecruiters(id);
+			JobEntity jobEntity = jobOpt.get();
+			try {
+				JsonNode submittedData = jobEntity.getJobSubmissionData();
+				((ObjectNode) submittedData).put("fodRecruiters", fodRecruiters);
+			} catch (Exception e) {
+				LOG.error(e.getMessage());
+			}
+			return jobEntity;
 		} else {
 			throw new ServiceException(messageSource.getMessage("error.jobnotfound", new Object[] { id },
 					LocaleContextHolder.getLocale()));
