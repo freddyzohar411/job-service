@@ -449,6 +449,7 @@ public class JobService {
 		String jobType = jobListingRequestDTO.getJobType();
 		Boolean getAll = jobListingRequestDTO.getGetAll();
 		Long userId = jobListingRequestDTO.getUserId();
+		Boolean isDownload = jobListingRequestDTO.getIsDownload();
 
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
@@ -459,7 +460,13 @@ public class JobService {
 			sortBy = "updated_at";
 			direction = Sort.Direction.DESC;
 		}
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		PageRequest pageRequest = null;
+		if (isDownload) {
+			pageRequest = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(direction, sortBy));
+		} else {
+			pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+		}
 
 		Page<JobEntity> jobEntitiesPage = null;
 		List<Long> userIds = new ArrayList<>();
@@ -490,6 +497,7 @@ public class JobService {
 		String jobType = jobListingRequestDTO.getJobType();
 		Boolean getAll = jobListingRequestDTO.getGetAll();
 		Long userId = jobListingRequestDTO.getUserId();
+		Boolean isDownload = jobListingRequestDTO.getIsDownload();
 
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
@@ -500,7 +508,13 @@ public class JobService {
 			sortBy = "updated_at";
 			direction = Sort.Direction.DESC;
 		}
-		PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+		PageRequest pageRequest = null;
+		if (isDownload) {
+			pageRequest = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(direction, sortBy));
+		} else {
+			pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+		}
 
 		Page<JobEntity> jobEntityPage = null;
 		// Try with numeric first else try with string (jsonb)

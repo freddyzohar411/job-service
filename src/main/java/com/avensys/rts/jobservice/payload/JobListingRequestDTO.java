@@ -29,4 +29,5 @@ public class JobListingRequestDTO {
 	private Long jobId;
 	private Boolean allActive = false;
 	private Integer stageType = null;
+	private Boolean isDownload = false;
 }
