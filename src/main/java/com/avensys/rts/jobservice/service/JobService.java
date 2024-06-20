@@ -298,7 +298,7 @@ public class JobService {
 		formSubmissionAPIClient.updateFormSubmission(jobEntity.getFormSubmissionId().intValue(),
 				formSubmissionsRequestDTO);
 
-		if (!updatedJob.getIsDraft() && !updatedJob.getIsEmailSent()) {
+		if (!updatedJob.getIsDraft() && updatedJob.getIsEmailSent() != null && !updatedJob.getIsEmailSent()) {
 			sendEmail(updatedJob);
 			updatedJob.setIsEmailSent(true);
 			jobRepository.save(updatedJob);

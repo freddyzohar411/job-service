@@ -762,7 +762,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "closed_jobs": {
 				queryString = queryString.replace("{1}",
-						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Closed' AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) like 'Closed%' AND ");
 				break;
 			}
 			case "fod": {
@@ -806,7 +806,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "closed_jobs": {
 				queryString = queryString.replace("{1}",
-						"CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Closed' AND ");
+						"CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) like 'Closed%' AND ");
 				break;
 			}
 			case "fod": {
