@@ -2,7 +2,9 @@ package com.avensys.rts.jobservice.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Filter;
 
+import com.avensys.rts.jobservice.payload.FilterDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -30,16 +32,16 @@ public interface CustomJobRepository {
 
 	// Check only user id
 	Page<JobEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable, String jobType, Long userId);
+			Pageable pageable, String jobType, Long userId, List<FilterDTO> filters);
 
 	Page<JobEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable, String jobType, Long userId);
+			Pageable pageable, String jobType, Long userId, List<FilterDTO> filters);
 
 	Page<JobEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable, List<String> searchFields, String searchTerm, String jobType, Long userId);
+			Pageable pageable, List<String> searchFields, String searchTerm, String jobType, Long userId, List<FilterDTO> filters);
 
 	Page<JobEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable, List<String> searchFields, String searchTerm, String jobType, Long userId);
+			Pageable pageable, List<String> searchFields, String searchTerm, String jobType, Long userId, List<FilterDTO> filters);
 
 	void insertVector(Long jobId, String columnName, List<Float> vector);
 

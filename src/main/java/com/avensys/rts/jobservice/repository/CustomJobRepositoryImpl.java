@@ -16,6 +16,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.avensys.rts.jobservice.entity.JobEntity;
+import com.avensys.rts.jobservice.payload.FilterDTO;
+import com.avensys.rts.jobservice.util.QueryUtil;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -427,8 +429,14 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 	// With user ids
 	@Override
 	public Page<JobEntity> findAllByOrderByStringWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable, String jobType, Long userId) {
+			Pageable pageable, String jobType, Long userId, List<FilterDTO> filters) {
 
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
@@ -448,8 +456,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
-				orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
+				filterQuery, orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
@@ -472,7 +480,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		List<JobEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive";
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s", filterQuery);
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
@@ -495,7 +504,14 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 	@Override
 	public Page<JobEntity> findAllByOrderByNumericWithUserIds(List<Long> userIds, Boolean isDeleted, Boolean isActive,
-			Pageable pageable, String jobType, Long userId) {
+			Pageable pageable, String jobType, Long userId, List<FilterDTO> filters) {
+
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
@@ -516,8 +532,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string with user filter and excluding NULLs
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
-				orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s ORDER BY %s %s NULLS LAST",
+				filterQuery, orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
@@ -539,7 +555,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		List<JobEntity> resultList = query.getResultList();
 
 		// Build the count query string
-		String countQueryString = "SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive";
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive %s", filterQuery);
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
@@ -563,7 +580,13 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 	@Override
 	public Page<JobEntity> findAllByOrderByAndSearchStringWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, String jobType,
-			Long userId) {
+			Long userId, List<FilterDTO> filters) {
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
@@ -603,8 +626,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
-				searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) %s ORDER BY %s %s NULLS LAST",
+				searchConditions.toString(), filterQuery, orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
@@ -628,8 +651,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s)",
-				searchConditions.toString());
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) %s",
+				searchConditions.toString(), filterQuery);
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);
@@ -654,7 +677,13 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 	@Override
 	public Page<JobEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, String jobType,
-			Long userId) {
+			Long userId, List<FilterDTO> filters) {
+		String filterQuery = "";
+		if (filters != null) {
+			if (!filters.isEmpty()) {
+				filterQuery = " AND (" + QueryUtil.buildQueryFromFilters(filters) + ")";
+			}
+		}
 		// Determine if sortBy is a regular column or a JSONB column
 		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
 				: "updated_at";
@@ -694,8 +723,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
-				searchConditions.toString(), orderByClause, sortDirection);
+				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) %s ORDER BY %s %s NULLS LAST",
+				searchConditions.toString(), filterQuery, orderByClause, sortDirection);
 
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
@@ -719,8 +748,8 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the count query string
 		String countQueryString = String.format(
-				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s)",
-				searchConditions.toString());
+				"SELECT COUNT(*) FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) %s",
+				searchConditions.toString(), filterQuery);
 
 		if (jobType != null && jobType.length() > 0) {
 			countQueryString = getQuery(countQueryString, jobType, userId, isActive, userIds);

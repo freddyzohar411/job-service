@@ -430,6 +430,7 @@ public class JobService {
 		Boolean getAll = jobListingRequestDTO.getGetAll();
 		Long userId = jobListingRequestDTO.getUserId();
 		Boolean isDownload = jobListingRequestDTO.getIsDownload();
+		List<FilterDTO> filters = jobListingRequestDTO.getFilters();
 
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
@@ -458,10 +459,10 @@ public class JobService {
 		// Try with numeric first else try with string (jsonb)
 		try {
 			jobEntitiesPage = jobRepository.findAllByOrderByNumericWithUserIds(userIds, false, true, pageRequest,
-					jobType, userId);
+					jobType, userId, filters);
 		} catch (Exception e) {
 			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userIds, false, true, pageRequest,
-					jobType, userId);
+					jobType, userId, filters);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
@@ -478,6 +479,7 @@ public class JobService {
 		Boolean getAll = jobListingRequestDTO.getGetAll();
 		Long userId = jobListingRequestDTO.getUserId();
 		Boolean isDownload = jobListingRequestDTO.getIsDownload();
+		List<FilterDTO> filters = jobListingRequestDTO.getFilters();
 
 		// Get sort direction
 		Sort.Direction direction = Sort.DEFAULT_DIRECTION;
@@ -505,10 +507,10 @@ public class JobService {
 
 		try {
 			jobEntityPage = jobRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds, false, true, pageRequest,
-					searchFields, searchTerm, jobType, userId);
+					searchFields, searchTerm, jobType, userId, filters);
 		} catch (Exception e) {
 			jobEntityPage = jobRepository.findAllByOrderByAndSearchStringWithUserIds(userIds, false, true, pageRequest,
-					searchFields, searchTerm, jobType, userId);
+					searchFields, searchTerm, jobType, userId, filters);
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntityPage);
