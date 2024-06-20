@@ -1,17 +1,11 @@
 package com.avensys.rts.jobservice.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.avensys.rts.jobservice.payload.*;
+import com.avensys.rts.jobservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,14 +29,6 @@ import com.avensys.rts.jobservice.entity.UserEntity;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.model.FieldInformation;
 import com.avensys.rts.jobservice.model.JobExtraData;
-import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
-import com.avensys.rts.jobservice.payload.EmailMultiTemplateRequestDTO;
-import com.avensys.rts.jobservice.payload.EmbeddingRequestDTO;
-import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
-import com.avensys.rts.jobservice.payload.JobListingDeleteRequestDTO;
-import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
-import com.avensys.rts.jobservice.payload.JobRequest;
-import com.avensys.rts.jobservice.payload.TosRequestDTO;
 import com.avensys.rts.jobservice.repository.CandidateRepository;
 import com.avensys.rts.jobservice.repository.JobCustomFieldsRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
@@ -56,12 +42,6 @@ import com.avensys.rts.jobservice.response.JobListingDataDTO;
 import com.avensys.rts.jobservice.response.JobListingResponseDTO;
 import com.avensys.rts.jobservice.response.UserResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
-import com.avensys.rts.jobservice.util.JobDataExtractionUtil;
-import com.avensys.rts.jobservice.util.JobUtil;
-import com.avensys.rts.jobservice.util.MappingUtil;
-import com.avensys.rts.jobservice.util.StringUtil;
-import com.avensys.rts.jobservice.util.TextProcessingUtil;
-import com.avensys.rts.jobservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -793,6 +773,11 @@ public class JobService {
 		String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
 		customFieldsEntity.setColumnName(columnNames);
 		// customFieldsEntity.setColumnName(customFieldsRequestDTO.getColumnName());
+		// Get Filters
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
 		customFieldsEntity.setCreatedBy(customFieldsRequestDTO.getCreatedBy());
 		customFieldsEntity.setUpdatedBy(customFieldsRequestDTO.getUpdatedBy());
 		customFieldsEntity.setSelected(true);
@@ -811,6 +796,11 @@ public class JobService {
 		customFieldsResponseDTO.setType(jobCustomFieldsEntity.getType());
 		customFieldsResponseDTO.setUpdatedBy(jobCustomFieldsEntity.getUpdatedBy());
 		customFieldsResponseDTO.setId(jobCustomFieldsEntity.getId());
+		// Get Filters
+		JsonNode filters = jobCustomFieldsEntity.getFilters();
+		if (filters != null) {
+			customFieldsResponseDTO.setFilters(MappingUtil.convertJsonNodeToList(filters, FilterDTO.class));
+		}
 		return customFieldsResponseDTO;
 	}
 
@@ -966,6 +956,48 @@ public class JobService {
 			accountOwnerDetails.put("email", "");
 		}
 		return accountOwnerDetails;
+	}
+
+	public CustomFieldsResponseDTO getCustomFieldsById(Long id) {
+		CustomFieldsEntity customFieldsEntity = jobCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity);
+	}
+
+
+	public CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO)
+			throws ServiceException {
+		CustomFieldsEntity customFieldsEntity = jobCustomFieldsRepository.findByIdAndDeleted(id, false, true)
+				.orElseThrow(() -> new RuntimeException("Custom view not found"));
+		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
+				&& jobCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
+			throw new ServiceException(
+					messageSource.getMessage("error.jobcustomnametaken", null, LocaleContextHolder.getLocale()));
+		}
+		customFieldsEntity.setName(customFieldsRequestDTO.getName());
+		customFieldsEntity.setSelected(customFieldsEntity.isSelected());
+		if (customFieldsRequestDTO.getColumnName() != null) {
+			if (!customFieldsRequestDTO.getColumnName().isEmpty()) {
+				String columnNames = String.join(",", customFieldsRequestDTO.getColumnName());
+				customFieldsEntity.setColumnName(columnNames);
+			}
+		}
+		customFieldsEntity.setUpdatedBy(getUserId().longValue());
+		List<FilterDTO> filters = customFieldsRequestDTO.getFilters();
+		if (filters != null) {
+			customFieldsEntity.setFilters(JSONUtil.convertObjectToJsonNode(filters));
+		}
+
+		// Save custom view
+		CustomFieldsEntity updatedCustomFieldEntity = jobCustomFieldsRepository.save(customFieldsEntity);
+		return customFieldsEntityToCustomFieldsResponseDTO(updatedCustomFieldEntity);
+	}
+
+	private Integer getUserId() {
+		String email = JwtUtil.getEmailFromContext();
+		HttpResponse userResponse = userAPIClient.getUserByEmail(email);
+		UserResponseDTO userData = MappingUtil.mapClientBodyToClass(userResponse.getData(), UserResponseDTO.class);
+		return userData.getId();
 	}
 
 }

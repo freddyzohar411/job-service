@@ -19,4 +19,5 @@ public class CustomFieldsRequestDTO {
 	private List<String> columnName;
 	private Long createdBy;
 	private Long updatedBy;
+	private List<FilterDTO> filters;
 }

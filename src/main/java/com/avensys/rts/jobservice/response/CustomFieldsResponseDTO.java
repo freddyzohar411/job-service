@@ -2,6 +2,7 @@ package com.avensys.rts.jobservice.response;
 
 import java.util.List;
 
+import com.avensys.rts.jobservice.payload.FilterDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,4 +19,5 @@ public class CustomFieldsResponseDTO {
 	private List<String> columnName;
 	private Long createdBy;
 	private Long updatedBy;
+	private List<FilterDTO> filters;
 }

@@ -30,4 +30,5 @@ public class JobListingRequestDTO {
 	private Boolean allActive = false;
 	private Integer stageType = null;
 	private Boolean isDownload = false;
+	private List<FilterDTO> filters;
 }
