@@ -48,7 +48,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
+				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -99,7 +99,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
+				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -150,7 +150,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
+				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -213,7 +213,6 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				searchConditions.append(String.format(" OR (%s->>'%s') ILIKE :searchTerm ", jsonColumnName, jsonKey));
 			} else {
 				searchConditions.append(String.format(" OR CAST(%s AS TEXT) ILIKE :searchTerm ", field));
-//                searchConditions.append(String.format(" OR %s ILIKE :searchTerm ", field));
 			}
 		}
 
@@ -224,7 +223,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -291,7 +290,6 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 				searchConditions.append(String.format(" OR (%s->>'%s') ILIKE :searchTerm ", jsonColumnName, jsonKey));
 			} else {
 				searchConditions.append(String.format(" OR CAST(%s AS TEXT) ILIKE :searchTerm ", field));
-//                searchConditions.append(String.format(" OR %s ILIKE :searchTerm ", field));
 			}
 		}
 
@@ -302,7 +300,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -462,7 +460,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
 
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setFirstResult((int) pageable.getOffset());
@@ -484,7 +482,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
@@ -529,7 +527,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setFirstResult((int) pageable.getOffset());
@@ -551,7 +549,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
@@ -605,7 +603,6 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		String queryString = String.format(
 				"SELECT * FROM job WHERE {1} is_deleted = :isDeleted AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
-
 		if (jobType != null && jobType.length() > 0) {
 			queryString = getQuery(queryString, jobType, userId, isActive, userIds);
 		} else {
@@ -616,7 +613,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -641,7 +638,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -707,7 +704,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -732,7 +729,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -752,9 +749,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "active_jobs": {
 				queryString = queryString.replace("{1}",
-						"id not in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN ("
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.recruiter_id IN ("
 								+ userId
-								+ "))) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+								+ ")) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "inactive_jobs": {
@@ -775,7 +772,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds)) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.recruiter_id IN ("
+								+ userId
+								+ ")) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "all_jobs": {
@@ -796,7 +795,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "active_jobs": {
 				queryString = queryString.replace("{1}",
-						"CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "inactive_jobs": {
@@ -817,7 +816,9 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.recruiter_id IN ("
+								+ userId
+								+ ")) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			default:

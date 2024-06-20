@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,5 +49,13 @@ public class JobEntity extends BaseEntity {
 
 	@Column(name = "is_email_sent")
 	private Boolean isEmailSent = false;
+
+	@Transient
+	@Column(name = "createdByName")
+	private String createdByName;
+
+	@Transient
+	@Column(name = "updatedByName")
+	private String updatedByName;
 
 }
