@@ -22,6 +22,7 @@ public class JobListingDataDTO {
 	private LocalDateTime updatedAt;
 	private String createdByName;
 	private String updatedByName;
+	private String recruiterName;
 	private Long createdBy;
 	private Long updatedBy;
 

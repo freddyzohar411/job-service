@@ -48,7 +48,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE created_by = :userId AND is_draft = :isDraft AND is_deleted = :isDeleted AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -99,7 +99,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -150,7 +150,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive ORDER BY %s %s NULLS LAST",
 				orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -223,7 +223,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -300,7 +300,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 
 		// Build the complete query string
 		String queryString = String.format(
-				"SELECT *,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.created_by) as createdByName,(select CONCAT(u.first_name,' ',u.last_name) from users u where u.id = job.updated_by) as updatedByName FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
+				"SELECT * FROM job WHERE created_by = :userId AND is_deleted = :isDeleted AND is_draft = :isDraft AND is_active = :isActive AND (%s) ORDER BY %s %s NULLS LAST",
 				searchConditions.toString(), orderByClause, sortDirection);
 
 		// Create and execute the query

@@ -675,6 +675,12 @@ public class JobService {
 			} catch (Exception e) {
 			}
 
+			try {
+				String fodRecruiters = jobRepository.getRecruiters(jobEntity.getId());
+				jobListingDataDTO.setRecruiterName(fodRecruiters);
+			} catch (Exception e) {
+			}
+
 			return jobListingDataDTO;
 		}).toList();
 		jobListingNewResponseDTO.setJobs(jobListingDataDTOs);
