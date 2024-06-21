@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.avensys.rts.jobservice.exception.DuplicateResourceException;
 import com.avensys.rts.jobservice.payload.*;
 import com.avensys.rts.jobservice.util.*;
 import org.slf4j.Logger;
@@ -745,8 +746,9 @@ public class JobService {
 	public CustomFieldsResponseDTO saveCustomFields(CustomFieldsRequestDTO customFieldsRequestDTO)
 			throws ServiceException {
 
-		if (jobCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
-			throw new ServiceException(
+		if (jobCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(customFieldsRequestDTO.getName(), "Job",
+				false, getUserId())) {
+			throw new DuplicateResourceException(
 					messageSource.getMessage("error.jobcustomnametaken", null, LocaleContextHolder.getLocale()));
 		}
 
@@ -966,14 +968,14 @@ public class JobService {
 		return customFieldsEntityToCustomFieldsResponseDTO(customFieldsEntity);
 	}
 
-
 	public CustomFieldsResponseDTO editCustomFieldsById(Long id, CustomFieldsRequestDTO customFieldsRequestDTO)
 			throws ServiceException {
 		CustomFieldsEntity customFieldsEntity = jobCustomFieldsRepository.findByIdAndDeleted(id, false, true)
 				.orElseThrow(() -> new RuntimeException("Custom view not found"));
 		if (!Objects.equals(customFieldsEntity.getName(), customFieldsRequestDTO.getName())
-				&& jobCustomFieldsRepository.existsByName(customFieldsRequestDTO.getName())) {
-			throw new ServiceException(
+				&& jobCustomFieldsRepository.findByNameAndTypeAndIsDeletedAndCreatedBy(customFieldsRequestDTO.getName(),
+						"Job", false, getUserId())) {
+			throw new DuplicateResourceException(
 					messageSource.getMessage("error.jobcustomnametaken", null, LocaleContextHolder.getLocale()));
 		}
 		customFieldsEntity.setName(customFieldsRequestDTO.getName());
