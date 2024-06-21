@@ -279,7 +279,7 @@ public class JobService {
 		formSubmissionAPIClient.updateFormSubmission(jobEntity.getFormSubmissionId().intValue(),
 				formSubmissionsRequestDTO);
 
-		if (!updatedJob.getIsDraft() && !updatedJob.getIsEmailSent()) {
+		if (!updatedJob.getIsDraft() && updatedJob.getIsEmailSent() != null && !updatedJob.getIsEmailSent()) {
 			sendEmail(updatedJob);
 			updatedJob.setIsEmailSent(true);
 			jobRepository.save(updatedJob);
@@ -655,6 +655,12 @@ public class JobService {
 						UserResponseDTO.class);
 				jobListingDataDTO
 						.setUpdatedByName(updatedByUserData.getFirstName() + " " + updatedByUserData.getLastName());
+			} catch (Exception e) {
+			}
+
+			try {
+				String fodRecruiters = jobRepository.getRecruiters(jobEntity.getId());
+				jobListingDataDTO.setRecruiterName(fodRecruiters);
 			} catch (Exception e) {
 			}
 
