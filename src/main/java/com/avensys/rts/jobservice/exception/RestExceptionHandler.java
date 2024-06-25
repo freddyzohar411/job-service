@@ -1,5 +1,6 @@
 package com.avensys.rts.jobservice.exception;
 
+import com.avensys.rts.jobservice.util.ResponseUtil;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -52,6 +53,17 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 		ApiError apiError = new ApiError(HttpStatus.NOT_FOUND);
 		apiError.setMessage(ex.getMessage());
 		return buildResponseEntity(apiError);
+	}
+
+	/**
+	 * This method is used to handle the exceptions thrown by the Feign client.
+	 *
+	 * @param ex
+	 * @return
+	 */
+	@ExceptionHandler(DuplicateResourceException.class)
+	public ResponseEntity<Object> handleDuplicateResourceException(DuplicateResourceException ex) {
+		return ResponseUtil.generateErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
 	}
 
 }
