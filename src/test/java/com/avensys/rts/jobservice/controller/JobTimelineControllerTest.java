@@ -1,6 +1,5 @@
 package com.avensys.rts.jobservice.controller;
 
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
@@ -25,6 +24,7 @@ import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
 import com.avensys.rts.jobservice.response.JobTimelineResponseDTO;
 import com.avensys.rts.jobservice.service.JobTimelineService;
 import com.avensys.rts.jobservice.util.JwtUtil;
+import com.avensys.rts.jobservice.util.UserUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -45,6 +45,9 @@ public class JobTimelineControllerTest {
 
 	@Mock
 	private JwtUtil jwtUtil;
+	
+	@Mock
+	UserUtil userUtil;
 
 	@Mock
 	private MessageSource messageSource;
@@ -87,7 +90,6 @@ public class JobTimelineControllerTest {
 	 */
 	@Test
 	void testGetJobListing() throws Exception {
-		when(jobTimelineService.getJobTimelineListingPageWithSearch(new Integer(1),new Integer(1), "updatedAt", "DEFAULT_DIRECTION", "name",searchFields,1L,1L,true)).thenReturn(jobTimelineResponseDTO);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
 		ObjectWriter writer = mapper.writer().withDefaultPrettyPrinter();

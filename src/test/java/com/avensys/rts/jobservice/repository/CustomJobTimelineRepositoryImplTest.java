@@ -82,25 +82,25 @@ public class CustomJobTimelineRepositoryImplTest {
 
 	@Test
 	void testFindAllByOrderByStringWithUserIds() {
-		when(customJobTimelineRepository.findAllByOrderByStringWithUserIds(userIds,false, false,pageable,1L,1L)).thenReturn(pageJobTimeline);
+		when(customJobTimelineRepository.findAllByOrderByStringWithUserIds(userIds,false, false,pageable,1L,1L,1)).thenReturn(pageJobTimeline);
 		assertNotNull(pageJobTimeline);
 	}
 
 	@Test
 	void testFindAllByOrderByNumericWithUserIds() {
-		when(customJobTimelineRepository.findAllByOrderByNumericWithUserIds(userIds,false, false,pageable,1L,1L)).thenReturn(pageJobTimeline);
+		when(customJobTimelineRepository.findAllByOrderByNumericWithUserIds(userIds,false, false,pageable,1L,1L,1)).thenReturn(pageJobTimeline);
 		assertNotNull(pageJobTimeline);
 	}
 
 	@Test
 	void testFindAllByOrderByAndSearchStringWithUserIds() {
-		when(customJobTimelineRepository.findAllByOrderByAndSearchStringWithUserIds(userIds,false, false,pageable,searchFields,searchTerm,1L,1L)).thenReturn(pageJobTimeline);
+		when(customJobTimelineRepository.findAllByOrderByAndSearchStringWithUserIds(userIds,false, false,pageable,searchFields,searchTerm,1L,1L,1)).thenReturn(pageJobTimeline);
 		assertNotNull(pageJobTimeline);
 	}
 
 	@Test
 	void testFindAllByOrderByAndSearchNumericWithUserIds() {
-		when(customJobTimelineRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds,false, false,pageable,searchFields,searchTerm,1L,1L)).thenReturn(pageJobTimeline);
+		when(customJobTimelineRepository.findAllByOrderByAndSearchNumericWithUserIds(userIds,false, false,pageable,searchFields,searchTerm,1L,1L,1)).thenReturn(pageJobTimeline);
 		assertNotNull(pageJobTimeline);
 	}
 }
