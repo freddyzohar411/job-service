@@ -468,7 +468,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
 
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("assigned_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setFirstResult((int) pageable.getOffset());
@@ -491,7 +491,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("assigned_jobs")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
@@ -543,7 +543,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("assigned_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setFirstResult((int) pageable.getOffset());
@@ -566,7 +566,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("assigned_jobs")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
@@ -637,7 +637,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("assigned_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -662,7 +662,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("assigned_jobs")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -734,7 +734,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query query = entityManager.createNativeQuery(queryString, JobEntity.class);
 		query.setParameter("isDeleted", isDeleted);
 		query.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("assigned_jobs")) {
 			query.setParameter("userIds", userIds);
 		}
 		query.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -759,7 +759,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 		Query countQuery = entityManager.createNativeQuery(countQueryString);
 		countQuery.setParameter("isDeleted", isDeleted);
 		countQuery.setParameter("isActive", isActive);
-		if (!userIds.isEmpty() && !jobType.equals("active_jobs") && !jobType.equals("assigned_jobs")) {
+		if (!userIds.isEmpty() && !jobType.equals("assigned_jobs")) {
 			countQuery.setParameter("userIds", userIds);
 		}
 		countQuery.setParameter("searchTerm", "%" + searchTerm + "%");
@@ -779,9 +779,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "active_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.recruiter_id IN ("
-								+ userId
-								+ ")) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"(created_by IN :userIds or CAST(NULLIF(job_submission_data->>'accountOwnerId', '') as INTEGER) in :userIds or id in (select distinct(fod.job_id) from job_recruiter_fod fod where (fod.recruiter_id IN :userIds or fod.sales_id IN :userIds))) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			case "inactive_jobs": {
@@ -846,9 +844,7 @@ public class CustomJobRepositoryImpl implements CustomJobRepository {
 			}
 			case "assigned_jobs": {
 				queryString = queryString.replace("{1}",
-						"id in (select distinct(fod.job_id) from job_recruiter_fod fod where fod.recruiter_id IN ("
-								+ userId
-								+ ")) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
+						"id in (select distinct(fod.job_id) from job_recruiter_fod fod) and CAST(NULLIF(job_submission_data->>'jobStatus', '') as TEXT) = 'Active' AND ");
 				break;
 			}
 			default:
