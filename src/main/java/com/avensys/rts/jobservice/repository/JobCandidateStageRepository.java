@@ -37,7 +37,7 @@ public interface JobCandidateStageRepository extends JpaRepository<JobCandidateS
 
 	@Query(value = "SELECT COUNT(jcs.*) " + "FROM job_candidate_stage jcs " + "JOIN job j ON jcs.job_id = j.id "
 			+ "WHERE j.job_submission_data->>'jobStatus' = 'Active' "
-			+ "AND jcs.job_stage_id = (SELECT js.id FROM job_stage js WHERE js.stage_order = ?1)", nativeQuery = true)
+			+ "AND jcs.job_stage_id = (SELECT js.id FROM job_stage js WHERE js.stage_order = ?1) AND jcs.status != 'SKIPPED'", nativeQuery = true)
 	Long findActiveJobsByStageName(Long stageOrder);
 
 	@Query(value = "SELECT COUNT(jcs.*) " + "FROM job_candidate_stage jcs " + "JOIN job j ON jcs.job_id = j.id "
@@ -49,5 +49,17 @@ public interface JobCandidateStageRepository extends JpaRepository<JobCandidateS
 	@Query(value = "SELECT COUNT(jcs.*) " + "FROM job_candidate_stage jcs " + "JOIN job j ON jcs.job_id = j.id "
 			+ "WHERE j.job_submission_data->>'jobStatus' = 'Active' " + "AND jcs.status = ?1", nativeQuery = true)
 	Long findActiveJobByStatus(String status);
+
+	@Query(value = "SELECT COUNT(*) "
+			+ "FROM ("
+			+ "  SELECT jcs.job_id, jcs.candidate_id "
+			+ "  FROM job_candidate_stage jcs "
+			+ "  JOIN job j ON jcs.job_id = j.id "
+			+ "  WHERE j.job_submission_data->>'jobStatus' = 'Active' "
+			+ "  GROUP BY jcs.job_id, jcs.candidate_id "
+			+ "  HAVING COUNT(*) = 1 "
+			+ "  AND SUM(CASE WHEN jcs.job_stage_id = 1 AND jcs.status = 'COMPLETED' THEN 1 ELSE 0 END) = 1"
+			+ ") AS matched_records", nativeQuery = true)
+	Long countNoSubmissions();
 
 }

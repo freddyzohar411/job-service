@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -49,29 +50,39 @@ public class JobReportService {
 		Boolean getAll = true;
 		Integer newJobsCount = getNewJobsCount(getAll);
 		Integer activeJobsCount = getActiveJobsCount(getAll);
+		Long noSubmissionCount = jobCandidateStageRepository.countNoSubmissions();
 		// Associated
-		Long associatedCount = jobCandidateStageRepository.findActiveJobsByStageName(JobCanddateStageUtil.ASSOCIATE);
+		Long associatedCount = jobCandidateStageRepository
+				.findActiveJobsByStageNameAndStatus(JobCanddateStageUtil.ASSOCIATE, JobCanddateStageUtil.COMPLETED);
 		// Submit to Sales
-		Long submitToSalesCount = jobCandidateStageRepository
-				.findActiveJobsByStageName(JobCanddateStageUtil.SUBMIT_TO_SALES);
+		Long submitToSalesCount = jobCandidateStageRepository.findActiveJobsByStageNameAndStatus(
+				JobCanddateStageUtil.SUBMIT_TO_SALES, JobCanddateStageUtil.COMPLETED);
 		// Submit to Client
-		Long submitToClientCount = jobCandidateStageRepository
-				.findActiveJobsByStageName(JobCanddateStageUtil.SUBMIT_TO_CLIENT);
+		Long submitToClientCount = jobCandidateStageRepository.findActiveJobsByStageNameAndStatus(
+				JobCanddateStageUtil.SUBMIT_TO_CLIENT, JobCanddateStageUtil.COMPLETED);
 		// Find Selected count
 		Long selectedCount = jobCandidateStageRepository.findActiveJobsByStageNameAndStatus(
 				JobCanddateStageUtil.CONDITIONAL_OFFER_ACCEPTED_OR_DECLINED, JobCanddateStageUtil.COMPLETED);
-
 		// Find Rejected count
 		Long rejectedCount = jobCandidateStageRepository.findActiveJobByStatus(JobCanddateStageUtil.REJECTED);
+
+		// Interview Scheduled
+		Map<String, Long> interviewScheduledCountAll = jobTimelineRepository.findInterviewScheduledCountAll();
+
+		// Interview Happened
+		Map<String, Long> interviewHappenedCountAll = jobTimelineRepository.findInterviewHappenedCountAll();
 
 		JobReportCountsResponseDTO jobReportCountsResponseDTO = new JobReportCountsResponseDTO();
 		jobReportCountsResponseDTO.setNewRequirementsCount(newJobsCount.longValue());
 		jobReportCountsResponseDTO.setActiveRequirementsCount(activeJobsCount.longValue());
+		jobReportCountsResponseDTO.setNoSubmissionsCount(noSubmissionCount);
 		jobReportCountsResponseDTO.setAssociatedCount(associatedCount);
 		jobReportCountsResponseDTO.setSubmitToSalesCount(submitToSalesCount);
 		jobReportCountsResponseDTO.setSubmitToClientCount(submitToClientCount);
 		jobReportCountsResponseDTO.setSelectedCount(selectedCount);
 		jobReportCountsResponseDTO.setRejectedCount(rejectedCount);
+		jobReportCountsResponseDTO.setInterviewScheduledCount(interviewScheduledCountAll.get("count"));
+		jobReportCountsResponseDTO.setInterviewHappenedCount(interviewHappenedCountAll.get("count"));
 		return jobReportCountsResponseDTO;
 	}
 
