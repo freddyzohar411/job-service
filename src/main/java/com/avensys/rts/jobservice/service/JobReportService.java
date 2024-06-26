@@ -94,12 +94,12 @@ public class JobReportService {
 		Page<JobTimelineEntity> jobEntitiesPage = null;
 		// Try with numeric first else try with string (jsonb)
 		try {
-			jobEntitiesPage = jobTimelineRepository.findAllByOrderByNumericWithUserIds(userIds, false, true,
-					pageRequest, userId, jobId, stageType);
+			jobEntitiesPage = jobTimelineRepository.findAllByOrderByNumericWithUserIdsReport(userIds, false, true,
+					pageRequest, userId, "Active");
 		} catch (Exception e) {
 			e.printStackTrace();
-			jobEntitiesPage = jobTimelineRepository.findAllByOrderByStringWithUserIds(userIds, false, true, pageRequest,
-					userId, jobId, stageType);
+			jobEntitiesPage = jobTimelineRepository.findAllByOrderByStringWithUserIdsReport(userIds, false, true,
+					pageRequest, userId, "Active");
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);

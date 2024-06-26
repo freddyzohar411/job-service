@@ -351,4 +351,161 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 		return new PageImpl<>(resultList, pageable, countResult);
 	}
 
+	@Override
+	public Page<JobTimelineEntity> findAllByOrderByStringWithUserIdsReport(List<Long> userIds, Boolean isDeleted,
+			Boolean isActive, Pageable pageable, Long userId, String jobStatus) {
+
+		String jobStatusFilterQuery = "";
+		if (jobStatus != null && !jobStatus.isEmpty()) {
+			jobStatusFilterQuery = String.format("AND job.job_submission_data->>'jobStatus' = '%s'", jobStatus);
+		}
+
+		// Determine if sortBy is a regular column or a JSONB column
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "job_timeline.updated_at";
+		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "job_timeline.updated_at";
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("%s.%s", jsonColumnName, jsonKey);
+		}
+
+		// Extract sort direction from pageable
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
+
+		// User Condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = "AND job_timeline.created_by IN (:userIds)";
+		}
+
+		// Build the complete query string with user filter and excluding NULLs
+		String queryString = String.format(
+				"SELECT job_timeline.* FROM job_timeline "
+						+ "INNER JOIN candidate ON job_timeline.candidate_id = candidate.id "
+						+ "INNER JOIN users ON job_timeline.created_by = users.id "
+						+ "INNER JOIN job ON job_timeline.job_id = job.id "
+						+ "WHERE job_timeline.is_deleted = :isDeleted " + "AND job_timeline.is_active = :isActive %s %s "
+						+ "GROUP BY candidate.first_name, job_timeline.id, job.id " + "ORDER BY %s %s NULLS LAST",
+				userCondition, jobStatusFilterQuery, orderByClause, sortDirection);
+
+		// Create and execute the query
+		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
+		query.setParameter("isDeleted", isDeleted);
+		query.setParameter("isActive", isActive);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		// Get the result list
+		List<JobTimelineEntity> resultList = query.getResultList();
+
+		// Build the count query string
+		// Now use this variable in your formatted string
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM job_timeline "
+						+ "INNER JOIN candidate ON job_timeline.candidate_id = candidate.id "
+						+ "INNER JOIN users ON job_timeline.created_by = users.id "
+						+ "INNER JOIN job ON job_timeline.job_id = job.id "
+						+ "WHERE job_timeline.is_deleted = :isDeleted "
+						+ "AND job_timeline.is_active = :isActive %s %s ",
+				userCondition, jobStatusFilterQuery);
+
+		// Create and execute the count query
+		Query countQuery = entityManager.createNativeQuery(countQueryString);
+		countQuery.setParameter("isDeleted", isDeleted);
+		countQuery.setParameter("isActive", isActive);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
+		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+
+		// Create and return a Page object
+		return new PageImpl<>(resultList, pageable, countResult);
+	}
+
+	@Override
+	public Page<JobTimelineEntity> findAllByOrderByNumericWithUserIdsReport(List<Long> userIds, Boolean isDeleted,
+			Boolean isActive, Pageable pageable, Long userId, String jobStatus) {
+
+		String jobStatusFilterQuery = "";
+		if (jobStatus != null && !jobStatus.isEmpty()) {
+			jobStatusFilterQuery = String.format("AND job.job_submission_data->>'jobStatus' = '%s'", jobStatus);
+		}
+
+		// Determine if sortBy is a regular column or a JSONB column
+		String sortBy = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "job_timeline.updated_at";
+		String orderByClause = pageable.getSort().isSorted() ? pageable.getSort().get().findFirst().get().getProperty()
+				: "job_timeline.updated_at";
+		if (sortBy.contains(".")) { // assuming sortBy is in the format "jsonColumn.jsonKey"
+			String[] parts = sortBy.split("\\.");
+			String jsonColumnName = parts[0];
+			String jsonKey = parts[1];
+			orderByClause = String.format("CAST(NULLIF(%s.%s, '') AS INTEGER)", jsonColumnName, jsonKey);
+		}
+
+		// User Condition
+		String userCondition = "";
+		if (!userIds.isEmpty()) {
+			userCondition = "AND job_timeline.created_by IN (:userIds)";
+		}
+
+		// Extract sort direction from pageable
+		String sortDirection = pageable.getSort().isSorted()
+				? pageable.getSort().get().findFirst().get().getDirection().name()
+				: "ASC";
+
+		// Build the complete query string with user filter and excluding NULLs
+		String queryString = String.format(
+				"SELECT job_timeline.* FROM job_timeline "
+						+ "INNER JOIN candidate ON job_timeline.candidate_id = candidate.id "
+						+ "INNER JOIN users ON job_timeline.created_by = users.id "
+						+ "INNER JOIN job ON job_timeline.job_id = job.id "
+						+ "WHERE job_timeline.is_deleted = :isDeleted " + "AND job_timeline.is_active = :isActive %s %s "
+						+ "GROUP BY candidate.first_name, job_timeline.id, job.id " + "ORDER BY %s %s NULLS LAST",
+				userCondition, jobStatusFilterQuery, orderByClause, sortDirection);
+
+		// Create and execute the query
+		Query query = entityManager.createNativeQuery(queryString, JobTimelineEntity.class);
+		query.setParameter("isDeleted", isDeleted);
+		query.setParameter("isActive", isActive);
+		if (!userIds.isEmpty()) {
+			query.setParameter("userIds", userIds);
+		}
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		// Get the result list
+		List<JobTimelineEntity> resultList = query.getResultList();
+
+		// Build the count query string
+		String countQueryString = String.format(
+				"SELECT COUNT(*) FROM job_timeline "
+						+ "INNER JOIN candidate ON job_timeline.candidate_id = candidate.id "
+						+ "INNER JOIN users ON job_timeline.created_by = users.id "
+						+ "INNER JOIN job ON job_timeline.job_id = job.id "
+						+ "WHERE job_timeline.is_deleted = :isDeleted "
+						+ "AND job_timeline.is_active = :isActive %s %s ",
+				userCondition, jobStatusFilterQuery);
+
+		// Create and execute the count query
+		Query countQuery = entityManager.createNativeQuery(countQueryString);
+		countQuery.setParameter("isDeleted", isDeleted);
+		countQuery.setParameter("isActive", isActive);
+		if (!userIds.isEmpty()) {
+			countQuery.setParameter("userIds", userIds);
+		}
+		Long countResult = ((Number) countQuery.getSingleResult()).longValue();
+
+		// Create and return a Page object
+		return new PageImpl<>(resultList, pageable, countResult);
+	}
+
 }
