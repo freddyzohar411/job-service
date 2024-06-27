@@ -562,4 +562,12 @@ public class JobController {
 				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 	}
 
+	@PutMapping("/customView/unselect-all")
+	public ResponseEntity<Object> unselectAllCustomView() {
+		LOG.info("Job unselect all custom view: Controller");
+		jobService.unSelectAllCustomViews();
+		return ResponseUtil.generateSuccessResponse(null, HttpStatus.OK,
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
+	}
+
 }

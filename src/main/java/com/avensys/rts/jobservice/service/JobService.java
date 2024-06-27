@@ -1002,6 +1002,10 @@ public class JobService {
 		return customFieldsEntityToCustomFieldsResponseDTO(updatedCustomFieldEntity);
 	}
 
+	public void unSelectAllCustomViews() {
+		jobCustomFieldsRepository.updateIsSelected(false, "Job", false, getUserId());
+	}
+
 	private Integer getUserId() {
 		String email = JwtUtil.getEmailFromContext();
 		HttpResponse userResponse = userAPIClient.getUserByEmail(email);

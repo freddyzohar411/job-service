@@ -29,9 +29,6 @@ public class JobReportController {
 	private static final Logger LOG = LoggerFactory.getLogger(JobCandidateStageController.class);
 
 	@Autowired
-	private JobCandidateStageService jobCandidateStageService;
-
-	@Autowired
 	private JwtUtil jwtUtil;
 
 	@Autowired
@@ -45,7 +42,7 @@ public class JobReportController {
 		LOG.info("Get job report counts request received");
 		JobReportCountsResponseDTO jobReportCountsResponseDTO = jobReportService.getJobReportCounts();
 		return ResponseUtil.generateSuccessResponse(jobReportCountsResponseDTO, HttpStatus.CREATED,
-				messageSource.getMessage("job.tag.created", null, LocaleContextHolder.getLocale()));
+				messageSource.getMessage(MessageConstants.MESSAGE_SUCCESS, null, LocaleContextHolder.getLocale()));
 
 	}
 

@@ -390,7 +390,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 						+ "INNER JOIN users ON job_timeline.created_by = users.id "
 						+ "INNER JOIN job ON job_timeline.job_id = job.id "
 						+ "WHERE job_timeline.is_deleted = :isDeleted " + "AND job_timeline.is_active = :isActive %s %s "
-						+ "GROUP BY candidate.first_name, job_timeline.id, job.id " + "ORDER BY %s %s NULLS LAST",
+						+ "ORDER BY %s %s NULLS LAST",
 				userCondition, jobStatusFilterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
@@ -469,7 +469,7 @@ public class CustomJobTimelineRepositoryImpl implements CustomJobTimelineReposit
 						+ "INNER JOIN users ON job_timeline.created_by = users.id "
 						+ "INNER JOIN job ON job_timeline.job_id = job.id "
 						+ "WHERE job_timeline.is_deleted = :isDeleted " + "AND job_timeline.is_active = :isActive %s %s "
-						+ "GROUP BY candidate.first_name, job_timeline.id, job.id " + "ORDER BY %s %s NULLS LAST",
+						+ "ORDER BY %s %s NULLS LAST",
 				userCondition, jobStatusFilterQuery, orderByClause, sortDirection);
 
 		// Create and execute the query
