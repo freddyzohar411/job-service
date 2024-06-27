@@ -43,4 +43,10 @@ public interface JobTimelineRepository extends JpaRepository<JobTimelineEntity, 
 	@Query(value = "delete from job_timeline  where job_id = ?1 and candidate_id = ?2", nativeQuery = true)
 	public Integer deleteByJobAndCandidate(Long jobId, Long candidateId);
 
+	@Query(value = "select 'Scheduled' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where js.stage_order in(10,11,12)", nativeQuery = true)
+	public Map<String, Long> findInterviewScheduledCountAll();
+
+	@Query(value = "select 'Completed' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where js.stage_order in(10,11,12) and jcs.status in ('COMPLETED', 'REJECTED')", nativeQuery = true)
+	public Map<String, Long> findInterviewHappenedCountAll();
+
 }

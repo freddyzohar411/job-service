@@ -23,4 +23,10 @@ public interface CustomJobTimelineRepository {
 	Page<JobTimelineEntity> findAllByOrderByAndSearchNumericWithUserIds(List<Long> userIds, Boolean isDeleted,
 			Boolean isActive, Pageable pageable, List<String> searchFields, String searchTerm, Long userId, Long jobId,
 			Integer stageType);
+
+	Page<JobTimelineEntity> findAllByOrderByStringWithUserIdsReport(List<Long> userIds, Boolean isDeleted,
+			Boolean isActive, Pageable pageable, Long userId, String jobStatus);
+
+	Page<JobTimelineEntity> findAllByOrderByNumericWithUserIdsReport(List<Long> userIds, Boolean isDeleted,
+			Boolean isActive, Pageable pageable, Long userId, String jobStatus);
 }

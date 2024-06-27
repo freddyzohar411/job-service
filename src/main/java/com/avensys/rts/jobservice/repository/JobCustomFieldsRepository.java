@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
 import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface JobCustomFieldsRepository extends JpaRepository<CustomFieldsEntity, Long>  {
 	
@@ -33,5 +35,10 @@ public interface JobCustomFieldsRepository extends JpaRepository<CustomFieldsEnt
 	@Query(value = "SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END FROM customView c WHERE c.name = ?1 AND c.type = ?2 AND c.isDeleted = ?3 AND c.createdBy = ?4")
 	Boolean findByNameAndTypeAndIsDeletedAndCreatedBy(String name, String type, boolean isDeleted,
 			Integer createdBy);
+
+	@Modifying
+	@Transactional
+	@Query("UPDATE customView c SET c.isSelected = ?1 WHERE c.type = ?2 AND c.isDeleted = ?3 AND c.createdBy = ?4")
+	void updateIsSelected(boolean isSelected, String type, boolean isDeleted, Integer createdBy);
 
 }

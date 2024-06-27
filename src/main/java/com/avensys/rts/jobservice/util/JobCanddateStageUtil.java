@@ -21,8 +21,10 @@ public class JobCanddateStageUtil {
 	public static Long SECOND_INTERVIEW_SCHEDULED = 11l;
 	public static Long THIRD_INTERVIEW_SCHEDULED = 12l;
 	public static Long INTERVIEW_FEEDBACK_PENDING = 13l;
-	public static Long CONDITIONAL_OFFER_SENT = 10l;
-	public static Long CONDITIONAL_OFFER_ACCEPTED_OR_DECLINED = 11l;
+	public static Long PREPARE_TOS = 14l;
+	public static Long TOS_ACCEPTED_OR_DECLINED = 15l;
+	public static Long CONDITIONAL_OFFER_SENT = 16l;
+	public static Long CONDITIONAL_OFFER_ACCEPTED_OR_DECLINED = 17l;
 
 	// Job stage Name
 	public static String FIRST_INTERVIEW_SCHEDULED_NAME = "First Interview Scheduled";
