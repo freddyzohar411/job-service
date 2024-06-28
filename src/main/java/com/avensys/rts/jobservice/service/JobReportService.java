@@ -11,6 +11,7 @@ import com.avensys.rts.jobservice.response.JobReportCountsResponseDTO;
 import com.avensys.rts.jobservice.response.JobTimelineResponseDTO;
 import com.avensys.rts.jobservice.response.UserResponseDTO;
 import com.avensys.rts.jobservice.util.JobCanddateStageUtil;
+import com.avensys.rts.jobservice.util.JwtUtil;
 import com.avensys.rts.jobservice.util.MappingUtil;
 import com.avensys.rts.jobservice.util.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,8 @@ public class JobReportService {
 		Boolean getAll = true;
 		Integer newJobsCount = getNewJobsCount(getAll);
 		Integer activeJobsCount = getActiveJobsCount(getAll);
-		Long noSubmissionCount = jobCandidateStageRepository.countNoSubmissions();
+		// No Submission Count
+		Long noSubmissionCount = jobTimelineRepository.findStepCountAll("Profile", "Tag");
 		// Associated
 		Long associatedCount = jobCandidateStageRepository
 				.findActiveJobsByStageNameAndStatus(JobCanddateStageUtil.ASSOCIATE, JobCanddateStageUtil.COMPLETED);
@@ -167,8 +169,6 @@ public class JobReportService {
 			Optional<Integer> entityOptional = Optional.empty();
 			if (getAll) {
 				entityOptional = jobRecruiterFODRepository.getActiveJobsCountAll();
-			} else {
-				entityOptional = jobRecruiterFODRepository.getActiveJobsCount(userIds);
 			}
 			if (entityOptional.isPresent()) {
 				return entityOptional.get();
