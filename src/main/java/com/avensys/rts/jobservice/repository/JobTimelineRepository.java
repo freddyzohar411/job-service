@@ -49,4 +49,6 @@ public interface JobTimelineRepository extends JpaRepository<JobTimelineEntity, 
 	@Query(value = "select 'Completed' as name,count(jcs.job_stage_id) from job_candidate_stage jcs inner join job_stage js on jcs.job_stage_id = js.id where js.stage_order in(10,11,12) and jcs.status in ('COMPLETED', 'REJECTED')", nativeQuery = true)
 	public Map<String, Long> findInterviewHappenedCountAll();
 
+	@Query(value = "SELECT COUNT(*) FROM job_timeline WHERE step_name = ?1 and sub_step_name = ?2", nativeQuery = true)
+	public Long findStepCountAll(String stepName, String subStepName);
 }
