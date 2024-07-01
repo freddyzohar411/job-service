@@ -1071,51 +1071,56 @@ public class JobService {
 		List<Long> jobIds = tempRepository.getNullJobs();
 		if (jobIds.size() > 0) {
 			for (Long jobId : jobIds) {
-				StringBuilder sb = new StringBuilder("J");
-				String year = (Year.now().getValue() + "").substring(2);
+				try {
+					StringBuilder sb = new StringBuilder("J");
+					String year = (Year.now().getValue() + "").substring(2);
 
-				System.out.println("JobId: " + jobId);
+					System.out.println("JobId: " + jobId);
 
-				JobEntity jobEntity = getById(jobId);
-				if (jobId != null) {
-					JsonNode submittedData = jobEntity.getJobSubmissionData();
-					String accountName = submittedData.get("accountName").asText();
+					JobEntity jobEntity = getById(jobId);
+					if (jobId != null) {
+						JsonNode submittedData = jobEntity.getJobSubmissionData();
+						String accountName = submittedData.get("accountName").asText();
 
-					if (accountName != null) {
-						accountRepository.findByName(accountName).ifPresent(accountEntity -> {
-							String country = accountEntity.getAccountSubmissionData().get("addressCountry").asText();
-							if (country != null) {
-								String iso3 = tempRepository.getISO3(country);
-								sb.append(iso3);
-							}
-						});
+						if (accountName != null) {
+							accountRepository.findByName(accountName).ifPresent(accountEntity -> {
+								String country = accountEntity.getAccountSubmissionData().get("addressCountry")
+										.asText();
+								if (country != null) {
+									String iso3 = tempRepository.getISO3(country);
+									sb.append(iso3);
+								}
+							});
+						}
+
+						sb.append(year + '-');
+
+						Long pulseId = tempRepository.getPulseId("job");
+
+						if (pulseId < 1000) {
+							String val = "0000" + pulseId;
+							String dynamicId = val.substring(val.length() - 4);
+							sb.append(dynamicId);
+						}
+
+						((ObjectNode) submittedData).put("jobId", sb.toString());
+
+						jobEntity.setJobSubmissionData(submittedData);
+
+						FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+						formSubmissionsRequestDTO.setUserId(jobEntity.getUpdatedBy());
+						formSubmissionsRequestDTO.setFormId(jobEntity.getFormId());
+						formSubmissionsRequestDTO.setSubmissionData(submittedData);
+						formSubmissionsRequestDTO.setEntityId(jobEntity.getId());
+						formSubmissionsRequestDTO.setEntityType(JOB_TYPE);
+
+						formSubmissionAPIClient.updateFormSubmission(jobEntity.getFormSubmissionId().intValue(),
+								formSubmissionsRequestDTO);
+
+						tempRepository.updateJobId(jobEntity.getFormSubmissionId(), jobId);
 					}
-
-					sb.append(year + '-');
-
-					Long pulseId = tempRepository.getPulseId("job");
-
-					if (pulseId < 1000) {
-						String val = "0000" + pulseId;
-						String dynamicId = val.substring(val.length() - 4);
-						sb.append(dynamicId);
-					}
-
-					((ObjectNode) submittedData).put("jobId", sb.toString());
-
-					jobEntity.setJobSubmissionData(submittedData);
-
-					FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
-					formSubmissionsRequestDTO.setUserId(jobEntity.getUpdatedBy());
-					formSubmissionsRequestDTO.setFormId(jobEntity.getFormId());
-					formSubmissionsRequestDTO.setSubmissionData(submittedData);
-					formSubmissionsRequestDTO.setEntityId(jobEntity.getId());
-					formSubmissionsRequestDTO.setEntityType(JOB_TYPE);
-
-					formSubmissionAPIClient.updateFormSubmission(jobEntity.getFormSubmissionId().intValue(),
-							formSubmissionsRequestDTO);
-
-					tempRepository.updateJobId(jobEntity.getFormSubmissionId(), jobId);
+				} catch (ServiceException e) {
+					e.printStackTrace();
 				}
 			}
 		}
@@ -1125,46 +1130,51 @@ public class JobService {
 		List<Integer> accountIds = tempRepository.getNullAccounts();
 		if (accountIds.size() > 0) {
 			for (Integer accountId : accountIds) {
-				StringBuilder sb = new StringBuilder("A");
-				String year = (Year.now().getValue() + "").substring(2);
+				try {
+					StringBuilder sb = new StringBuilder("A");
+					String year = (Year.now().getValue() + "").substring(2);
 
-				System.out.println("AccountId: " + accountId);
+					System.out.println("AccountId: " + accountId);
 
-				AccountEntity accountEntity = accountRepository.findById(accountId).get();
-				if (accountId != null) {
-					JsonNode submittedData = accountEntity.getAccountSubmissionData();
+					AccountEntity accountEntity = accountRepository.findById(accountId).get();
+					if (accountId != null) {
+						JsonNode submittedData = accountEntity.getAccountSubmissionData();
 
-					String country = submittedData.get("addressCountry").asText();
-					if (country != null) {
-						String iso3 = tempRepository.getISO3(country);
-						sb.append(iso3);
+						String country = submittedData.get("addressCountry").asText();
+						if (country != null) {
+							String iso3 = tempRepository.getISO3(country);
+							sb.append(iso3);
+						}
+
+						sb.append(year + '-');
+
+						Long pulseId = tempRepository.getPulseId("account");
+
+						if (pulseId < 1000) {
+							String val = "0000" + pulseId;
+							String dynamicId = val.substring(val.length() - 4);
+							sb.append(dynamicId);
+						}
+
+						((ObjectNode) submittedData).put("accountId", sb.toString());
+
+						accountEntity.setAccountSubmissionData(submittedData);
+
+						FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+						formSubmissionsRequestDTO.setUserId(Long.valueOf(accountEntity.getUpdatedBy().longValue()));
+						formSubmissionsRequestDTO.setFormId(Long.valueOf(accountEntity.getFormId().longValue()));
+						formSubmissionsRequestDTO.setSubmissionData(submittedData);
+						formSubmissionsRequestDTO.setEntityId(Long.valueOf(accountEntity.getId()));
+						formSubmissionsRequestDTO.setEntityType("account_account");
+
+						formSubmissionAPIClient.updateFormSubmission(accountEntity.getFormSubmissionId().intValue(),
+								formSubmissionsRequestDTO);
+
+						tempRepository.updateAccountId(accountEntity.getFormSubmissionId(), accountId);
 					}
-
-					sb.append(year + '-');
-
-					Long pulseId = tempRepository.getPulseId("account");
-
-					if (pulseId < 1000) {
-						String val = "0000" + pulseId;
-						String dynamicId = val.substring(val.length() - 4);
-						sb.append(dynamicId);
-					}
-
-					((ObjectNode) submittedData).put("accountId", sb.toString());
-
-					accountEntity.setAccountSubmissionData(submittedData);
-
-					FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
-					formSubmissionsRequestDTO.setUserId(Long.valueOf(accountEntity.getUpdatedBy().longValue()));
-					formSubmissionsRequestDTO.setFormId(Long.valueOf(accountEntity.getFormId().longValue()));
-					formSubmissionsRequestDTO.setSubmissionData(submittedData);
-					formSubmissionsRequestDTO.setEntityId(Long.valueOf(accountEntity.getId()));
-					formSubmissionsRequestDTO.setEntityType("account_account");
-
-					formSubmissionAPIClient.updateFormSubmission(accountEntity.getFormSubmissionId().intValue(),
-							formSubmissionsRequestDTO);
-
-					tempRepository.updateAccountId(accountEntity.getFormSubmissionId(), accountId);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}
@@ -1174,40 +1184,45 @@ public class JobService {
 		List<Long> candidateIds = tempRepository.getNullCandidates();
 		if (candidateIds.size() > 0) {
 			for (Long candidateId : candidateIds) {
-				StringBuilder sb = new StringBuilder("C");
-				String year = (Year.now().getValue() + "").substring(2);
+				try {
+					StringBuilder sb = new StringBuilder("C");
+					String year = (Year.now().getValue() + "").substring(2);
 
-				System.out.println("CandidateId: " + candidateId);
+					System.out.println("CandidateId: " + candidateId);
 
-				CandidateEntity candidateEntity = candidateRepository.findById(candidateId).get();
-				if (candidateId != null) {
-					JsonNode submittedData = candidateEntity.getCandidateSubmissionData();
+					CandidateEntity candidateEntity = candidateRepository.findById(candidateId).get();
+					if (candidateId != null) {
+						JsonNode submittedData = candidateEntity.getCandidateSubmissionData();
 
-					sb.append(year + '-');
+						sb.append(year + '-');
 
-					Long pulseId = tempRepository.getPulseId("candidate");
+						Long pulseId = tempRepository.getPulseId("candidate");
 
-					if (pulseId < 1000) {
-						String val = "0000" + pulseId;
-						String dynamicId = val.substring(val.length() - 4);
-						sb.append(dynamicId);
+						if (pulseId < 1000) {
+							String val = "0000" + pulseId;
+							String dynamicId = val.substring(val.length() - 4);
+							sb.append(dynamicId);
+						}
+
+						((ObjectNode) submittedData).put("candidateId", sb.toString());
+
+						candidateEntity.setCandidateSubmissionData(submittedData);
+
+						FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+						formSubmissionsRequestDTO.setUserId(candidateEntity.getUpdatedBy());
+						formSubmissionsRequestDTO.setFormId(Long.valueOf(candidateEntity.getFormId().longValue()));
+						formSubmissionsRequestDTO.setSubmissionData(submittedData);
+						formSubmissionsRequestDTO.setEntityId(Long.valueOf(candidateEntity.getId()));
+						formSubmissionsRequestDTO.setEntityType("candidate_basic_info");
+
+						formSubmissionAPIClient.updateFormSubmission(candidateEntity.getFormSubmissionId().intValue(),
+								formSubmissionsRequestDTO);
+
+						tempRepository.updateCandidateId(candidateEntity.getFormSubmissionId(), candidateId);
 					}
-
-					((ObjectNode) submittedData).put("candidateId", sb.toString());
-
-					candidateEntity.setCandidateSubmissionData(submittedData);
-
-					FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
-					formSubmissionsRequestDTO.setUserId(candidateEntity.getUpdatedBy());
-					formSubmissionsRequestDTO.setFormId(Long.valueOf(candidateEntity.getFormId().longValue()));
-					formSubmissionsRequestDTO.setSubmissionData(submittedData);
-					formSubmissionsRequestDTO.setEntityId(Long.valueOf(candidateEntity.getId()));
-					formSubmissionsRequestDTO.setEntityType("candidate_basic_info");
-
-					formSubmissionAPIClient.updateFormSubmission(candidateEntity.getFormSubmissionId().intValue(),
-							formSubmissionsRequestDTO);
-
-					tempRepository.updateCandidateId(candidateEntity.getFormSubmissionId(), candidateId);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}
