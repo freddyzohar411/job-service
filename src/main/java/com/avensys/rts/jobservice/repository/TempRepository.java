@@ -10,13 +10,13 @@ import com.avensys.rts.jobservice.entity.JobEntity;
 
 public interface TempRepository extends JpaRepository<JobEntity, Long> {
 
-	@Query(value = "select id from job where job_submission_data  ->> 'jobId' is null", nativeQuery = true)
+	@Query(value = "select id from job where job_submission_data  ->> 'jobId' is null or length(job_submission_data  ->> 'jobId') = 0", nativeQuery = true)
 	public List<Long> getNullJobs();
 
-	@Query(value = "select id from account where account_submission_data  ->> 'accountId' is null", nativeQuery = true)
+	@Query(value = "select id from account where account_submission_data  ->> 'accountId' is null or length(account_submission_data  ->> 'accountId') = 0", nativeQuery = true)
 	public List<Integer> getNullAccounts();
 
-	@Query(value = "select id from candidate c where candidate_submission_data ->> 'candidateId' is null", nativeQuery = true)
+	@Query(value = "select id from candidate c where candidate_submission_data ->> 'candidateId' is null or length(candidate_submission_data  ->> 'candidateId') = 0", nativeQuery = true)
 	public List<Long> getNullCandidates();
 
 	@Query(value = "select iso3 from countries where name = ?1", nativeQuery = true)
