@@ -1,12 +1,19 @@
 package com.avensys.rts.jobservice.service;
 
-import java.util.*;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.avensys.rts.jobservice.exception.DuplicateResourceException;
-import com.avensys.rts.jobservice.payload.*;
-import com.avensys.rts.jobservice.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +29,30 @@ import com.avensys.rts.jobservice.apiclient.EmailAPIClient;
 import com.avensys.rts.jobservice.apiclient.EmbeddingAPIClient;
 import com.avensys.rts.jobservice.apiclient.FormSubmissionAPIClient;
 import com.avensys.rts.jobservice.apiclient.UserAPIClient;
+import com.avensys.rts.jobservice.entity.AccountEntity;
 import com.avensys.rts.jobservice.entity.CandidateEntity;
 import com.avensys.rts.jobservice.entity.CustomFieldsEntity;
 import com.avensys.rts.jobservice.entity.JobEntity;
 import com.avensys.rts.jobservice.entity.TosEntity;
 import com.avensys.rts.jobservice.entity.UserEntity;
+import com.avensys.rts.jobservice.exception.DuplicateResourceException;
 import com.avensys.rts.jobservice.exception.ServiceException;
 import com.avensys.rts.jobservice.model.FieldInformation;
 import com.avensys.rts.jobservice.model.JobExtraData;
+import com.avensys.rts.jobservice.payload.CustomFieldsRequestDTO;
+import com.avensys.rts.jobservice.payload.EmailMultiTemplateRequestDTO;
+import com.avensys.rts.jobservice.payload.EmbeddingRequestDTO;
+import com.avensys.rts.jobservice.payload.FilterDTO;
+import com.avensys.rts.jobservice.payload.FormSubmissionsRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingDeleteRequestDTO;
+import com.avensys.rts.jobservice.payload.JobListingRequestDTO;
+import com.avensys.rts.jobservice.payload.JobRequest;
+import com.avensys.rts.jobservice.payload.TosRequestDTO;
+import com.avensys.rts.jobservice.repository.AccountRepository;
 import com.avensys.rts.jobservice.repository.CandidateRepository;
 import com.avensys.rts.jobservice.repository.JobCustomFieldsRepository;
 import com.avensys.rts.jobservice.repository.JobRepository;
+import com.avensys.rts.jobservice.repository.TempRepository;
 import com.avensys.rts.jobservice.repository.TosRepository;
 import com.avensys.rts.jobservice.repository.UserRepository;
 import com.avensys.rts.jobservice.response.CustomFieldsResponseDTO;
@@ -43,6 +63,14 @@ import com.avensys.rts.jobservice.response.JobListingDataDTO;
 import com.avensys.rts.jobservice.response.JobListingResponseDTO;
 import com.avensys.rts.jobservice.response.UserResponseDTO;
 import com.avensys.rts.jobservice.search.job.JobSpecificationBuilder;
+import com.avensys.rts.jobservice.util.JSONUtil;
+import com.avensys.rts.jobservice.util.JobDataExtractionUtil;
+import com.avensys.rts.jobservice.util.JobUtil;
+import com.avensys.rts.jobservice.util.JwtUtil;
+import com.avensys.rts.jobservice.util.MappingUtil;
+import com.avensys.rts.jobservice.util.StringUtil;
+import com.avensys.rts.jobservice.util.TextProcessingUtil;
+import com.avensys.rts.jobservice.util.UserUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -57,6 +85,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Service
+@Transactional
 public class JobService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JobService.class);
@@ -75,6 +104,9 @@ public class JobService {
 
 	@Autowired
 	private JobRepository jobRepository;
+
+	@Autowired
+	private AccountRepository accountRepository;
 
 	@Autowired
 	private FormSubmissionAPIClient formSubmissionAPIClient;
@@ -96,6 +128,9 @@ public class JobService {
 
 	@Autowired
 	private EmailAPIClient emailAPIClient;
+
+	@Autowired
+	private TempRepository tempRepository;
 
 	public JobService(JobRepository jobRepository, FormSubmissionAPIClient formSubmissionAPIClient,
 			UserAPIClient userAPIClient) {
@@ -284,6 +319,7 @@ public class JobService {
 			updatedJob.setIsEmailSent(true);
 			jobRepository.save(updatedJob);
 		}
+
 	}
 
 	/**
@@ -463,6 +499,24 @@ public class JobService {
 		} catch (Exception e) {
 			jobEntitiesPage = jobRepository.findAllByOrderByStringWithUserIds(userIds, false, true, pageRequest,
 					jobType, userId, filters);
+		}
+
+		try {
+			addPulseId();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			addAccountPulseId();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			addCandidatePulseId();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
@@ -1013,4 +1067,149 @@ public class JobService {
 		return userData.getId();
 	}
 
+	public void addPulseId() throws Exception {
+		List<Long> jobIds = tempRepository.getNullJobs();
+		if (jobIds.size() > 0) {
+			for (Long jobId : jobIds) {
+				StringBuilder sb = new StringBuilder("J");
+				String year = (Year.now().getValue() + "").substring(2);
+
+				System.out.println("JobId: " + jobId);
+
+				JobEntity jobEntity = getById(jobId);
+				if (jobId != null) {
+					JsonNode submittedData = jobEntity.getJobSubmissionData();
+					String accountName = submittedData.get("accountName").asText();
+
+					if (accountName != null) {
+						accountRepository.findByName(accountName).ifPresent(accountEntity -> {
+							String country = accountEntity.getAccountSubmissionData().get("addressCountry").asText();
+							if (country != null) {
+								String iso3 = tempRepository.getISO3(country);
+								sb.append(iso3);
+							}
+						});
+					}
+
+					sb.append(year + '-');
+
+					Long pulseId = tempRepository.getPulseId("job");
+
+					if (pulseId < 1000) {
+						String val = "0000" + pulseId;
+						String dynamicId = val.substring(val.length() - 4);
+						sb.append(dynamicId);
+					}
+
+					((ObjectNode) submittedData).put("jobId", sb.toString());
+
+					jobEntity.setJobSubmissionData(submittedData);
+
+					FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+					formSubmissionsRequestDTO.setUserId(jobEntity.getUpdatedBy());
+					formSubmissionsRequestDTO.setFormId(jobEntity.getFormId());
+					formSubmissionsRequestDTO.setSubmissionData(submittedData);
+					formSubmissionsRequestDTO.setEntityId(jobEntity.getId());
+					formSubmissionsRequestDTO.setEntityType(JOB_TYPE);
+
+					formSubmissionAPIClient.updateFormSubmission(jobEntity.getFormSubmissionId().intValue(),
+							formSubmissionsRequestDTO);
+
+					tempRepository.updateJobId(jobEntity.getFormSubmissionId(), jobId);
+				}
+			}
+		}
+	}
+
+	public void addAccountPulseId() throws Exception {
+		List<Integer> accountIds = tempRepository.getNullAccounts();
+		if (accountIds.size() > 0) {
+			for (Integer accountId : accountIds) {
+				StringBuilder sb = new StringBuilder("A");
+				String year = (Year.now().getValue() + "").substring(2);
+
+				System.out.println("AccountId: " + accountId);
+
+				AccountEntity accountEntity = accountRepository.findById(accountId).get();
+				if (accountId != null) {
+					JsonNode submittedData = accountEntity.getAccountSubmissionData();
+
+					String country = submittedData.get("addressCountry").asText();
+					if (country != null) {
+						String iso3 = tempRepository.getISO3(country);
+						sb.append(iso3);
+					}
+
+					sb.append(year + '-');
+
+					Long pulseId = tempRepository.getPulseId("account");
+
+					if (pulseId < 1000) {
+						String val = "0000" + pulseId;
+						String dynamicId = val.substring(val.length() - 4);
+						sb.append(dynamicId);
+					}
+
+					((ObjectNode) submittedData).put("accountId", sb.toString());
+
+					accountEntity.setAccountSubmissionData(submittedData);
+
+					FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+					formSubmissionsRequestDTO.setUserId(Long.valueOf(accountEntity.getUpdatedBy().longValue()));
+					formSubmissionsRequestDTO.setFormId(Long.valueOf(accountEntity.getFormId().longValue()));
+					formSubmissionsRequestDTO.setSubmissionData(submittedData);
+					formSubmissionsRequestDTO.setEntityId(Long.valueOf(accountEntity.getId()));
+					formSubmissionsRequestDTO.setEntityType("account_account");
+
+					formSubmissionAPIClient.updateFormSubmission(accountEntity.getFormSubmissionId().intValue(),
+							formSubmissionsRequestDTO);
+
+					tempRepository.updateAccountId(accountEntity.getFormSubmissionId(), accountId);
+				}
+			}
+		}
+	}
+
+	public void addCandidatePulseId() throws Exception {
+		List<Long> candidateIds = tempRepository.getNullCandidates();
+		if (candidateIds.size() > 0) {
+			for (Long candidateId : candidateIds) {
+				StringBuilder sb = new StringBuilder("C");
+				String year = (Year.now().getValue() + "").substring(2);
+
+				System.out.println("CandidateId: " + candidateId);
+
+				CandidateEntity candidateEntity = candidateRepository.findById(candidateId).get();
+				if (candidateId != null) {
+					JsonNode submittedData = candidateEntity.getCandidateSubmissionData();
+
+					sb.append(year + '-');
+
+					Long pulseId = tempRepository.getPulseId("candidate");
+
+					if (pulseId < 1000) {
+						String val = "0000" + pulseId;
+						String dynamicId = val.substring(val.length() - 4);
+						sb.append(dynamicId);
+					}
+
+					((ObjectNode) submittedData).put("candidateId", sb.toString());
+
+					candidateEntity.setCandidateSubmissionData(submittedData);
+
+					FormSubmissionsRequestDTO formSubmissionsRequestDTO = new FormSubmissionsRequestDTO();
+					formSubmissionsRequestDTO.setUserId(candidateEntity.getUpdatedBy());
+					formSubmissionsRequestDTO.setFormId(Long.valueOf(candidateEntity.getFormId().longValue()));
+					formSubmissionsRequestDTO.setSubmissionData(submittedData);
+					formSubmissionsRequestDTO.setEntityId(Long.valueOf(candidateEntity.getId()));
+					formSubmissionsRequestDTO.setEntityType("candidate_basic_info");
+
+					formSubmissionAPIClient.updateFormSubmission(candidateEntity.getFormSubmissionId().intValue(),
+							formSubmissionsRequestDTO);
+
+					tempRepository.updateCandidateId(candidateEntity.getFormSubmissionId(), candidateId);
+				}
+			}
+		}
+	}
 }
