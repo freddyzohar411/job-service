@@ -1077,7 +1077,7 @@ public class JobService {
 
 					System.out.println("JobId: " + jobId);
 
-					JobEntity jobEntity = getById(jobId);
+					JobEntity jobEntity = jobRepository.findById(jobId).get();
 					if (jobId != null) {
 						JsonNode submittedData = jobEntity.getJobSubmissionData();
 						String accountName = submittedData.get("accountName").asText();
