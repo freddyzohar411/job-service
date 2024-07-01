@@ -1119,7 +1119,7 @@ public class JobService {
 
 						tempRepository.updateJobId(jobEntity.getFormSubmissionId(), jobId);
 					}
-				} catch (ServiceException e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
