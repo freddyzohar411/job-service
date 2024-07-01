@@ -504,19 +504,19 @@ public class JobService {
 		try {
 			addPulseId();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error(e.getMessage());
 		}
 
 		try {
 			addAccountPulseId();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error(e.getMessage());
 		}
 
 		try {
 			addCandidatePulseId();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error(e.getMessage());
 		}
 
 		return pageJobListingToJobListingResponseDTO(jobEntitiesPage);
@@ -1120,7 +1120,7 @@ public class JobService {
 						tempRepository.updateJobId(jobEntity.getFormSubmissionId(), jobId);
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.error(e.getMessage());
 				}
 			}
 		}
@@ -1173,8 +1173,7 @@ public class JobService {
 						tempRepository.updateAccountId(accountEntity.getFormSubmissionId(), accountId);
 					}
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOG.error(e.getMessage());
 				}
 			}
 		}
@@ -1221,8 +1220,7 @@ public class JobService {
 						tempRepository.updateCandidateId(candidateEntity.getFormSubmissionId(), candidateId);
 					}
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOG.error(e.getMessage());
 				}
 			}
 		}
